@@ -192,6 +192,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoOrders => 'Auto orders';
 
   @override
+  String get uploadMediaToSupportDeliveryCompletion =>
+      'Upload media to support delivery completion';
+
+  @override
   String get viewAndManageAssignedOrders =>
       'View and manage your assigned orders';
 

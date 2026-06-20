@@ -80,6 +80,7 @@
   "enterPassword": "Enter password",
   "normalOrders": "Normal orders",
   "autoOrders": "Auto orders",
+  "uploadMediaToSupportDeliveryCompletion":"Upload media to support delivery completion",
   "viewAndManageAssignedOrders": "View and manage your assigned orders",
   "noOrders": "No {tabLabel}",
   "@noOrders": {

@@ -192,6 +192,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get autoOrders => 'الطلبات التلقائية';
 
   @override
+  String get uploadMediaToSupportDeliveryCompletion =>
+      'قم بتحميل الوسائط لدعم إتمام عملية التسليم';
+
+  @override
   String get viewAndManageAssignedOrders => 'عرض وإدارة طلباتك المعينة';
 
   @override

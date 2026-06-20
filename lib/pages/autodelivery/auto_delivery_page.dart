@@ -54,15 +54,19 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
         _error = null;
       });
       final items = await _deliveriesApi.getAutoDeliveries();
-      setState(() {
-        _allItems = items;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _allItems = items;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 

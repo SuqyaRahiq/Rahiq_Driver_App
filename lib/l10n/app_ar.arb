@@ -80,6 +80,7 @@
   "enterPassword": "أدخل كلمة المرور",
   "normalOrders": "الطلبات العادية",
   "autoOrders": "الطلبات التلقائية",
+  "uploadMediaToSupportDeliveryCompletion": "قم بتحميل الوسائط لدعم إتمام عملية التسليم",
   "viewAndManageAssignedOrders": "عرض وإدارة طلباتك المعينة",
   "noOrders": "لا توجد {tabLabel}",
   "@noOrders": {

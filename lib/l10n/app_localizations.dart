@@ -452,6 +452,12 @@ abstract class AppLocalizations {
   /// **'Auto orders'**
   String get autoOrders;
 
+  /// No description provided for @uploadMediaToSupportDeliveryCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload media to support delivery completion'**
+  String get uploadMediaToSupportDeliveryCompletion;
+
   /// No description provided for @viewAndManageAssignedOrders.
   ///
   /// In en, this message translates to:

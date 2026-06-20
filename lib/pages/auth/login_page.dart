@@ -296,6 +296,7 @@ class _LoginPageState extends State<LoginPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: TextFormField(
+                                    cursorColor: AppColors.buttonBlueDark,
                                     controller: _phoneController,
                                     keyboardType: TextInputType.phone,
                                     inputFormatters: [
@@ -360,6 +361,7 @@ class _LoginPageState extends State<LoginPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: TextFormField(
+                                    cursorColor: AppColors.buttonBlueDark,
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
                                     decoration: InputDecoration(

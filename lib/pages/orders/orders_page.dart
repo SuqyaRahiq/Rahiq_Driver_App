@@ -50,11 +50,17 @@ class _OrdersPageState extends State<OrdersPage>
 
   late List<_TabDef> _tabs;
 
+  bool _isInit = true;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final l10n = AppLocalizations.of(context)!;
     _tabs = [_TabDef(l10n.normalOrders, []), _TabDef(l10n.autoOrders, [])];
+    if (_isInit) {
+      _isInit = false;
+      _fetchOrders();
+    }
   }
 
   @override
@@ -62,7 +68,6 @@ class _OrdersPageState extends State<OrdersPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _ordersApi = DriverOrdersApi(ApiClient());
-    _fetchOrders();
   }
 
   @override
@@ -73,6 +78,7 @@ class _OrdersPageState extends State<OrdersPage>
 
   Future<void> _fetchOrders() async {
     try {
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _isLoading = true;
         _error = null;
@@ -87,9 +93,7 @@ class _OrdersPageState extends State<OrdersPage>
           OrderListItem(
             id: order.id,
             title: order.customerName ?? 'Unknown Customer',
-            subtitle: AppLocalizations.of(
-              context,
-            )!.orderNumber(order.id.split('-').first.toUpperCase()),
+            subtitle: l10n.orderNumber(order.id.split('-').first.toUpperCase()),
             address: order.deliveryAddress,
             status: order.status ?? 'PENDING',
             createdAt: order.createdAt,
@@ -105,7 +109,7 @@ class _OrdersPageState extends State<OrdersPage>
           OrderListItem(
             id: auto.id,
             title: auto.name,
-            subtitle: AppLocalizations.of(context)!.autoOrderNumber(auto.id),
+            subtitle: l10n.autoOrderNumber(auto.id),
             address: '${auto.totalQuantity} packages',
             status:
                 'PENDING', // Default to pending so it appears in the Assigned tab
@@ -124,15 +128,19 @@ class _OrdersPageState extends State<OrdersPage>
         return b.createdAt!.compareTo(a.createdAt!);
       });
 
-      setState(() {
-        _allOrders = combined;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _allOrders = combined;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -510,10 +518,14 @@ class _OrdersPageState extends State<OrdersPage>
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                _error ?? AppLocalizations.of(context)!.somethingWentWrong,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(
+                    _error ?? AppLocalizations.of(context)!.somethingWentWrong,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

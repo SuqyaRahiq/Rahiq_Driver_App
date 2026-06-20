@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
-import 'package:rahiq_driver/ui/auth/login_page.dart';
-import 'package:rahiq_driver/ui/home_page.dart';
+import 'package:rahiq_driver/pages/auth/login_page.dart';
+import 'package:rahiq_driver/pages/home/home_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

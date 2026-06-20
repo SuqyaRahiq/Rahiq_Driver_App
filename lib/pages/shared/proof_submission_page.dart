@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:rahiq_driver/ui/shared/proof_submission_provider.dart';
+import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
@@ -55,13 +55,14 @@ class ProofSubmissionPage extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     color: AppColors.buttonBlueDark,
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 16,
-                      left: 16,
-                      right: 16,
-                      bottom: 18,
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      16,
+                      60,
+                      16,
+                      20,
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
@@ -78,17 +79,19 @@ class ProofSubmissionPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          AppLocalizations.of(context)!.submitDeliveryProof,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.submitDeliveryProof,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 48),
+                        const SizedBox(width: 38),
                       ],
                     ),
                   ),
@@ -118,13 +121,17 @@ class ProofSubmissionPage extends StatelessWidget {
                           children: [
                             if (provider.useSameImages) ...[
                               _buildSectionTitle(
-                                AppLocalizations.of(context)!.imagesInstructions,
+                                AppLocalizations.of(
+                                  context,
+                                )!.imagesInstructions,
                               ),
                               _buildGlobalImagesPicker(context, provider),
                               const SizedBox(height: 24),
                             ],
 
-                            _buildSectionTitle(AppLocalizations.of(context)!.video),
+                            _buildSectionTitle(
+                              AppLocalizations.of(context)!.video,
+                            ),
                             ...provider.proofs.map((proof) {
                               return _buildSubOrderSection(
                                 context,
@@ -156,7 +163,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            AppLocalizations.of(context)!.proofsUploaded,
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.proofsUploaded,
                                           ),
                                         ),
                                       );
@@ -168,7 +177,11 @@ class ProofSubmissionPage extends StatelessWidget {
                                         context,
                                       ).showSnackBar(
                                         SnackBar(
-                                          content: Text(AppLocalizations.of(context)!.error(e.toString())),
+                                          content: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.error(e.toString()),
+                                          ),
                                           backgroundColor: Colors.red,
                                         ),
                                       );
@@ -537,7 +550,9 @@ class ProofSubmissionPage extends StatelessWidget {
                       children: [
                         _buildBottomSheetTile(
                           icon: Icons.camera_alt,
-                          title: isVideo ? AppLocalizations.of(context)!.takeAVideo : AppLocalizations.of(context)!.takeAPhoto,
+                          title: isVideo
+                              ? AppLocalizations.of(context)!.takeAVideo
+                              : AppLocalizations.of(context)!.takeAPhoto,
                           onTap: () {
                             Navigator.pop(context);
                             onPick(ImageSource.camera);
@@ -546,7 +561,9 @@ class ProofSubmissionPage extends StatelessWidget {
                         const Divider(height: 1, color: Color(0xFFEAEFF2)),
                         _buildBottomSheetTile(
                           icon: Icons.photo_library,
-                          title: AppLocalizations.of(context)!.chooseFromGallery,
+                          title: AppLocalizations.of(
+                            context,
+                          )!.chooseFromGallery,
                           onTap: () {
                             Navigator.pop(context);
                             onPick(ImageSource.gallery);

@@ -3,9 +3,9 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
-import 'package:rahiq_driver/ui/auth/login_page.dart';
-import 'package:rahiq_driver/ui/profile/my_account_page.dart';
-import 'package:rahiq_driver/ui/profile/app_settings_page.dart';
+import 'package:rahiq_driver/pages/auth/login_page.dart';
+import 'package:rahiq_driver/pages/profile/my_account_page.dart';
+import 'package:rahiq_driver/pages/profile/app_settings_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -165,121 +165,138 @@ class _ProfileTabState extends State<ProfileTab> {
                 Container(
                   width: double.infinity,
                   color: AppColors.buttonBlueDark,
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 60, 16, 20),
-                  child: Center(
+                  child: SafeArea(
+                    bottom: false,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          l10n.profile,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16,
+                            0,
+                            16,
+                            12,
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  l10n.profile,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.manageAccountSettings,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.manageAccountSettings,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white70,
-                          ),
-                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
                 ),
 
                 // ── Rounded white body ────────────────────────────────────
-                Container(
-                  decoration: BoxDecoration(color: AppColors.buttonBlueDark),
-                  child: Container(
-                    width: double.infinity,
-                    constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height - 160,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
+                Stack(
+                  children: [
+                    Container(height: 50, color: AppColors.buttonBlueDark),
+                    Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - 160,
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 24),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
 
-                          // ── Account Section ───────────────────────────────
-                          _buildStandaloneTile(
-                            icon: Icons.person_outline_rounded,
-                            title: l10n.myAccount,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const MyAccountPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildStandaloneTile(
-                            icon: Icons.settings_outlined,
-                            title: l10n.appSettings,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AppSettingsPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildStandaloneTile(
-                            icon: Icons.shield_outlined,
-                            title: l10n.termsConditions,
-                            onTap: _showTermsAndConditions,
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // ── Logout Button ─────────────────────────────────
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoggingOut ? null : _logout,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.buttonBlueDark,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                fixedSize: const Size(double.infinity, 50),
-                              ),
-                              child: _isLoggingOut
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(l10n.logout),
+                            // ── Account Section ───────────────────────────────
+                            _buildStandaloneTile(
+                              icon: Icons.person_outline_rounded,
+                              title: l10n.myAccount,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const MyAccountPage(),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            _buildStandaloneTile(
+                              icon: Icons.settings_outlined,
+                              title: l10n.appSettings,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AppSettingsPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _buildStandaloneTile(
+                              icon: Icons.shield_outlined,
+                              title: l10n.termsConditions,
+                              onTap: _showTermsAndConditions,
+                            ),
 
-                          const SizedBox(height: 150),
-                        ],
+                            const SizedBox(height: 24),
+
+                            // ── Logout Button ─────────────────────────────────
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isLoggingOut ? null : _logout,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.buttonBlueDark,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  fixedSize: const Size(double.infinity, 50),
+                                ),
+                                child: _isLoggingOut
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(l10n.logout),
+                              ),
+                            ),
+
+                            const SizedBox(height: 150),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),

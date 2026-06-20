@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get accountSection;
 
+  /// No description provided for @welcomeToTheDriverDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to the Driver Dashboard'**
+  String get welcomeToTheDriverDashboard;
+
   /// No description provided for @manageAccountSettings.
   ///
   /// In en, this message translates to:
@@ -455,7 +461,7 @@ abstract class AppLocalizations {
   /// No description provided for @noOrders.
   ///
   /// In en, this message translates to:
-  /// **'No {tabLabel} orders'**
+  /// **'No {tabLabel}'**
   String noOrders(String tabLabel);
 
   /// No description provided for @somethingWentWrong.
@@ -679,6 +685,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active Driver'**
   String get activeDriver;
+
+  /// No description provided for @getDirections.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Directions'**
+  String get getDirections;
 }
 
 class _AppLocalizationsDelegate

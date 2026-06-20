@@ -12,6 +12,7 @@
   "myAccount": "حسابي",
   "termsConditions": "الشروط والأحكام",
   "accountSection": "الحساب",
+  "welcomeToTheDriverDashboard": "مرحبًا بك في لوحة تحكم السائق",
   "manageAccountSettings": "إدارة إعدادات الحساب",
   "appSettings": "إعدادات التطبيق",
   "buildNumber": "رقم البناء",
@@ -80,7 +81,7 @@
   "normalOrders": "الطلبات العادية",
   "autoOrders": "الطلبات التلقائية",
   "viewAndManageAssignedOrders": "عرض وإدارة طلباتك المعينة",
-  "noOrders": "لا توجد طلبات {tabLabel}",
+  "noOrders": "لا توجد {tabLabel}",
   "@noOrders": {
     "placeholders": {
       "tabLabel": {
@@ -152,5 +153,6 @@
   "contactOurTeam": "اتصل بفريقنا",
   "goBack": "رجوع",
   "contactSupportMessage": "يرجى التواصل مع فريق الدعم:\n\n info@suqyarahiq.com",
-  "activeDriver": "سائق نشط"
+  "activeDriver": "سائق نشط",
+  "getDirections": "احصل على الاتجاهات"
 }

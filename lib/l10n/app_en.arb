@@ -12,6 +12,7 @@
   "myAccount": "My Account",
   "termsConditions": "Terms & Conditions",
   "accountSection": "Account",
+  "welcomeToTheDriverDashboard": "Welcome to the Driver Dashboard",
   "manageAccountSettings": "Manage account settings",
   "appSettings": "App Settings",
   "buildNumber": "Build Number",
@@ -80,7 +81,7 @@
   "normalOrders": "Normal orders",
   "autoOrders": "Auto orders",
   "viewAndManageAssignedOrders": "View and manage your assigned orders",
-  "noOrders": "No {tabLabel} orders",
+  "noOrders": "No {tabLabel}",
   "@noOrders": {
     "placeholders": {
       "tabLabel": {
@@ -152,5 +153,6 @@
   "contactOurTeam": "Contact Our Team",
   "goBack": "Go Back",
   "contactSupportMessage": "Please reach out to our support team:\n\n info@suqyarahiq.com",
-  "activeDriver": "Active Driver"
+  "activeDriver": "Active Driver",
+  "getDirections": "Get Directions"
 }

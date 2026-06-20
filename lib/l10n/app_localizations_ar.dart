@@ -45,6 +45,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountSection => 'الحساب';
 
   @override
+  String get welcomeToTheDriverDashboard => 'مرحبًا بك في لوحة تحكم السائق';
+
+  @override
   String get manageAccountSettings => 'إدارة إعدادات الحساب';
 
   @override
@@ -193,7 +196,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String noOrders(String tabLabel) {
-    return 'لا توجد طلبات $tabLabel';
+    return 'لا توجد $tabLabel';
   }
 
   @override
@@ -316,4 +319,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get activeDriver => 'سائق نشط';
+
+  @override
+  String get getDirections => 'احصل على الاتجاهات';
 }

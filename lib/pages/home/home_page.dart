@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:rahiq_driver/ui/auto_orders_page.dart';
-import 'package:rahiq_driver/ui/dashboard/dashboard_tab.dart';
-import 'package:rahiq_driver/ui/orders/orders_page.dart';
-import 'package:rahiq_driver/ui/profile/profile_tab.dart';
-import 'package:rahiq_driver/ui/shared/custom_bottom_nav.dart';
+import 'package:rahiq_driver/pages/autodelivery/auto_delivery_page.dart';
+import 'package:rahiq_driver/pages/dashboard/dashboard_tab.dart';
+import 'package:rahiq_driver/pages/orders/orders_page.dart';
+import 'package:rahiq_driver/pages/profile/profile_tab.dart';
+import 'package:rahiq_driver/pages/shared/custom_bottom_nav.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     _pages = [
       const DashboardTab(),
       const OrdersPage(),
-      const AutoOrdersPage(),
+      const AutoDeliveryPage(),
       const ProfileTab(),
     ];
   }

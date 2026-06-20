@@ -7,6 +7,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+apply(from = "${project(":flutter_config").projectDir.path}/dotenv.gradle")
+
 android {
     namespace = "com.rahiq.driver"
     compileSdk = flutter.compileSdkVersion

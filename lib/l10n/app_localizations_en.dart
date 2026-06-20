@@ -45,6 +45,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountSection => 'Account';
 
   @override
+  String get welcomeToTheDriverDashboard => 'Welcome to the Driver Dashboard';
+
+  @override
   String get manageAccountSettings => 'Manage account settings';
 
   @override
@@ -194,7 +197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String noOrders(String tabLabel) {
-    return 'No $tabLabel orders';
+    return 'No $tabLabel';
   }
 
   @override
@@ -317,4 +320,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeDriver => 'Active Driver';
+
+  @override
+  String get getDirections => 'Get Directions';
 }

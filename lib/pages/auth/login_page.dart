@@ -5,7 +5,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/services/notification_service.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
-import 'package:rahiq_driver/ui/home_page.dart';
+import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       );
-      
+
       if (response.driver != null) {
         await AuthStorage.saveUserData(response.driver!.toJson());
       }

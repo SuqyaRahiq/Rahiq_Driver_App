@@ -3,8 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
-import 'package:rahiq_driver/ui/orders/order_details_page.dart';
-import 'package:rahiq_driver/ui/auto_orders/auto_order_details_page.dart';
+import 'package:rahiq_driver/pages/orders/order_details_page.dart';
+import 'package:rahiq_driver/pages/orders/auto_order_details_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
@@ -147,120 +147,139 @@ class _OrdersPageState extends State<OrdersPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // ── Header ──────────────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            color: AppColors.buttonBlueDark,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 60, 16, 12),
-                  child: Center(
+      backgroundColor: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: _fetchOrders,
+        color: AppColors.buttonBlueDark,
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            children: [
+              // ── Header ──────────────────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                color: AppColors.buttonBlueDark,
+                child: SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          16,
+                          0,
+                          16,
+                          12,
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.orders,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.viewAndManageAssignedOrders,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Rounded white body ───────────────────────────────────────────
+              Stack(
+                children: [
+                  Container(height: 50, color: AppColors.buttonBlueDark),
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          AppLocalizations.of(context)!.orders,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Container(
+                            height: 55,
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: TabBar(
+                              controller: _tabController,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              dividerColor: Colors.transparent,
+                              indicator: BoxDecoration(
+                                color: AppColors.buttonBlueDark,
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              labelColor: Colors.white,
+                              unselectedLabelColor: Colors.grey[600],
+                              labelStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              unselectedLabelStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              tabs: _tabs
+                                  .map((t) => Tab(text: t.label))
+                                  .toList(),
+                              onTap: (_) => setState(() {}),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.viewAndManageAssignedOrders,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white70,
-                          ),
-                        ),
+                        const SizedBox(height: 16),
+                        _isLoading
+                            ? SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.buttonBlueDark,
+                                  ),
+                                ),
+                              )
+                            : _error != null
+                            ? _buildErrorState()
+                            : AnimatedBuilder(
+                                animation: _tabController,
+                                builder: (context, _) {
+                                  return _buildTabContent(_tabController.index);
+                                },
+                              ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-
-          // ── Rounded white body ───────────────────────────────────────────
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(color: AppColors.buttonBlueDark),
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Container(
-                        height: 55,
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: TabBar(
-                          controller: _tabController,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          dividerColor: Colors.transparent,
-                          indicator: BoxDecoration(
-                            color: AppColors.buttonBlueDark,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.grey[600],
-                          labelStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          unselectedLabelStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          tabs: _tabs.map((t) => Tab(text: t.label)).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.buttonBlueDark,
-                              ),
-                            )
-                          : _error != null
-                          ? _buildErrorState()
-                          : TabBarView(
-                              controller: _tabController,
-                              children: List.generate(
-                                _tabs.length,
-                                (i) => _buildTabContent(i),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
+                ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -269,15 +288,13 @@ class _OrdersPageState extends State<OrdersPage>
     final orders = _ordersForTab(tabIndex);
     if (orders.isEmpty) return _buildEmptyState(_tabs[tabIndex].label);
 
-    return RefreshIndicator(
-      onRefresh: _fetchOrders,
-      color: AppColors.buttonBlueDark,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 150),
-        itemCount: orders.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildOrderCard(orders[index]),
-      ),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 150),
+      itemCount: orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _buildOrderCard(orders[index]),
     );
   }
 
@@ -378,13 +395,7 @@ class _OrdersPageState extends State<OrdersPage>
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      order.subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black38,
-                      ),
-                    ),
+
                     if (order.address != null && order.address!.isNotEmpty) ...[
                       const SizedBox(height: 3),
                       Row(
@@ -444,78 +455,84 @@ class _OrdersPageState extends State<OrdersPage>
   }
 
   Widget _buildEmptyState(String tabLabel) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.inbox_rounded,
-              size: 40,
-              color: AppColors.buttonBlueDark,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.noOrders(tabLabel),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.5,
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.error_outline_rounded,
+                Icons.inbox_rounded,
                 size: 40,
-                color: Colors.redAccent,
+                color: AppColors.buttonBlueDark,
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              _error ?? AppLocalizations.of(context)!.somethingWentWrong,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _fetchOrders,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonBlueDark,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 14,
-                ),
+              AppLocalizations.of(context)!.noOrders(tabLabel),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black54,
               ),
-              child: Text(AppLocalizations.of(context)!.tryAgain),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.5,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  size: 40,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error ?? AppLocalizations.of(context)!.somethingWentWrong,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _fetchOrders,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.buttonBlueDark,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
+                ),
+                child: Text(AppLocalizations.of(context)!.tryAgain),
+              ),
+            ],
+          ),
         ),
       ),
     );

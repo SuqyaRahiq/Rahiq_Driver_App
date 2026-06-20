@@ -21,28 +21,45 @@ class DashboardTab extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   color: AppColors.buttonBlueDark,
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 60, 16, 20),
-                  child: Center(
+                  child: SafeArea(
+                    bottom: false,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          l10n.dashboard,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16,
+                            0,
+                            16,
+                            12,
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)!.dashboard,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.welcomeToTheDriverDashboard,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.viewAndManageAssignedOrders, // Can reuse this string
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white70,
-                          ),
-                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),

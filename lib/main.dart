@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
-import 'package:rahiq_driver/ui/splash_page.dart';
+import 'package:rahiq_driver/splash_page.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -17,11 +17,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AuthStorage.init();
   await initializeDateFormatting();
-  
+
   // Load saved language or default to English
   final savedLanguage = AuthStorage.getLanguage();
   localeNotifier = ValueNotifier(Locale(savedLanguage));
-  
+
   try {
     await Firebase.initializeApp(
       // options: DefaultFirebaseOptions.currentPlatform,
@@ -31,7 +31,7 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
   }
-  
+
   runApp(const MyApp());
 }
 
@@ -55,27 +55,24 @@ class MyApp extends StatelessWidget {
           title: 'Rahiq Driver',
           locale: locale,
           debugShowCheckedModeBanner: false,
-      scrollBehavior: const MyScrollBehavior(),
-      theme: ThemeData(
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
-        ),
-        useMaterial3: true,
-      ),
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-          Locale('ar'),
-        ],
-        home: const SplashPage(),
-      );
+          scrollBehavior: const MyScrollBehavior(),
+          theme: ThemeData(
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+            ),
+            useMaterial3: true,
+          ),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ar')],
+          home: const SplashPage(),
+        );
       },
     );
   }

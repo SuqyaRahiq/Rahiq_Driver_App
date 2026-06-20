@@ -6,6 +6,9 @@ import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/models/driver/auto_order_item.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class AutoOrderDetailsPage extends StatefulWidget {
@@ -24,6 +27,11 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
   List<dynamic> _subOrders = [];
   bool _isMultiSelectMode = false;
   final Set<String> _selectedSubOrders = {};
+
+  String? _batchMosqueFrontImage;
+  String? _batchMosqueInsideImage;
+  final ImagePicker _picker = ImagePicker();
+  bool _isBatchUploading = false;
 
   @override
   void initState() {
@@ -162,12 +170,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
 
                                 const SizedBox(height: 16),
 
-                                if (_subOrders.isNotEmpty &&
-                                    _subOrders.first['customerDetails'] !=
-                                        null) ...[
-                                  _buildCustomerCard(_subOrders.first),
-                                  const SizedBox(height: 16),
-                                ],
+
 
                                 if (_subOrders.isNotEmpty)
                                   _buildSubOrdersSection(),
@@ -182,22 +185,39 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                     width: double.infinity,
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ProofSubmissionPage(
-                                              isAutoOrder: true,
-                                              orderId: widget.item.id,
-                                              subOrders: _selectedSubOrders
-                                                  .toList(),
+                                        if (_selectedSubOrders.length == 1) {
+                                          final subId = _selectedSubOrders.first;
+                                          final subOrder = _subOrders.firstWhere((s) => s['id']?.toString() == subId, orElse: () => {});
+                                          final customer = subOrder['customerDetails'] ?? {};
+                                          final address = subOrder['deliveryAddress'] ?? customer['address'];
+
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ProofSubmissionPage(
+                                                isAutoOrder: true,
+                                                orderId: widget.item.id,
+                                                subOrders: [subId],
+                                                singleCustomerData: {
+                                                  'firstName': customer['firstName'],
+                                                  'lastName': customer['lastName'],
+                                                  'phoneNumber': customer['phoneNumber'],
+                                                  'address': address,
+                                                },
+                                                initialMosqueFrontImage: subOrder['mosqueFrontImage'],
+                                                initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                                              ),
                                             ),
-                                          ),
-                                        ).then((_) {
-                                          setState(() {
-                                            _isMultiSelectMode = false;
-                                            _selectedSubOrders.clear();
+                                          ).then((_) {
+                                            setState(() {
+                                              _isMultiSelectMode = false;
+                                              _selectedSubOrders.clear();
+                                            });
+                                            _fetchDetails();
                                           });
-                                        });
+                                        } else {
+                                          _showBatchImagesBottomSheet(context);
+                                        }
                                       },
                                       icon: const Icon(
                                         Icons.upload_file_rounded,
@@ -208,9 +228,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                             ? AppLocalizations.of(
                                                 context,
                                               )!.completeOrder
-                                            : AppLocalizations.of(
-                                                context,
-                                              )!.completeSelectedOrders,
+                                            : 'Upload Batch Images',
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
@@ -387,127 +405,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
     );
   }
 
-  Widget _buildCustomerCard(dynamic firstSubOrder) {
-    final customer = firstSubOrder['customerDetails'] ?? {};
-    final address = firstSubOrder['deliveryAddress'] ?? customer['address'];
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    color: AppColors.buttonBlueDark,
-                    size: 17,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  AppLocalizations.of(context)!.customerDetails,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFEEF1F4)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.person_outline,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                if (customer['phoneNumber'] != null) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${customer['phoneNumber']}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (address != null && address.toString().isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          address.toString(),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSubOrdersSection() {
     return Column(
@@ -554,13 +452,26 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ProofSubmissionPage(
-                      isAutoOrder: true,
-                      orderId: widget.item.id,
-                      subOrders: [subId],
-                    ),
+                    builder: (_) {
+                      final customer = subOrder['customerDetails'] ?? {};
+                      final address = subOrder['deliveryAddress'] ?? customer['address'];
+                      
+                      return ProofSubmissionPage(
+                        isAutoOrder: true,
+                        orderId: widget.item.id,
+                        subOrders: [subId],
+                        singleCustomerData: {
+                           'firstName': customer['firstName'],
+                           'lastName': customer['lastName'],
+                           'phoneNumber': customer['phoneNumber'],
+                           'address': address,
+                        },
+                        initialMosqueFrontImage: subOrder['mosqueFrontImage'],
+                        initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                      );
+                    },
                   ),
-                );
+                ).then((_) => _fetchDetails());
               }
             },
             child: Container(
@@ -738,5 +649,232 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
           ? dateStr.toString().substring(0, 10)
           : dateStr.toString();
     }
+  }
+
+  void _showBatchImagesBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final canSave = _batchMosqueFrontImage != null && _batchMosqueInsideImage != null;
+
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Upload Batch Images',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.buttonBlueDark,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDottedImagePicker(
+                          context,
+                          label: AppLocalizations.of(context)!.mosqueFront,
+                          path: _batchMosqueFrontImage,
+                          onPick: (source) async {
+                            final file = await _picker.pickImage(source: source);
+                            if (file != null) {
+                              setSheetState(() => _batchMosqueFrontImage = file.path);
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        _buildDottedImagePicker(
+                          context,
+                          label: AppLocalizations.of(context)!.mosqueInsideImage,
+                          path: _batchMosqueInsideImage,
+                          onPick: (source) async {
+                            final file = await _picker.pickImage(source: source);
+                            if (file != null) {
+                              setSheetState(() => _batchMosqueInsideImage = file.path);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: canSave && !_isBatchUploading
+                            ? () async {
+                                setSheetState(() => _isBatchUploading = true);
+                                setState(() => _isBatchUploading = true);
+                                try {
+                                  await _api.bulkUploadMosqueImages(
+                                    orderId: widget.item.id,
+                                    subOrderIds: _selectedSubOrders.join(','),
+                                    mosqueFrontImagePath: _batchMosqueFrontImage!,
+                                    mosqueInsideImagePath: _batchMosqueInsideImage!,
+                                  );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Batch images uploaded successfully!')),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                  setState(() {
+                                    _batchMosqueFrontImage = null;
+                                    _batchMosqueInsideImage = null;
+                                    _isMultiSelectMode = false;
+                                    _selectedSubOrders.clear();
+                                  });
+                                  _fetchDetails();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(e.toString()),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  setSheetState(() => _isBatchUploading = false);
+                                  setState(() => _isBatchUploading = false);
+                                }
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonBlueDark,
+                          disabledBackgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: _isBatchUploading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Save Images',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDottedImagePicker(
+    BuildContext context, {
+    required String label,
+    required String? path,
+    required Function(ImageSource) onPick,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _showSourceBottomSheet(context, onPick),
+        child: Column(
+          children: [
+            DottedBorder(
+              options: RoundedRectDottedBorderOptions(
+                radius: Radius.circular(12),
+                color: Colors.grey.shade400,
+                strokeWidth: 1.5,
+                dashPattern: const [6, 4],
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: path != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadiusGeometry.circular(12),
+                        child: path.startsWith('http')
+                            ? Image.network(path, fit: BoxFit.cover)
+                            : Image.file(File(path), fit: BoxFit.cover),
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          color: Colors.grey,
+                          size: 32,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSourceBottomSheet(
+    BuildContext context,
+    Function(ImageSource) onPick,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(AppLocalizations.of(context)!.takeAPhoto),
+              onTap: () {
+                Navigator.pop(context);
+                onPick(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(AppLocalizations.of(context)!.chooseFromGallery),
+              onTap: () {
+                Navigator.pop(context);
+                onPick(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

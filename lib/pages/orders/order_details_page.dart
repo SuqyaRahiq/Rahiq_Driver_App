@@ -101,6 +101,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       isAutoOrder: false,
                                       orderId: widget.order.id,
                                       subOrders: _selectedSubOrders.toList(),
+                                      singleCustomerData: null,
                                     ),
                                   ),
                                 ).then((_) {
@@ -192,30 +193,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              AppLocalizations.of(context)!.customerDetails,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.buttonBlue,
-              ),
-            ),
-            const Divider(),
-            _buildDetailRow(
-              Icons.person,
-              AppLocalizations.of(context)!.nameLabel,
-              widget.order.customerName ?? 'N/A',
-            ),
-            _buildDetailRow(
-              Icons.phone,
-              AppLocalizations.of(context)!.phoneLabel,
-              widget.order.customerPhone ?? 'N/A',
-            ),
-            _buildDetailRow(
-              Icons.location_on,
-              AppLocalizations.of(context)!.addressLabel,
-              widget.order.deliveryAddress ?? 'N/A',
-            ),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.orderInfo,
@@ -313,6 +290,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           isAutoOrder: false,
                           orderId: widget.order.id,
                           subOrders: [subId],
+                          singleCustomerData: {
+                            'firstName': widget.order.customerName,
+                            'lastName': '',
+                            'phoneNumber': widget.order.customerPhone,
+                            'address': widget.order.deliveryAddress,
+                          },
                         ),
                       ),
                     );

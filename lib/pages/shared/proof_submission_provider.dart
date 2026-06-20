@@ -29,10 +29,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
   String? _globalMosqueFrontImage;
   String? _globalMosqueInsideImage;
   String? _globalPackagesImage;
+  String? _globalProofVideo;
 
   String? get globalMosqueFrontImage => _globalMosqueFrontImage;
   String? get globalMosqueInsideImage => _globalMosqueInsideImage;
   String? get globalPackagesImage => _globalPackagesImage;
+  String? get globalProofVideo => _globalProofVideo;
 
   List<SubOrderProof> _proofs = [];
   List<SubOrderProof> get proofs => _proofs;
@@ -43,6 +45,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
     required this.orderId,
     required this.isAutoOrder,
     required this.subOrderIds,
+    String? initialMosqueFrontImage,
+    String? initialMosqueInsideImage,
   }) {
     if (isAutoOrder || isMultiSelect) {
       _useSameImages = true;
@@ -50,6 +54,11 @@ class ProofSubmissionProvider extends ChangeNotifier {
     _proofs = subOrderIds.map((id) => SubOrderProof(id)).toList();
     if (_proofs.isEmpty) {
       _proofs.add(SubOrderProof(orderId)); // Fallback if no suborders exist
+    }
+
+    if (!isMultiSelect && _proofs.isNotEmpty) {
+      _proofs.first.mosqueFrontImage = initialMosqueFrontImage;
+      _proofs.first.mosqueInsideImage = initialMosqueInsideImage;
     }
   }
 
@@ -88,10 +97,18 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> pickGlobalVideo(ImageSource source) async {
+    final XFile? file = await _picker.pickVideo(source: source);
+    if (file != null) {
+      _globalProofVideo = file.path;
+      notifyListeners();
+    }
+  }
+
   bool get canSubmit {
     if (isMultiSelect || _useSameImages) {
-      if (_globalMosqueFrontImage == null || _globalMosqueInsideImage == null || _globalPackagesImage == null) return false;
-      return _proofs.every((p) => p.proofVideo != null);
+      if (_globalMosqueFrontImage == null || _globalMosqueInsideImage == null || _globalPackagesImage == null || _globalProofVideo == null) return false;
+      return true;
     } else {
       if (_proofs.isEmpty) return false;
       final p = _proofs.first;
@@ -114,7 +131,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
             mosqueFrontImagePath: _globalMosqueFrontImage!,
             mosqueInsideImagePath: _globalMosqueInsideImage!,
             packagesImagePath: _globalPackagesImage!,
-            proofVideoPath: proof.proofVideo,
+            proofVideoPath: _globalProofVideo,
           );
         }
       } else {

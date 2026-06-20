@@ -11,12 +11,18 @@ class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
   final bool isAutoOrder;
   final List<String> subOrders;
+  final Map<String, dynamic>? singleCustomerData;
+  final String? initialMosqueFrontImage;
+  final String? initialMosqueInsideImage;
 
   const ProofSubmissionPage({
     super.key,
     required this.orderId,
     required this.isAutoOrder,
     required this.subOrders,
+    this.singleCustomerData,
+    this.initialMosqueFrontImage,
+    this.initialMosqueInsideImage,
   });
 
   @override
@@ -26,6 +32,8 @@ class ProofSubmissionPage extends StatelessWidget {
         orderId: orderId,
         isAutoOrder: isAutoOrder,
         subOrderIds: subOrders,
+        initialMosqueFrontImage: initialMosqueFrontImage,
+        initialMosqueInsideImage: initialMosqueInsideImage,
       ),
       child: Scaffold(
         backgroundColor: AppColors.white,
@@ -148,6 +156,11 @@ class ProofSubmissionPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (!provider.isMultiSelect && singleCustomerData != null) ...[
+                              _buildCustomerCard(context, singleCustomerData!),
+                              const SizedBox(height: 24),
+                            ],
+
                             if (provider.useSameImages) ...[
                               _buildSectionTitle(
                                 AppLocalizations.of(
@@ -156,18 +169,37 @@ class ProofSubmissionPage extends StatelessWidget {
                               ),
                               _buildGlobalImagesPicker(context, provider),
                               const SizedBox(height: 24),
+                              _buildSectionTitle(
+                                AppLocalizations.of(context)!.video,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildDottedImagePicker(
+                                    context,
+                                    label: AppLocalizations.of(context)!.productInsideMosque,
+                                    path: provider.globalProofVideo,
+                                    isVideo: true,
+                                    onPick: (source) => provider.pickGlobalVideo(source),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(child: SizedBox()),
+                                  const SizedBox(width: 12),
+                                  const Expanded(child: SizedBox()),
+                                ],
+                              ),
+                            ] else ...[
+                              _buildSectionTitle(
+                                AppLocalizations.of(context)!.video,
+                              ),
+                              ...provider.proofs.map((proof) {
+                                return _buildSubOrderSection(
+                                  context,
+                                  provider,
+                                  proof,
+                                );
+                              }),
                             ],
-
-                            _buildSectionTitle(
-                              AppLocalizations.of(context)!.video,
-                            ),
-                            ...provider.proofs.map((proof) {
-                              return _buildSubOrderSection(
-                                context,
-                                provider,
-                                proof,
-                              );
-                            }),
                             SizedBox(height: 24),
                             Container(
                               color: Colors.white,
@@ -411,7 +443,9 @@ class ProofSubmissionPage extends StatelessWidget {
                             )
                           : ClipRRect(
                               borderRadius: BorderRadiusGeometry.circular(12),
-                              child: Image.file(File(path), fit: BoxFit.cover),
+                              child: path.startsWith('http')
+                                  ? Image.network(path, fit: BoxFit.cover)
+                                  : Image.file(File(path), fit: BoxFit.cover),
                             ))
                     : Center(
                         child: Icon(
@@ -657,6 +691,131 @@ class ProofSubmissionPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerCard(BuildContext context, Map<String, dynamic> customer) {
+    final address = customer['address'];
+    final name = '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'.trim();
+    
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.buttonBlueDark.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: AppColors.buttonBlueDark,
+                    size: 17,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.customerDetails,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEF1F4)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (name.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (customer['phoneNumber'] != null && customer['phoneNumber'].toString().isNotEmpty) ...[
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${customer['phoneNumber']}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (address != null && address.toString().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          address.toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

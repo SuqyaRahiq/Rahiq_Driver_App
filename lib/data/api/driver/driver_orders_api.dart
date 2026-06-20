@@ -105,12 +105,19 @@ class DriverOrdersApi {
     required String proofVideoPath,
   }) async {
     try {
-      FormData formData = FormData.fromMap({
-        'mosqueFrontImage': await MultipartFile.fromFile(mosqueFrontImagePath),
-        'mosqueInsideImage': await MultipartFile.fromFile(mosqueInsideImagePath),
-        'packagesImage': await MultipartFile.fromFile(packagesImagePath),
-        'deliveryVideo': await MultipartFile.fromFile(proofVideoPath),
-      });
+      FormData formData = FormData.fromMap({});
+      if (!mosqueFrontImagePath.startsWith('http')) {
+        formData.files.add(MapEntry('mosqueFrontImage', await MultipartFile.fromFile(mosqueFrontImagePath)));
+      }
+      if (!mosqueInsideImagePath.startsWith('http')) {
+        formData.files.add(MapEntry('mosqueInsideImage', await MultipartFile.fromFile(mosqueInsideImagePath)));
+      }
+      if (!packagesImagePath.startsWith('http')) {
+        formData.files.add(MapEntry('packagesImage', await MultipartFile.fromFile(packagesImagePath)));
+      }
+      if (!proofVideoPath.startsWith('http')) {
+        formData.files.add(MapEntry('deliveryVideo', await MultipartFile.fromFile(proofVideoPath)));
+      }
 
       final response = await _apiClient.dio.post(
         '/driver/orders/sub-orders/$subOrderId/confirm',
@@ -158,6 +165,38 @@ class DriverOrdersApi {
       }
     } on DioException catch (e) {
       throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to bulk upload proof', statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<void> bulkUploadMosqueImages({
+    required String orderId,
+    required String subOrderIds,
+    required String mosqueFrontImagePath,
+    required String mosqueInsideImagePath,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'orderId': orderId,
+        'subOrderIds': subOrderIds,
+      });
+
+      if (!mosqueFrontImagePath.startsWith('http')) {
+        formData.files.add(MapEntry('mosqueFrontImage', await MultipartFile.fromFile(mosqueFrontImagePath)));
+      }
+      if (!mosqueInsideImagePath.startsWith('http')) {
+        formData.files.add(MapEntry('mosqueInsideImage', await MultipartFile.fromFile(mosqueInsideImagePath)));
+      }
+
+      final response = await _apiClient.dio.post(
+        '/driver/orders/bulk-upload-proof',
+        data: formData,
+      );
+
+      if (response.statusCode != 200 || response.data['success'] != true) {
+        throw ApiException(response.data['message'] ?? 'Failed to bulk upload mosque images', statusCode: response.statusCode);
+      }
+    } on DioException catch (e) {
+      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to bulk upload mosque images', statusCode: e.response?.statusCode);
     }
   }
 }

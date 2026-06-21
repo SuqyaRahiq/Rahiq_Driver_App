@@ -697,6 +697,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get Directions'**
   String get getDirections;
+
+  /// No description provided for @assignedStat.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get assignedStat;
+
+  /// No description provided for @confirmedStat.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get confirmedStat;
+
+  /// No description provided for @packagesStat.
+  ///
+  /// In en, this message translates to:
+  /// **'Packages'**
+  String get packagesStat;
+
+  /// No description provided for @todayDeliveriesStat.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Deliveries'**
+  String get todayDeliveriesStat;
+
+  /// No description provided for @todayPackagesStat.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Packages'**
+  String get todayPackagesStat;
 }
 
 class _AppLocalizationsDelegate

@@ -327,4 +327,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get getDirections => 'Get Directions';
+
+  @override
+  String get assignedStat => 'Assigned';
+
+  @override
+  String get confirmedStat => 'Confirmed';
+
+  @override
+  String get packagesStat => 'Packages';
+
+  @override
+  String get todayDeliveriesStat => 'Today\'s Deliveries';
+
+  @override
+  String get todayPackagesStat => 'Today\'s Packages';
 }

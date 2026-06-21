@@ -155,5 +155,10 @@
   "goBack": "رجوع",
   "contactSupportMessage": "يرجى التواصل مع فريق الدعم:\n\n info@suqyarahiq.com",
   "activeDriver": "سائق نشط",
-  "getDirections": "احصل على الاتجاهات"
+  "getDirections": "احصل على الاتجاهات",
+  "assignedStat": "المُسندة",
+  "confirmedStat": "المؤكدة",
+  "packagesStat": "الطرود",
+  "todayDeliveriesStat": "توصيلات اليوم",
+  "todayPackagesStat": "طرود اليوم"
 }

@@ -155,5 +155,10 @@
   "goBack": "Go Back",
   "contactSupportMessage": "Please reach out to our support team:\n\n info@suqyarahiq.com",
   "activeDriver": "Active Driver",
-  "getDirections": "Get Directions"
+  "getDirections": "Get Directions",
+  "assignedStat": "Assigned",
+  "confirmedStat": "Confirmed",
+  "packagesStat": "Packages",
+  "todayDeliveriesStat": "Today's Deliveries",
+  "todayPackagesStat": "Today's Packages"
 }

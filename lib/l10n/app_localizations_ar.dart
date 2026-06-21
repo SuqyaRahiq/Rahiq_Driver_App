@@ -326,4 +326,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get getDirections => 'احصل على الاتجاهات';
+
+  @override
+  String get assignedStat => 'المُسندة';
+
+  @override
+  String get confirmedStat => 'المؤكدة';
+
+  @override
+  String get packagesStat => 'الطرود';
+
+  @override
+  String get todayDeliveriesStat => 'توصيلات اليوم';
+
+  @override
+  String get todayPackagesStat => 'طرود اليوم';
 }

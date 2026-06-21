@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import '../../models/driver/auto_order_item.dart'; // AutoOrderItem
 import '../../models/driver/driver_order.dart';
+import '../../models/driver/driver_dashboard_stats.dart';
 import '../api_client.dart';
 import '../api_exception.dart';
 
@@ -24,6 +25,25 @@ class DriverOrdersApi {
     }
   }
 
+  Future<DriverDashboardStats> getDashboardStats() async {
+    try {
+      final response = await _apiClient.dio.get('/driver/orders/dashboard');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return DriverDashboardStats.fromJson(response.data['data']['stats']);
+      } else {
+        throw ApiException(
+            response.data['message'] ?? 'Failed to get dashboard stats',
+            statusCode: response.statusCode);
+      }
+    } on DioException catch (e) {
+      throw ApiException(
+          e.response?.data['message'] ??
+              e.message ??
+              'Failed to get dashboard stats',
+          statusCode: e.response?.statusCode);
+    }
+  }
+
   Future<void> updateNormalOrderLocation(String orderId, double latitude, double longitude) async {
     try {
       final response = await _apiClient.dio.patch(
@@ -41,7 +61,7 @@ class DriverOrdersApi {
     }
   }
 
-  Future<List<String>> getNormalOrderSubOrders(String orderId) async {
+  Future<List<dynamic>> getNormalOrderSubOrders(String orderId) async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/normal/location/$orderId');
       if (response.statusCode == 200 && response.data['success'] == true) {
@@ -50,7 +70,7 @@ class DriverOrdersApi {
           data = data['items'];
         }
         if (data is List) {
-          return data.map<String>((e) => e is Map ? (e['id']?.toString() ?? e.toString()) : e.toString()).toList();
+          return data;
         }
         return [];
       } else {
@@ -137,17 +157,20 @@ class DriverOrdersApi {
     required String mosqueFrontImagePath,
     required String mosqueInsideImagePath,
     required String packagesImagePath,
-    required String subOrderIds,
+    required List<String> subOrderIds,
     String? proofVideoPath,
   }) async {
     try {
       FormData formData = FormData.fromMap({
         'orderId': orderId,
-        'subOrderIds': subOrderIds,
         'mosqueFrontImage': await MultipartFile.fromFile(mosqueFrontImagePath),
         'mosqueInsideImage': await MultipartFile.fromFile(mosqueInsideImagePath),
         'packagesImage': await MultipartFile.fromFile(packagesImagePath),
       });
+
+      for (var id in subOrderIds) {
+        formData.fields.add(MapEntry('subOrderIds', id));
+      }
 
       if (proofVideoPath != null) {
         formData.files.add(
@@ -170,15 +193,18 @@ class DriverOrdersApi {
 
   Future<void> bulkUploadMosqueImages({
     required String orderId,
-    required String subOrderIds,
+    required List<String> subOrderIds,
     required String mosqueFrontImagePath,
     required String mosqueInsideImagePath,
   }) async {
     try {
       FormData formData = FormData.fromMap({
         'orderId': orderId,
-        'subOrderIds': subOrderIds,
       });
+
+      for (var id in subOrderIds) {
+        formData.fields.add(MapEntry('subOrderIds', id));
+      }
 
       if (!mosqueFrontImagePath.startsWith('http')) {
         formData.files.add(MapEntry('mosqueFrontImage', await MultipartFile.fromFile(mosqueFrontImagePath)));

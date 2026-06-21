@@ -724,7 +724,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                 try {
                                   await _api.bulkUploadMosqueImages(
                                     orderId: widget.item.id,
-                                    subOrderIds: _selectedSubOrders.join(','),
+                                    subOrderIds: _selectedSubOrders.toList(),
                                     mosqueFrontImagePath: _batchMosqueFrontImage!,
                                     mosqueInsideImagePath: _batchMosqueInsideImage!,
                                   );

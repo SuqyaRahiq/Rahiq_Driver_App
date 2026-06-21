@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_order.dart';
-import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
+import 'package:rahiq_driver/pages/orders/normal_sub_order_details_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
@@ -21,9 +21,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late DriverOrdersApi _api;
   bool _isLoading = true;
   String? _error;
-  List<String> _subOrders = [];
-  bool _isMultiSelectMode = false;
-  final Set<String> _selectedSubOrders = {};
+  List<dynamic> _subOrders = [];
 
   @override
   void initState() {
@@ -88,49 +86,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         const SizedBox(height: 16),
                         if (_subOrders.isNotEmpty) _buildSubOrdersSection(),
                         const SizedBox(height: 24),
-                        if (_isMultiSelectMode && _selectedSubOrders.isNotEmpty)
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ProofSubmissionPage(
-                                      isAutoOrder: false,
-                                      orderId: widget.order.id,
-                                      subOrders: _selectedSubOrders.toList(),
-                                      singleCustomerData: null,
-                                    ),
-                                  ),
-                                ).then((_) {
-                                  // Clear multiselect state when returning
-                                  setState(() {
-                                    _isMultiSelectMode = false;
-                                    _selectedSubOrders.clear();
-                                  });
-                                });
-                              },
-                              icon: const Icon(Icons.upload_file),
-                              label: Text(
-                                _selectedSubOrders.length == 1
-                                    ? AppLocalizations.of(
-                                        context,
-                                      )!.completeOrder
-                                    : AppLocalizations.of(
-                                        context,
-                                      )!.completeSelectedOrders,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.buttonBlue,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -226,118 +181,211 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildSubOrdersSection() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.subOrdersLabel,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.buttonBlue,
-                  ),
-                ),
-                if (_isMultiSelectMode)
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isMultiSelectMode = false;
-                        _selectedSubOrders.clear();
-                      });
-                    },
-                    child: Text(AppLocalizations.of(context)!.cancel),
-                  ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
+          child: Text(
+            AppLocalizations.of(context)!.subOrdersLabel,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
             ),
-            const Divider(),
-            ..._subOrders.map((subId) {
-              final isSelected = _selectedSubOrders.contains(subId);
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onLongPress: () {
-                  if (_subOrders.length > 1) {
-                    setState(() {
-                      _isMultiSelectMode = true;
-                      _selectedSubOrders.add(subId);
-                    });
-                  }
-                },
-                onTap: () {
-                  if (_isMultiSelectMode) {
-                    setState(() {
-                      if (isSelected) {
-                        _selectedSubOrders.remove(subId);
-                        if (_selectedSubOrders.isEmpty) {
-                          _isMultiSelectMode = false;
-                        }
-                      } else {
-                        _selectedSubOrders.add(subId);
-                      }
-                    });
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProofSubmissionPage(
-                          isAutoOrder: false,
-                          orderId: widget.order.id,
-                          subOrders: [subId],
-                          singleCustomerData: {
-                            'firstName': widget.order.customerName,
-                            'lastName': '',
-                            'phoneNumber': widget.order.customerPhone,
-                            'address': widget.order.deliveryAddress,
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: isSelected
-                        ? Border.all(color: AppColors.buttonBlue, width: 2)
-                        : Border.all(color: Colors.transparent, width: 2),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.inventory, size: 20, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          subId,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                      if (!_isMultiSelectMode)
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                    ],
+          ),
+        ),
+        ..._subOrders.map((subOrder) {
+          final product = subOrder['product'] ?? {};
+          final subId = subOrder['id']?.toString() ?? '';
+
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NormalSubOrderDetailsPage(
+                    order: widget.order,
+                    subOrder: subOrder,
                   ),
                 ),
-              );
-            }),
-          ],
-        ),
-      ),
+              ).then((shouldRefresh) {
+                if (shouldRefresh == true) {
+                  _fetchSubOrders();
+                }
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.transparent, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.subOrderNumber(
+                            subOrder['subOrderNumber']?.toString() ??
+                                (subId.length > 8 ? subId.substring(0, 8) : subId),
+                          ),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.buttonBlueDark,
+                          ),
+                        ),
+                        const Divider(),
+                        if (subOrder['deliveryNotes'] != null &&
+                            subOrder['deliveryNotes'].toString().isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.note_alt_outlined,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.notes(
+                                      subOrder['deliveryNotes'].toString(),
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (subOrder['assignedDate'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  AppLocalizations.of(context)!.assigned(
+                                    _formatDate(subOrder['assignedDate']),
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            if (product['image'] != null &&
+                                product['image'].toString().isNotEmpty)
+                              Container(
+                                width: 40,
+                                height: 40,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Image.network(
+                                  product['image'],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.inventory_2_outlined,
+                                        color: Colors.grey,
+                                      ),
+                                ),
+                              )
+                            else
+                              Container(
+                                width: 40,
+                                height: 40,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                ),
+                                child: const Icon(
+                                  Icons.inventory_2_outlined,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product['name'] ??
+                                        AppLocalizations.of(context)!.product,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    AppLocalizations.of(context)!.qty(
+                                      subOrder['quantity']?.toString() ?? '1',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.buttonBlueDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
     );
+  }
+
+  String _formatDate(dynamic dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final dt = DateTime.parse(dateStr.toString()).toLocal();
+      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return dateStr.toString().length > 10
+          ? dateStr.toString().substring(0, 10)
+          : dateStr.toString();
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {

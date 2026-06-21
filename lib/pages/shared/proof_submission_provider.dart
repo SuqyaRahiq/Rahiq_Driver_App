@@ -124,16 +124,14 @@ class ProofSubmissionProvider extends ChangeNotifier {
       if (isMultiSelect || _useSameImages) {
         if (!canSubmit) throw Exception('Please provide all required media.');
         
-        for (var proof in _proofs) {
-          await _api.bulkUploadProof(
-            orderId: orderId,
-            subOrderIds: proof.subOrderId,
-            mosqueFrontImagePath: _globalMosqueFrontImage!,
-            mosqueInsideImagePath: _globalMosqueInsideImage!,
-            packagesImagePath: _globalPackagesImage!,
-            proofVideoPath: _globalProofVideo,
-          );
-        }
+        await _api.bulkUploadProof(
+          orderId: orderId,
+          subOrderIds: _proofs.map((p) => p.subOrderId).toList(),
+          mosqueFrontImagePath: _globalMosqueFrontImage!,
+          mosqueInsideImagePath: _globalMosqueInsideImage!,
+          packagesImagePath: _globalPackagesImage!,
+          proofVideoPath: _globalProofVideo,
+        );
       } else {
         // Single submission
         if (!canSubmit) throw Exception('Please provide all required media.');

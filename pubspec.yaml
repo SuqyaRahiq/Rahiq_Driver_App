@@ -55,7 +55,7 @@ dependencies:
   dotted_border: ^3.1.0
   package_info_plus: ^10.1.0
   google_maps_flutter: ^2.17.1
-  flutter_config: ^2.0.2
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +83,7 @@ flutter:
   assets:
     - assets/
     - assets/hoppscotch-team-collections-openapi.json
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

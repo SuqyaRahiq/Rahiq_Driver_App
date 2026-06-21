@@ -5,5 +5,155 @@
   "phoneNumber": "رقم الهاتف",
   "password": "كلمة المرور",
   "profile": "الملف الشخصي",
-  "notifications": "الإشعارات"
+  "notifications": "الإشعارات",
+  "logout": "تسجيل الخروج",
+  "logoutConfirmation": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+  "cancel": "إلغاء",
+  "myAccount": "حسابي",
+  "termsConditions": "الشروط والأحكام",
+  "accountSection": "الحساب",
+  "welcomeToTheDriverDashboard": "مرحبًا بك في لوحة تحكم السائق",
+  "manageAccountSettings": "إدارة إعدادات الحساب",
+  "appSettings": "إعدادات التطبيق",
+  "buildNumber": "رقم البناء",
+  "version": "الإصدار",
+  "appInformation": "معلومات التطبيق",
+  "appLanguage": "لغة التطبيق",
+  "managePreferencesAndAppInfo": "إدارة التفضيلات ومعلومات التطبيق",
+  "home": "الرئيسية",
+  "orders": "الطلبات",
+  "autodelivery": "التوصيل التلقائي",
+  "dashboard": "لوحة القيادة",
+  "orderNumber": "طلب #{id}",
+  "@orderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "autoOrderNumber": "طلب تلقائي #{id}",
+  "@autoOrderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tryAgain": "حاول مرة أخرى",
+  "video": "فيديو",
+  "mosqueFront": "واجهة المسجد",
+  "mosqueInsideImage": "صورة داخل المسجد",
+  "productInsideMosque": "المنتج داخل المسجد",
+  "mosqueName": "اسم المسجد",
+  "productPlaced": "تم وضع المنتج",
+  "takeAVideo": "التقط فيديو",
+  "takeAPhoto": "التقط صورة",
+  "chooseFromGallery": "اختر من المعرض",
+  "error": "خطأ: {errorText}",
+  "@error": {
+    "placeholders": {
+      "errorText": {
+        "type": "String"
+      }
+    }
+  },
+  "english": "English",
+  "arabic": "عربي",
+  "personalInformation": "المعلومات الشخصية",
+  "firstName": "الاسم الأول",
+  "lastName": "الاسم الأخير",
+  "email": "البريد الإلكتروني",
+  "gender": "الجنس",
+  "contactDetails": "تفاصيل الاتصال",
+  "accountDetails": "تفاصيل الحساب",
+  "status": "الحالة",
+  "driverType": "نوع السائق",
+  "vehicleId": "رقم المركبة",
+  "accountHistory": "سجل الحساب",
+  "memberSince": "عضو منذ",
+  "lastUpdated": "آخر تحديث",
+  "contactSupport": "اتصل بالدعم",
+  "close": "إغلاق",
+  "search": "بحث",
+  "enterPhoneNumber": "أدخل رقم الهاتف",
+  "enterPassword": "أدخل كلمة المرور",
+  "normalOrders": "الطلبات العادية",
+  "autoOrders": "الطلبات التلقائية",
+  "uploadMediaToSupportDeliveryCompletion": "قم بتحميل الوسائط لدعم إتمام عملية التسليم",
+  "viewAndManageAssignedOrders": "عرض وإدارة طلباتك المعينة",
+  "noOrders": "لا توجد {tabLabel}",
+  "@noOrders": {
+    "placeholders": {
+      "tabLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "somethingWentWrong": "حدث خطأ ما",
+  "completeOrder": "إكمال الطلب",
+  "completeSelectedOrders": "إكمال الطلبات المحددة",
+  "customerDetails": "تفاصيل العميل",
+  "nameLabel": "الاسم",
+  "phoneLabel": "الهاتف",
+  "addressLabel": "العنوان",
+  "orderInfo": "معلومات الطلب",
+  "paymentLabel": "الدفع",
+  "totalLabel": "المجموع",
+  "subOrdersLabel": "الطلبات الفرعية",
+  "pending": "قيد الانتظار",
+  "delivered": "تم التوصيل",
+  "unknownCustomer": "عميل غير معروف",
+  "batchDeliveries": "تسليمات الدفعة",
+  "notes": "ملاحظات: {notes}",
+  "@notes": {
+    "placeholders": {
+      "notes": {
+        "type": "String"
+      }
+    }
+  },
+  "assigned": "تم التعيين: {date}",
+  "@assigned": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "product": "المنتج",
+  "qty": "الكمية: {qty}",
+  "@qty": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "subOrderNumber": "طلب فرعي #{id}",
+  "@subOrderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadingProof": "جاري رفع الإثبات، يرجى الانتظار...",
+  "submitDeliveryProof": "إرسال إثبات التوصيل",
+  "imagesInstructions": "الصور (يرجى التقاط ثلاث صور صحيحة)",
+  "proofsUploaded": "تم رفع الإثباتات بنجاح!",
+  "completeOrders": "إكمال الطلبات",
+  "selectSource": "اختر المصدر",
+  "requiredField": "مطلوب",
+  "yourPersonalInformation": "معلوماتك الشخصية",
+  "active": "نشط",
+  "inactive": "غير نشط",
+  "accountBlocked": "الحساب محظور",
+  "accountSuspendedMessage": "تم تعليق حسابك مؤقتًا.\nيرجى الاتصال بفريق الدعم لحل هذه المشكلة واستعادة وصولك.",
+  "needHelp": "هل تحتاج إلى مساعدة؟",
+  "contactOurTeam": "اتصل بفريقنا",
+  "goBack": "رجوع",
+  "contactSupportMessage": "يرجى التواصل مع فريق الدعم:\n\n info@suqyarahiq.com",
+  "activeDriver": "سائق نشط",
+  "getDirections": "احصل على الاتجاهات"
 }

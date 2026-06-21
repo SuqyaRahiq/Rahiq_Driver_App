@@ -1,0 +1,150 @@
+{
+  "project_info": {
+    "project_number": "579658096080",
+    "project_id": "suqyarahiq-app-173f2",
+    "storage_bucket": "suqyarahiq-app-173f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:579658096080:android:5c4a5e5fbfb28d12d6add5",
+        "android_client_info": {
+          "package_name": "com.rahiq.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "579658096080-5onpmak5jbnbvhpkjlmmk4v1qkvv9m8p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rahiq.app",
+            "certificate_hash": "6e2bdd0ce0951f9be03dfcdc3af81dc9512abe43"
+          }
+        },
+        {
+          "client_id": "579658096080-gc8mtio1ls76muthuamqa0vcv643humq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rahiq.app",
+            "certificate_hash": "02942607de2e99d0a37f028fe5f32b4a69686e48"
+          }
+        },
+        {
+          "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlkOItn9hMgKTnsuc4kxrSlm4nOIiffLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "579658096080-7tafri5hhp47dfpsm1qtjl78a4p13up2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.rahiq.main"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:579658096080:android:e0b0452a478d0126d6add5",
+        "android_client_info": {
+          "package_name": "com.rahiq.driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlkOItn9hMgKTnsuc4kxrSlm4nOIiffLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "579658096080-7tafri5hhp47dfpsm1qtjl78a4p13up2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.rahiq.main"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:579658096080:android:fe77cb5903d183e6d6add5",
+        "android_client_info": {
+          "package_name": "com.rahiq.main"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "579658096080-e70hfih82g3dmti8e2i52dcgvoetto5h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rahiq.main",
+            "certificate_hash": "6e2bdd0ce0951f9be03dfcdc3af81dc9512abe43"
+          }
+        },
+        {
+          "client_id": "579658096080-qj762lj05jb33btlfl44rpfpq5mea8f3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rahiq.main",
+            "certificate_hash": "02942607de2e99d0a37f028fe5f32b4a69686e48"
+          }
+        },
+        {
+          "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlkOItn9hMgKTnsuc4kxrSlm4nOIiffLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "579658096080-7tafri5hhp47dfpsm1qtjl78a4p13up2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.rahiq.main"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

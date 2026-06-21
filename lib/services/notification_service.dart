@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
   debugPrint('Handling a background message: ${message.messageId}');
 }
 
@@ -49,15 +47,16 @@ class NotificationService {
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
 
     await _localNotificationsPlugin.initialize(
       settings: initializationSettings,
@@ -74,7 +73,8 @@ class NotificationService {
 
     await _localNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
 
     // Update foreground notification presentation options for iOS
@@ -91,7 +91,8 @@ class NotificationService {
 
       if (message.notification != null) {
         debugPrint(
-            'Message also contained a notification: ${message.notification}');
+          'Message also contained a notification: ${message.notification}',
+        );
         _showLocalNotification(message, channel);
       }
     });
@@ -103,21 +104,13 @@ class NotificationService {
     });
 
     // Check if app was opened from a terminated state
-    RemoteMessage? initialMessage =
-        await _firebaseMessaging.getInitialMessage();
+    RemoteMessage? initialMessage = await _firebaseMessaging
+        .getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationClick(initialMessage.data);
     }
 
     _isInitialized = true;
-    
-    // Print FCM Token for testing
-    try {
-      String? token = await getToken();
-      debugPrint('FCM Token: $token');
-    } catch (e) {
-      debugPrint('Error getting FCM token: $e');
-    }
   }
 
   Future<String?> getToken() async {
@@ -125,7 +118,9 @@ class NotificationService {
   }
 
   void _showLocalNotification(
-      RemoteMessage message, AndroidNotificationChannel channel) {
+    RemoteMessage message,
+    AndroidNotificationChannel channel,
+  ) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
@@ -140,7 +135,6 @@ class NotificationService {
             channel.name,
             channelDescription: channel.description,
             icon: android.smallIcon ?? '@mipmap/ic_launcher',
-            // other properties...
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -166,7 +160,6 @@ class NotificationService {
   }
 
   void _handleNotificationClick(Map<String, dynamic> data) {
-    // Handle navigation or other logic based on notification data here
     debugPrint('Handling notification click with data: $data');
   }
 }

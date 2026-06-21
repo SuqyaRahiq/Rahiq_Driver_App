@@ -16,6 +16,17 @@ class ApiClient {
     );
 
     dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+      ),
+    );
+
+    dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
           final token = AuthStorage.getAccessToken();

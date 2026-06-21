@@ -1,4 +1,4 @@
-package com.example.rahiq_driver
+package com.rahiq.driver
 
 import io.flutter.embedding.android.FlutterActivity
 

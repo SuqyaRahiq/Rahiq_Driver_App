@@ -5,5 +5,155 @@
   "phoneNumber": "Phone Number",
   "password": "Password",
   "profile": "Profile",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "logout": "Logout",
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "cancel": "Cancel",
+  "myAccount": "My Account",
+  "termsConditions": "Terms & Conditions",
+  "accountSection": "Account",
+  "welcomeToTheDriverDashboard": "Welcome to the Driver Dashboard",
+  "manageAccountSettings": "Manage account settings",
+  "appSettings": "App Settings",
+  "buildNumber": "Build Number",
+  "version": "Version",
+  "appInformation": "App Information",
+  "appLanguage": "App Language",
+  "managePreferencesAndAppInfo": "Manage preferences and app info",
+  "home": "Home",
+  "orders": "Orders",
+  "autodelivery": "Autodelivery",
+  "dashboard": "Dashboard",
+  "orderNumber": "Order #{id}",
+  "@orderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "autoOrderNumber": "Auto Order #{id}",
+  "@autoOrderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tryAgain": "Try Again",
+  "video": "Video",
+  "mosqueFront": "Mosque Front",
+  "mosqueInsideImage": "Mosque Inside Image",
+  "productInsideMosque": "Product Inside Mosque",
+  "mosqueName": "Mosque Name",
+  "productPlaced": "Product Placed",
+  "takeAVideo": "Take a Video",
+  "takeAPhoto": "Take a Photo",
+  "chooseFromGallery": "Choose from Gallery",
+  "error": "Error: {errorText}",
+  "@error": {
+    "placeholders": {
+      "errorText": {
+        "type": "String"
+      }
+    }
+  },
+  "english": "English",
+  "arabic": "عربي",
+  "personalInformation": "Personal Information",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "email": "Email",
+  "gender": "Gender",
+  "contactDetails": "Contact Details",
+  "accountDetails": "Account Details",
+  "status": "Status",
+  "driverType": "Driver Type",
+  "vehicleId": "Vehicle ID",
+  "accountHistory": "Account History",
+  "memberSince": "Member Since",
+  "lastUpdated": "Last Updated",
+  "contactSupport": "Contact Support",
+  "close": "Close",
+  "search": "Search",
+  "enterPhoneNumber": "Enter phone number",
+  "enterPassword": "Enter password",
+  "normalOrders": "Normal orders",
+  "autoOrders": "Auto orders",
+  "uploadMediaToSupportDeliveryCompletion":"Upload media to support delivery completion",
+  "viewAndManageAssignedOrders": "View and manage your assigned orders",
+  "noOrders": "No {tabLabel}",
+  "@noOrders": {
+    "placeholders": {
+      "tabLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "somethingWentWrong": "Something went wrong",
+  "completeOrder": "Complete order",
+  "completeSelectedOrders": "Complete selected orders",
+  "customerDetails": "Customer Details",
+  "nameLabel": "Name",
+  "phoneLabel": "Phone",
+  "addressLabel": "Address",
+  "orderInfo": "Order Info",
+  "paymentLabel": "Payment",
+  "totalLabel": "Total",
+  "subOrdersLabel": "Sub Orders",
+  "pending": "Pending",
+  "delivered": "Delivered",
+  "unknownCustomer": "Unknown Customer",
+  "batchDeliveries": "Batch Deliveries",
+  "notes": "Notes: {notes}",
+  "@notes": {
+    "placeholders": {
+      "notes": {
+        "type": "String"
+      }
+    }
+  },
+  "assigned": "Assigned: {date}",
+  "@assigned": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "product": "Product",
+  "qty": "Qty: {qty}",
+  "@qty": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "subOrderNumber": "Sub-order #{id}",
+  "@subOrderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadingProof": "Uploading proof, please wait...",
+  "submitDeliveryProof": "Submit Delivery Proof",
+  "imagesInstructions": "Images (Please take three correct images)",
+  "proofsUploaded": "Proofs uploaded successfully!",
+  "completeOrders": "Complete orders",
+  "selectSource": "Select Source",
+  "requiredField": "Required",
+  "yourPersonalInformation": "Your personal information",
+  "active": "Active",
+  "inactive": "Inactive",
+  "accountBlocked": "Account Blocked",
+  "accountSuspendedMessage": "Your account has been temporarily suspended.\nPlease contact our support team to resolve this issue and restore your access.",
+  "needHelp": "Need help?",
+  "contactOurTeam": "Contact Our Team",
+  "goBack": "Go Back",
+  "contactSupportMessage": "Please reach out to our support team:\n\n info@suqyarahiq.com",
+  "activeDriver": "Active Driver",
+  "getDirections": "Get Directions"
 }

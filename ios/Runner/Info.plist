@@ -71,5 +71,13 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take proof of delivery photos and videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires photo library access to select proof of delivery photos and videos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires microphone access to record audio with proof of delivery videos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open to show your current location on the map.</string>
 </dict>
 </plist>

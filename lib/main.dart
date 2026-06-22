@@ -11,6 +11,7 @@ import 'package:rahiq_driver/services/notification_service.dart';
 // import 'firebase_options.dart'; // Uncomment after running flutterfire configure
 
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 late ValueNotifier<Locale> localeNotifier;
 
@@ -59,6 +60,8 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           scrollBehavior: const MyScrollBehavior(),
           theme: ThemeData(
+            fontFamily: GoogleFonts.manrope().fontFamily,
+            fontFamilyFallback: const ['SaudiRiyal'],
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,

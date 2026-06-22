@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:country_picker/country_picker.dart';
@@ -55,12 +58,26 @@ class _LoginPageState extends State<LoginPage> {
         debugPrint('Failed to get FCM token: $e');
       }
 
+      String? deviceId;
+      try {
+        final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        if (Platform.isIOS) {
+          final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+          deviceId = iosInfo.identifierForVendor;
+        } else if (Platform.isAndroid) {
+          final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+          deviceId = androidInfo.id;
+        }
+      } catch (e) {
+        debugPrint('Failed to get device info: $e');
+      }
+
       final response = await api.login({
         "countryCode": "+${_selectedCountry.phoneCode}",
         "phoneNumber": _phoneController.text.trim(),
-        "deviceType": "IOS",
+        "deviceType": Platform.isIOS ? "IOS" : "ANDROID",
         "fcmToken": fcmToken ?? "dummy_fcm_token",
-        "deviceId": "dummy_device_id",
+        "deviceId": deviceId ?? "dummy_device_id",
         "password": _passwordController.text.trim(),
       });
 
@@ -82,7 +99,9 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         String errorMessage = e.toString();
-        if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+        if (e is DioException &&
+            e.response?.data is Map &&
+            e.response?.data['message'] != null) {
           errorMessage = e.response!.data['message'];
         }
         ScaffoldMessenger.of(context).showSnackBar(

@@ -7,6 +7,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
@@ -80,8 +81,12 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = e.toString();
+        if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+          errorMessage = e.response!.data['message'];
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
       }
     } finally {

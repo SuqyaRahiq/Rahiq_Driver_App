@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/main.dart';
 
 class ApiClient {
   static const String baseUrl =
@@ -33,6 +34,7 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          options.headers['Accept-Language'] = localeNotifier.value.languageCode;
           return handler.next(options);
         },
         onError: (DioException e, handler) async {

@@ -5,6 +5,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class ProofSubmissionPage extends StatelessWidget {
@@ -229,15 +230,15 @@ class ProofSubmissionPage extends StatelessWidget {
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
+                                                String errorMessage = AppLocalizations.of(context)!.error(e.toString());
+                                                if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+                                                  errorMessage = e.response!.data['message'];
+                                                }
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
                                                   SnackBar(
-                                                    content: Text(
-                                                      AppLocalizations.of(
-                                                        context,
-                                                      )!.error(e.toString()),
-                                                    ),
+                                                    content: Text(errorMessage),
                                                     backgroundColor: Colors.red,
                                                   ),
                                                 );

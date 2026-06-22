@@ -9,6 +9,7 @@ import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class AutoOrderDetailsPage extends StatefulWidget {
@@ -743,9 +744,13 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                   _fetchDetails();
                                 } catch (e) {
                                   if (context.mounted) {
+                                    String errorMessage = e.toString();
+                                    if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+                                      errorMessage = e.response!.data['message'];
+                                    }
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(e.toString()),
+                                        content: Text(errorMessage),
                                         backgroundColor: Colors.red,
                                       ),
                                     );

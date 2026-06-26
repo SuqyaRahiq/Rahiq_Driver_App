@@ -34,8 +34,6 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
   Widget build(BuildContext context) {
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final l10n = AppLocalizations.of(context)!;
-    final title = l10n.appSettings;
-    final subtitle = l10n.managePreferencesAndAppInfo;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -51,7 +49,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                   Padding(
                     padding: const EdgeInsetsDirectional.fromSTEB(
                       16,
-                      0,
+                      16,
                       16,
                       12,
                     ),

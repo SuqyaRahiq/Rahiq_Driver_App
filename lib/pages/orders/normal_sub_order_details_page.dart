@@ -16,23 +16,9 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
     required this.subOrder,
   });
 
-  double _getLatitude() {
-    final cust = subOrder['customerDetails'] ?? {};
-    final lat = subOrder['latitude'] ?? cust['latitude'] ?? order.latitude ?? 0.0;
-    return lat is double ? lat : double.tryParse(lat.toString()) ?? 0.0;
-  }
-
-  double _getLongitude() {
-    final cust = subOrder['customerDetails'] ?? {};
-    final lng = subOrder['longitude'] ?? cust['longitude'] ?? order.longitude ?? 0.0;
-    return lng is double ? lng : double.tryParse(lng.toString()) ?? 0.0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final subId = subOrder['id']?.toString() ?? '';
-    final lat = _getLatitude();
-    final lng = _getLongitude();
 
     return Scaffold(
       appBar: AppBar(
@@ -47,8 +33,6 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (lat != 0.0 && lng != 0.0)
-              _buildMapArea(context, lat, lng),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -62,8 +46,11 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         final customer = subOrder['customerDetails'] ?? {};
-                        final address = subOrder['deliveryAddress'] ?? customer['address'] ?? order.deliveryAddress;
-                        
+                        final address =
+                            subOrder['deliveryAddress'] ??
+                            customer['address'] ??
+                            order.deliveryAddress;
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -72,22 +59,29 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
                               orderId: order.id,
                               subOrders: [subId],
                               singleCustomerData: {
-                                'firstName': customer['firstName'] ?? order.customerName,
+                                'firstName':
+                                    customer['firstName'] ?? order.customerName,
                                 'lastName': customer['lastName'] ?? '',
-                                'phoneNumber': customer['phoneNumber'] ?? order.customerPhone,
+                                'phoneNumber':
+                                    customer['phoneNumber'] ??
+                                    order.customerPhone,
                                 'address': address,
                               },
-                              initialMosqueFrontImage: subOrder['mosqueFrontImage'],
-                              initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                              initialMosqueFrontImage:
+                                  subOrder['mosqueFrontImage'],
+                              initialMosqueInsideImage:
+                                  subOrder['mosqueInsideImage'],
                             ),
                           ),
                         ).then((_) {
-                           Navigator.pop(context, true);
+                          Navigator.pop(context, true);
                         });
                       },
                       icon: const Icon(Icons.upload_file),
                       label: Text(
-                        AppLocalizations.of(context)!.uploadMediaToSupportDeliveryCompletion,
+                        AppLocalizations.of(
+                          context,
+                        )!.uploadMediaToSupportDeliveryCompletion,
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.buttonBlue,
@@ -175,10 +169,18 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
               AppLocalizations.of(context)!.status,
               subOrder['status']?.toString() ?? order.status ?? 'N/A',
             ),
+            if (subOrder['numberOfSubOrders'] != null)
+              _buildDetailRow(
+                Icons.format_list_numbered,
+                AppLocalizations.of(context)!.subOrdersLabel,
+                subOrder['numberOfSubOrders'].toString(),
+              ),
             _buildDetailRow(
               Icons.payment,
               AppLocalizations.of(context)!.paymentLabel,
-              subOrder['paymentMethod']?.toString() ?? order.paymentMethod ?? 'N/A',
+              subOrder['paymentMethod']?.toString() ??
+                  order.paymentMethod ??
+                  'N/A',
             ),
             if (order.totalAmount != null)
               _buildDetailRow(
@@ -186,7 +188,8 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
                 AppLocalizations.of(context)!.totalLabel,
                 '\$${order.totalAmount}',
               ),
-            if (subOrder['deliveryNotes'] != null && subOrder['deliveryNotes'].toString().isNotEmpty)
+            if (subOrder['deliveryNotes'] != null &&
+                subOrder['deliveryNotes'].toString().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
@@ -196,7 +199,9 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        AppLocalizations.of(context)!.notes(subOrder['deliveryNotes'].toString()),
+                        AppLocalizations.of(
+                          context,
+                        )!.notes(subOrder['deliveryNotes'].toString()),
                         style: const TextStyle(
                           fontSize: 16,
                           fontStyle: FontStyle.italic,

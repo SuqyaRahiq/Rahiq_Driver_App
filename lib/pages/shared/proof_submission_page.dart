@@ -6,6 +6,7 @@ import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class ProofSubmissionPage extends StatelessWidget {
@@ -48,7 +49,7 @@ class ProofSubmissionPage extends StatelessWidget {
                     CircularProgressIndicator(color: AppColors.buttonBlueDark),
                     SizedBox(height: 16),
                     Text(
-                      AppLocalizations.of(context)!.uploadingProof,
+                      AppLocalizations.of(context)!.completingOrder,
                       style: const TextStyle(color: AppColors.buttonBlueDark),
                     ),
                   ],
@@ -71,7 +72,7 @@ class ProofSubmissionPage extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsetsDirectional.fromSTEB(
                               16,
-                              0,
+                              16,
                               16,
                               12,
                             ),
@@ -151,15 +152,16 @@ class ProofSubmissionPage extends StatelessWidget {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 24,
+                          horizontal: 16,
+                          vertical: 16,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!provider.isMultiSelect && singleCustomerData != null) ...[
+                            if (!provider.isMultiSelect &&
+                                singleCustomerData != null) ...[
                               _buildCustomerCard(context, singleCustomerData!),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 12),
                             ],
 
                             if (provider.useSameImages) ...[
@@ -178,10 +180,13 @@ class ProofSubmissionPage extends StatelessWidget {
                                 children: [
                                   _buildDottedImagePicker(
                                     context,
-                                    label: AppLocalizations.of(context)!.productInsideMosque,
+                                    label: AppLocalizations.of(
+                                      context,
+                                    )!.productInsideMosque,
                                     path: provider.globalProofVideo,
                                     isVideo: true,
-                                    onPick: (source) => provider.pickGlobalVideo(source),
+                                    onPick: (source) =>
+                                        provider.pickGlobalVideo(source),
                                   ),
                                   const SizedBox(width: 12),
                                   const Expanded(child: SizedBox()),
@@ -190,9 +195,6 @@ class ProofSubmissionPage extends StatelessWidget {
                                 ],
                               ),
                             ] else ...[
-                              _buildSectionTitle(
-                                AppLocalizations.of(context)!.video,
-                              ),
                               ...provider.proofs.map((proof) {
                                 return _buildSubOrderSection(
                                   context,
@@ -230,9 +232,19 @@ class ProofSubmissionPage extends StatelessWidget {
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
-                                                String errorMessage = AppLocalizations.of(context)!.error(e.toString());
-                                                if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
-                                                  errorMessage = e.response!.data['message'];
+                                                String errorMessage =
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.error(e.toString());
+                                                if (e is DioException &&
+                                                    e.response?.data is Map &&
+                                                    e
+                                                            .response
+                                                            ?.data['message'] !=
+                                                        null) {
+                                                  errorMessage = e
+                                                      .response!
+                                                      .data['message'];
                                                 }
                                                 ScaffoldMessenger.of(
                                                   context,
@@ -342,8 +354,9 @@ class ProofSubmissionPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
         if (!provider.useSameImages) ...[
+          _buildSectionTitle(AppLocalizations.of(context)!.imagesInstructions),
+          SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -381,10 +394,11 @@ class ProofSubmissionPage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(),
+
           const SizedBox(height: 16),
         ],
+        _buildSectionTitle(AppLocalizations.of(context)!.video),
+        SizedBox(height: 12),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -435,15 +449,12 @@ class ProofSubmissionPage extends StatelessWidget {
                 clipBehavior: Clip.hardEdge,
                 child: path != null
                     ? (isVideo
-                          ? const Center(
-                              child: Icon(
-                                Icons.videocam,
-                                color: Colors.green,
-                                size: 40,
-                              ),
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: VideoThumbnailWidget(path: path),
                             )
                           : ClipRRect(
-                              borderRadius: BorderRadiusGeometry.circular(12),
+                              borderRadius: BorderRadius.circular(12),
                               child: path.startsWith('http')
                                   ? Image.network(path, fit: BoxFit.cover)
                                   : Image.file(File(path), fit: BoxFit.cover),
@@ -474,67 +485,6 @@ class ProofSubmissionPage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildMediaPickerRow(
-    BuildContext context, {
-    required String label,
-    required String? path,
-    required Function(ImageSource) onPick,
-    bool isVideo = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-              if (path != null)
-                const Text(
-                  'Selected',
-                  style: TextStyle(color: Colors.green, fontSize: 12),
-                )
-              else
-                const Text(
-                  'Not selected',
-                  style: TextStyle(color: Colors.red, fontSize: 12),
-                ),
-            ],
-          ),
-        ),
-        if (path != null && !isVideo)
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(
-                File(path),
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
-              ),
-            ),
-          )
-        else if (path != null && isVideo)
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Icon(Icons.videocam, color: Colors.green),
-          ),
-        ElevatedButton(
-          onPressed: () =>
-              _showSourceBottomSheet(context, onPick, isVideo: isVideo),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[200],
-            foregroundColor: Colors.black87,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          child: Text(path == null ? 'Select' : 'Change'),
-        ),
-      ],
     );
   }
 
@@ -696,16 +646,22 @@ class ProofSubmissionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerCard(BuildContext context, Map<String, dynamic> customer) {
+  Widget _buildCustomerCard(
+    BuildContext context,
+    Map<String, dynamic> customer,
+  ) {
     final address = customer['address'];
-    final name = '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'.trim();
-    
+    final name = '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'
+        .trim();
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.buttonBlueDark.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: AppColors.buttonBlueDark.withValues(alpha: 0.1),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -771,7 +727,8 @@ class ProofSubmissionPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
-                if (customer['phoneNumber'] != null && customer['phoneNumber'].toString().isNotEmpty) ...[
+                if (customer['phoneNumber'] != null &&
+                    customer['phoneNumber'].toString().isNotEmpty) ...[
                   Row(
                     children: [
                       const Icon(
@@ -818,6 +775,92 @@ class ProofSubmissionPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class VideoThumbnailWidget extends StatefulWidget {
+  final String path;
+
+  const VideoThumbnailWidget({super.key, required this.path});
+
+  @override
+  State<VideoThumbnailWidget> createState() => _VideoThumbnailWidgetState();
+}
+
+class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  void _initializeController() {
+    _controller = widget.path.startsWith('http')
+        ? VideoPlayerController.networkUrl(Uri.parse(widget.path))
+        : VideoPlayerController.file(File(widget.path));
+
+    _controller.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeController();
+  }
+
+  @override
+  void didUpdateWidget(VideoThumbnailWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.path != oldWidget.path) {
+      _initialized = false;
+      _controller.dispose();
+      _initializeController();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Center(
+        child: SizedBox(
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: _controller.value.size.width,
+            height: _controller.value.size.height,
+            child: VideoPlayer(_controller),
+          ),
+        ),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              color: Colors.black54,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.play_arrow, color: Colors.white, size: 24),
+          ),
+        ),
+      ],
     );
   }
 }

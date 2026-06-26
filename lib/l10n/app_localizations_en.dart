@@ -276,6 +276,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadingProof => 'Uploading proof, please wait...';
 
   @override
+  String get completingOrder => 'Completing order...';
+
+  @override
   String get submitDeliveryProof => 'Submit Delivery Proof';
 
   @override
@@ -342,4 +345,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get todayPackagesStat => 'Today\'s Packages';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String get locationLabel => 'Location';
+
+  @override
+  String get cityLabel => 'City';
+
+  @override
+  String get zoneLabel => 'Zone';
+
+  @override
+  String get totalPackagesLabel => 'Total Packages';
+
+  @override
+  String get typeCampaign => 'Campaign';
+
+  @override
+  String get typeCategory => 'Category';
+
+  @override
+  String get typeOrphanage => 'Orphanage';
+
+  @override
+  String get typeLocation => 'Location';
 }

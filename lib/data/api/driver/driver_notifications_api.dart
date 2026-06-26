@@ -18,7 +18,7 @@ class DriverNotificationsApi {
         throw ApiException(response.data['message'] ?? 'Failed to get notifications', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get notifications', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get notifications', statusCode: e.response?.statusCode);
     }
   }
 
@@ -31,7 +31,7 @@ class DriverNotificationsApi {
         throw ApiException(response.data['message'] ?? 'Failed to get unread count', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get unread count', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get unread count', statusCode: e.response?.statusCode);
     }
   }
 
@@ -42,7 +42,7 @@ class DriverNotificationsApi {
         throw ApiException(response.data['message'] ?? 'Failed to mark as read', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to mark as read', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to mark as read', statusCode: e.response?.statusCode);
     }
   }
 
@@ -53,7 +53,7 @@ class DriverNotificationsApi {
         throw ApiException(response.data['message'] ?? 'Failed to mark all as read', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to mark all as read', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to mark all as read', statusCode: e.response?.statusCode);
     }
   }
 
@@ -66,7 +66,7 @@ class DriverNotificationsApi {
         throw ApiException(response.data['message'] ?? 'Failed to get notification details', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get notification details', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get notification details', statusCode: e.response?.statusCode);
     }
   }
 }

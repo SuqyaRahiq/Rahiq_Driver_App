@@ -21,7 +21,7 @@ class DriverAuthApi {
         throw ApiException(response.data['message'] ?? 'Login failed', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Login failed', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Login failed', statusCode: e.response?.statusCode);
     }
   }
 
@@ -38,7 +38,7 @@ class DriverAuthApi {
         throw ApiException(response.data['message'] ?? 'Logout failed', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Logout failed', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Logout failed', statusCode: e.response?.statusCode);
     }
   }
 
@@ -58,7 +58,7 @@ class DriverAuthApi {
         throw ApiException(response.data['message'] ?? 'Failed to update profile', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to update profile', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to update profile', statusCode: e.response?.statusCode);
     }
   }
 
@@ -71,7 +71,7 @@ class DriverAuthApi {
         throw ApiException(response.data['message'] ?? 'Failed to get profile', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get profile', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get profile', statusCode: e.response?.statusCode);
     }
   }
 
@@ -89,7 +89,7 @@ class DriverAuthApi {
         throw ApiException(response.data['message'] ?? 'Failed to update device token', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to update device token', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to update device token', statusCode: e.response?.statusCode);
     }
   }
 }

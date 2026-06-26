@@ -99,7 +99,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                       Padding(
                         padding: const EdgeInsetsDirectional.fromSTEB(
                           16,
-                          0,
+                          16,
                           16,
                           12,
                         ),

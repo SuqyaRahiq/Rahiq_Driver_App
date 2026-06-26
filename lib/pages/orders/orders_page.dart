@@ -88,18 +88,43 @@ class _OrdersPageState extends State<OrdersPage>
 
       final List<OrderListItem> combined = [];
 
+      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
       for (var order in normalOrders) {
+        final title =
+            (isArabic ? (order.nameAr ?? order.name) : order.name) ??
+            order.customerName ??
+            'Unknown Customer';
+
+        String address = '';
+        if (order.city != null) {
+          final cityName = isArabic
+              ? (order.city!['nameAr'] ?? order.city!['name'])
+              : order.city!['name'];
+          address = cityName ?? '';
+        }
+        if (order.deliveryAddress != null && address.isEmpty) {
+          address = order.deliveryAddress!;
+        }
+
+        if (order.totalQuantity != null) {
+          if (address.isNotEmpty) {
+            address = '${order.totalQuantity} packages • $address';
+          } else {
+            address = '${order.totalQuantity} packages';
+          }
+        }
+
         combined.add(
           OrderListItem(
             id: order.id,
-            title: order.customerName ?? 'Unknown Customer',
+            title: title,
             subtitle: l10n.orderNumber(order.id.split('-').first.toUpperCase()),
-            address: order.deliveryAddress,
+            address: address.isEmpty ? null : address,
             status: order.status ?? 'PENDING',
             createdAt: order.createdAt,
             isAuto: false,
             originalModel: order,
-            imageUrl: null,
+            imageUrl: order.image,
           ),
         );
       }
@@ -174,7 +199,7 @@ class _OrdersPageState extends State<OrdersPage>
                       Padding(
                         padding: const EdgeInsetsDirectional.fromSTEB(
                           16,
-                          0,
+                          16,
                           16,
                           12,
                         ),
@@ -428,25 +453,6 @@ class _OrdersPageState extends State<OrdersPage>
                         ],
                       ),
                     ],
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _formatStatus(order.status),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

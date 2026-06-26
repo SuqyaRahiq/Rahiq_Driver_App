@@ -88,7 +88,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                           Padding(
                             padding: const EdgeInsetsDirectional.fromSTEB(
                               16,
-                              0,
+                              16,
                               16,
                               12,
                             ),

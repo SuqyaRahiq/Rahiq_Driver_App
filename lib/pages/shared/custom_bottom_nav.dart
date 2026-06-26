@@ -24,7 +24,7 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.transparent,
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 36),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 36),
       child: Container(
         height: 85,
         decoration: BoxDecoration(
@@ -119,8 +119,9 @@ class CustomBottomNavBar extends StatelessWidget {
                     item.label,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       color: isSelected
                           ? AppColors.buttonBlueDark
                           : Colors.grey[400],

@@ -11,6 +11,15 @@ class DriverOrder {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? type; // 'NORMAL' or 'AUTO'
+  
+  // New fields
+  final String? name;
+  final String? nameAr;
+  final String? image;
+  final Map<String, dynamic>? city;
+  final Map<String, dynamic>? zone;
+  final int? totalQuantity;
+  final int? serialNumber;
 
   DriverOrder({
     required this.id,
@@ -25,6 +34,13 @@ class DriverOrder {
     this.createdAt,
     this.updatedAt,
     this.type,
+    this.name,
+    this.nameAr,
+    this.image,
+    this.city,
+    this.zone,
+    this.totalQuantity,
+    this.serialNumber,
   });
 
   factory DriverOrder.fromJson(Map<String, dynamic> json) {
@@ -41,6 +57,13 @@ class DriverOrder {
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
       type: json['type'],
+      name: json['name'],
+      nameAr: json['nameAr'],
+      image: json['image'],
+      city: json['city'],
+      zone: json['zone'],
+      totalQuantity: json['totalQuantity'],
+      serialNumber: json['serialNumber'],
     );
   }
 
@@ -58,6 +81,13 @@ class DriverOrder {
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'type': type,
+      'name': name,
+      'nameAr': nameAr,
+      'image': image,
+      'city': city,
+      'zone': zone,
+      'totalQuantity': totalQuantity,
+      'serialNumber': serialNumber,
     };
   }
 }

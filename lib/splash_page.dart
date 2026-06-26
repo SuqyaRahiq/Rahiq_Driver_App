@@ -29,28 +29,20 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: double.infinity,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: const AssetImage('assets/splashbg.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            const Color(0xFF0F274A).withValues(alpha: 0.8),
-            BlendMode.hardLight,
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset('assets/splashbg.png', fit: BoxFit.cover),
+          Container(color: Colors.black.withValues(alpha: 0.3)),
+          Center(
+            child: Image.asset(
+              'assets/Raheeq_LOGO_transparent.apng',
+              width: MediaQuery.of(context).size.width,
+              fit: BoxFit.contain,
+            ),
           ),
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: SizedBox(
-            width: 300,
-            height: 300,
-            child: Image.asset('assets/Raheeq_LOGO_transparent.apng'),
-          ),
-        ),
+        ],
       ),
     );
   }

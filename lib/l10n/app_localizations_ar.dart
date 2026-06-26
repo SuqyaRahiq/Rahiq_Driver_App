@@ -275,6 +275,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get uploadingProof => 'جاري رفع الإثبات، يرجى الانتظار...';
 
   @override
+  String get completingOrder => 'جاري إكمال الطلب...';
+
+  @override
   String get submitDeliveryProof => 'إرسال إثبات التوصيل';
 
   @override
@@ -341,4 +344,31 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get todayPackagesStat => 'طرود اليوم';
+
+  @override
+  String get typeLabel => 'النوع';
+
+  @override
+  String get locationLabel => 'الموقع';
+
+  @override
+  String get cityLabel => 'المدينة';
+
+  @override
+  String get zoneLabel => 'المنطقة';
+
+  @override
+  String get totalPackagesLabel => 'إجمالي عدد الطرود';
+
+  @override
+  String get typeCampaign => 'حملة';
+
+  @override
+  String get typeCategory => 'فئة';
+
+  @override
+  String get typeOrphanage => 'دار أيتام';
+
+  @override
+  String get typeLocation => 'موقع';
 }

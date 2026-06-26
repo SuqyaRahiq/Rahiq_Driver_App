@@ -139,6 +139,7 @@
     }
   },
   "uploadingProof": "جاري رفع الإثبات، يرجى الانتظار...",
+  "completingOrder": "جاري إكمال الطلب...",
   "submitDeliveryProof": "إرسال إثبات التوصيل",
   "imagesInstructions": "الصور (يرجى التقاط ثلاث صور صحيحة)",
   "proofsUploaded": "تم رفع الإثباتات بنجاح!",
@@ -160,5 +161,14 @@
   "confirmedStat": "المؤكدة",
   "packagesStat": "الطرود",
   "todayDeliveriesStat": "توصيلات اليوم",
-  "todayPackagesStat": "طرود اليوم"
+  "todayPackagesStat": "طرود اليوم",
+  "typeLabel": "النوع",
+  "locationLabel": "الموقع",
+  "cityLabel": "المدينة",
+  "zoneLabel": "المنطقة",
+  "totalPackagesLabel": "إجمالي عدد الطرود",
+  "typeCampaign": "حملة",
+  "typeCategory": "فئة",
+  "typeOrphanage": "دار أيتام",
+  "typeLocation": "موقع"
 }

@@ -14,14 +14,26 @@ class DriverOrdersApi {
   Future<List<DriverOrder>> getNormalOrders() async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/normal');
+      log(
+        '\x1B[33m*** NORMAL ORDERS GET API RESPONSE ***\n${response.data}\n\x1B[0m',
+      );
+
       if (response.statusCode == 200 && response.data['success'] == true) {
         final List<dynamic> data = response.data['data']['items'] ?? [];
         return data.map((json) => DriverOrder.fromJson(json)).toList();
       } else {
-        throw ApiException(response.data['message'] ?? 'Failed to get normal orders', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to get normal orders',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get normal orders', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get normal orders',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -32,38 +44,51 @@ class DriverOrdersApi {
         return DriverDashboardStats.fromJson(response.data['data']['stats']);
       } else {
         throw ApiException(
-            response.data['message'] ?? 'Failed to get dashboard stats',
-            statusCode: response.statusCode);
+          response.data['message'] ?? 'Failed to get dashboard stats',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
       throw ApiException(
-          e.response?.data['message'] ??
-              e.message ??
-              'Failed to get dashboard stats',
-          statusCode: e.response?.statusCode);
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get dashboard stats',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
-  Future<void> updateNormalOrderLocation(String orderId, double latitude, double longitude) async {
+  Future<void> updateNormalOrderLocation(
+    String orderId,
+    double latitude,
+    double longitude,
+  ) async {
     try {
       final response = await _apiClient.dio.patch(
         '/driver/orders/normal/location/$orderId',
-        data: {
-          'latitude': latitude,
-          'longitude': longitude,
-        },
+        data: {'latitude': latitude, 'longitude': longitude},
       );
       if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Failed to update order location', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to update order location',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to update order location', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to update order location',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
   Future<List<dynamic>> getNormalOrderSubOrders(String orderId) async {
     try {
-      final response = await _apiClient.dio.get('/driver/orders/normal/location/$orderId');
+      final response = await _apiClient.dio.get(
+        '/driver/orders/normal/location/$orderId',
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         var data = response.data['data'];
         if (data is Map && data.containsKey('items')) {
@@ -74,46 +99,72 @@ class DriverOrdersApi {
         }
         return [];
       } else {
-        throw ApiException(response.data['message'] ?? 'Failed to get sub orders', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to get sub orders',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get sub orders', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get sub orders',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
   Future<List<AutoOrderItem>> getAutoOrders() async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/auto');
-      log('\x1B[33m*** AUTO ORDERS GET API RESPONSE ***\n${response.data}\n\x1B[0m');
-      
+      log(
+        '\x1B[33m*** AUTO ORDERS GET API RESPONSE ***\n${response.data}\n\x1B[0m',
+      );
+
       if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> items =
-            response.data['data']['items'] ?? [];
+        final List<dynamic> items = response.data['data']['items'] ?? [];
         return items.map((json) => AutoOrderItem.fromJson(json)).toList();
       } else {
         throw ApiException(
-            response.data['message'] ?? 'Failed to get auto orders',
-            statusCode: response.statusCode);
+          response.data['message'] ?? 'Failed to get auto orders',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
       throw ApiException(
-          e.response?.data['message'] ?? e.message ?? 'Failed to get auto orders',
-          statusCode: e.response?.statusCode);
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get auto orders',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
   Future<List<dynamic>> getAutoOrderDetails(String orderId, String type) async {
     try {
-      final response = await _apiClient.dio.get('/driver/orders/auto/$orderId', queryParameters: {'type': type});
-      log('\x1B[33m*** AUTO ORDER API FULL RESPONSE ***\n${response.data}\n\x1B[0m');
-      
+      final response = await _apiClient.dio.get(
+        '/driver/orders/auto/$orderId',
+        queryParameters: {'type': type},
+      );
+      log(
+        '\x1B[33m*** AUTO ORDER API FULL RESPONSE ***\n${response.data}\n\x1B[0m',
+      );
+
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data['data']['items'] ?? [];
       } else {
-        throw ApiException(response.data['message'] ?? 'Failed to get auto order details', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to get auto order details',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get auto order details', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get auto order details',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -127,16 +178,36 @@ class DriverOrdersApi {
     try {
       FormData formData = FormData.fromMap({});
       if (!mosqueFrontImagePath.startsWith('http')) {
-        formData.files.add(MapEntry('mosqueFrontImage', await MultipartFile.fromFile(mosqueFrontImagePath)));
+        formData.files.add(
+          MapEntry(
+            'mosqueFrontImage',
+            await MultipartFile.fromFile(mosqueFrontImagePath),
+          ),
+        );
       }
       if (!mosqueInsideImagePath.startsWith('http')) {
-        formData.files.add(MapEntry('mosqueInsideImage', await MultipartFile.fromFile(mosqueInsideImagePath)));
+        formData.files.add(
+          MapEntry(
+            'mosqueInsideImage',
+            await MultipartFile.fromFile(mosqueInsideImagePath),
+          ),
+        );
       }
       if (!packagesImagePath.startsWith('http')) {
-        formData.files.add(MapEntry('packagesImage', await MultipartFile.fromFile(packagesImagePath)));
+        formData.files.add(
+          MapEntry(
+            'packagesImage',
+            await MultipartFile.fromFile(packagesImagePath),
+          ),
+        );
       }
       if (!proofVideoPath.startsWith('http')) {
-        formData.files.add(MapEntry('deliveryVideo', await MultipartFile.fromFile(proofVideoPath)));
+        formData.files.add(
+          MapEntry(
+            'deliveryVideo',
+            await MultipartFile.fromFile(proofVideoPath),
+          ),
+        );
       }
 
       final response = await _apiClient.dio.post(
@@ -145,36 +216,97 @@ class DriverOrdersApi {
       );
 
       if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Failed to confirm sub order', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to confirm sub order',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to confirm sub order', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to confirm sub order',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
-  Future<void> bulkUploadProof({
+  // Future<void> bulkUploadProof({
+  //   required String orderId,
+  //   required String mosqueFrontImagePath,
+  //   required String mosqueInsideImagePath,
+  //   required String packagesImagePath,
+  //   required List<String> subOrderIds,
+  //   String? proofVideoPath,
+  // }) async {
+  //   try {
+  //     FormData formData = FormData.fromMap({
+  //       'orderId': orderId,
+  //       'mosqueFrontImage': await MultipartFile.fromFile(mosqueFrontImagePath),
+  //       'mosqueInsideImage': await MultipartFile.fromFile(
+  //         mosqueInsideImagePath,
+  //       ),
+  //       'packagesImage': await MultipartFile.fromFile(packagesImagePath),
+  //     });
+
+  //     for (var id in subOrderIds) {
+  //       formData.fields.add(MapEntry('subOrderIds', id));
+  //     }
+
+  //     if (proofVideoPath != null) {
+  //       formData.files.add(
+  //         MapEntry('proofVideo', await MultipartFile.fromFile(proofVideoPath)),
+  //       );
+  //     }
+
+  //     final response = await _apiClient.dio.post(
+  //       '/driver/orders/bulk-upload-proof',
+  //       data: formData,
+  //     );
+
+  //     if (response.statusCode != 200 || response.data['success'] != true) {
+  //       throw ApiException(
+  //         response.data['message'] ?? 'Failed to bulk upload proof',
+  //         statusCode: response.statusCode,
+  //       );
+  //     }
+  //   } on DioException catch (e) {
+  //     throw ApiException(
+  //       (e.response?.data is Map ? e.response?.data['message'] : null) ??
+  //           e.message ??
+  //           'Failed to bulk upload proof',
+  //       statusCode: e.response?.statusCode,
+  //     );
+  //   }
+  // }
+
+  Future<void> bulkUploadMosqueImages({
     required String orderId,
+    required List<String> subOrderIds,
     required String mosqueFrontImagePath,
     required String mosqueInsideImagePath,
-    required String packagesImagePath,
-    required List<String> subOrderIds,
-    String? proofVideoPath,
   }) async {
     try {
-      FormData formData = FormData.fromMap({
-        'orderId': orderId,
-        'mosqueFrontImage': await MultipartFile.fromFile(mosqueFrontImagePath),
-        'mosqueInsideImage': await MultipartFile.fromFile(mosqueInsideImagePath),
-        'packagesImage': await MultipartFile.fromFile(packagesImagePath),
-      });
+      FormData formData = FormData.fromMap({'orderId': orderId});
 
       for (var id in subOrderIds) {
         formData.fields.add(MapEntry('subOrderIds', id));
       }
 
-      if (proofVideoPath != null) {
+      if (!mosqueFrontImagePath.startsWith('http')) {
         formData.files.add(
-          MapEntry('proofVideo', await MultipartFile.fromFile(proofVideoPath)),
+          MapEntry(
+            'mosqueFrontImage',
+            await MultipartFile.fromFile(mosqueFrontImagePath),
+          ),
+        );
+      }
+      if (!mosqueInsideImagePath.startsWith('http')) {
+        formData.files.add(
+          MapEntry(
+            'mosqueInsideImage',
+            await MultipartFile.fromFile(mosqueInsideImagePath),
+          ),
         );
       }
 
@@ -184,45 +316,18 @@ class DriverOrdersApi {
       );
 
       if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Failed to bulk upload proof', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to bulk upload mosque images',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to bulk upload proof', statusCode: e.response?.statusCode);
-    }
-  }
-
-  Future<void> bulkUploadMosqueImages({
-    required String orderId,
-    required List<String> subOrderIds,
-    required String mosqueFrontImagePath,
-    required String mosqueInsideImagePath,
-  }) async {
-    try {
-      FormData formData = FormData.fromMap({
-        'orderId': orderId,
-      });
-
-      for (var id in subOrderIds) {
-        formData.fields.add(MapEntry('subOrderIds', id));
-      }
-
-      if (!mosqueFrontImagePath.startsWith('http')) {
-        formData.files.add(MapEntry('mosqueFrontImage', await MultipartFile.fromFile(mosqueFrontImagePath)));
-      }
-      if (!mosqueInsideImagePath.startsWith('http')) {
-        formData.files.add(MapEntry('mosqueInsideImage', await MultipartFile.fromFile(mosqueInsideImagePath)));
-      }
-
-      final response = await _apiClient.dio.post(
-        '/driver/orders/bulk-upload-proof',
-        data: formData,
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to bulk upload mosque images',
+        statusCode: e.response?.statusCode,
       );
-
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Failed to bulk upload mosque images', statusCode: response.statusCode);
-      }
-    } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to bulk upload mosque images', statusCode: e.response?.statusCode);
     }
   }
 }

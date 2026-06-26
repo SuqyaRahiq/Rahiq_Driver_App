@@ -139,6 +139,7 @@
     }
   },
   "uploadingProof": "Uploading proof, please wait...",
+  "completingOrder": "Completing order...",
   "submitDeliveryProof": "Submit Delivery Proof",
   "imagesInstructions": "Images (Please take three correct images)",
   "proofsUploaded": "Proofs uploaded successfully!",
@@ -160,5 +161,14 @@
   "confirmedStat": "Confirmed",
   "packagesStat": "Packages",
   "todayDeliveriesStat": "Today's Deliveries",
-  "todayPackagesStat": "Today's Packages"
+  "todayPackagesStat": "Today's Packages",
+  "typeLabel": "Type",
+  "locationLabel": "Location",
+  "cityLabel": "City",
+  "zoneLabel": "Zone",
+  "totalPackagesLabel": "Total Packages",
+  "typeCampaign": "Campaign",
+  "typeCategory": "Category",
+  "typeOrphanage": "Orphanage",
+  "typeLocation": "Location"
 }

@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'Uploading proof, please wait...'**
   String get uploadingProof;
 
+  /// No description provided for @completingOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Completing order...'**
+  String get completingOrder;
+
   /// No description provided for @submitDeliveryProof.
   ///
   /// In en, this message translates to:
@@ -727,6 +733,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today\'s Packages'**
   String get todayPackagesStat;
+
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// No description provided for @locationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationLabel;
+
+  /// No description provided for @cityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get cityLabel;
+
+  /// No description provided for @zoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone'**
+  String get zoneLabel;
+
+  /// No description provided for @totalPackagesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Packages'**
+  String get totalPackagesLabel;
+
+  /// No description provided for @typeCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign'**
+  String get typeCampaign;
+
+  /// No description provided for @typeCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get typeCategory;
+
+  /// No description provided for @typeOrphanage.
+  ///
+  /// In en, this message translates to:
+  /// **'Orphanage'**
+  String get typeOrphanage;
+
+  /// No description provided for @typeLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get typeLocation;
 }
 
 class _AppLocalizationsDelegate

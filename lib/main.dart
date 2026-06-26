@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 late ValueNotifier<Locale> localeNotifier;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,29 +55,34 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder<Locale>(
       valueListenable: localeNotifier,
       builder: (context, locale, child) {
-        return MaterialApp(
-          title: 'Rahiq Driver',
-          locale: locale,
-          debugShowCheckedModeBanner: false,
-          scrollBehavior: const MyScrollBehavior(),
-          theme: ThemeData(
-            fontFamily: GoogleFonts.manrope().fontFamily,
-            fontFamilyFallback: const ['SaudiRiyal'],
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 0,
+        return SafeArea(
+          bottom: true,
+          top: false,
+          child: MaterialApp(
+            title: 'Rahiq Driver',
+            navigatorKey: navigatorKey,
+            locale: locale,
+            debugShowCheckedModeBanner: false,
+            scrollBehavior: const MyScrollBehavior(),
+            theme: ThemeData(
+              fontFamily: GoogleFonts.manrope().fontFamily,
+              fontFamilyFallback: const ['SaudiRiyal'],
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+              ),
+              useMaterial3: true,
             ),
-            useMaterial3: true,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ar')],
+            home: const SplashPage(),
           ),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ar')],
-          home: const SplashPage(),
         );
       },
     );

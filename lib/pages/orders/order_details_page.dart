@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_order.dart';
-import 'package:rahiq_driver/pages/orders/normal_sub_order_details_page.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:dotted_border/dotted_border.dart';
+import 'package:dio/dio.dart';
+import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
@@ -22,6 +26,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _subOrders = [];
+  bool _isMultiSelectMode = false;
+  final Set<String> _selectedSubOrders = {};
+
+  String? _batchMosqueFrontImage;
+  String? _batchMosqueInsideImage;
+  final ImagePicker _picker = ImagePicker();
+  bool _isBatchUploading = false;
 
   @override
   void initState() {
@@ -48,69 +59,253 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(
-            context,
-          )!.orderNumber(widget.order.id.split('-').first.toUpperCase()),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if ((widget.order.latitude ?? 0.0) != 0.0 &&
-                      (widget.order.longitude ?? 0.0) != 0.0)
-                    _buildMapArea(
-                      context,
-                      widget.order.latitude ?? 0.0,
-                      widget.order.longitude ?? 0.0,
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_error != null)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            color: Colors.red.withOpacity(0.1),
-                            child: Text(
-                              _error!,
-                              style: const TextStyle(color: Colors.red),
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              color: AppColors.buttonBlueDark,
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        16,
+                        16,
+                        12,
+                      ),
+                      child: Center(
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
                             ),
-                          ),
-                        _buildInfoCard(context),
-                        const SizedBox(height: 16),
-                        if (_subOrders.isNotEmpty) _buildSubOrdersSection(),
-                        const SizedBox(height: 24),
-                      ],
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)!.orderInfo,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    widget.order.id,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 38),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
+            Container(
+              decoration: const BoxDecoration(color: AppColors.buttonBlueDark),
+              child: Container(
+                width: double.infinity,
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - 120,
+                ),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F7FA),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if ((widget.order.latitude ?? 0.0) != 0.0 &&
+                              (widget.order.longitude ?? 0.0) != 0.0)
+                            _buildMapArea(
+                              context,
+                              widget.order.latitude ?? 0.0,
+                              widget.order.longitude ?? 0.0,
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_error != null)
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    color: Colors.red.withOpacity(0.1),
+                                    child: Text(
+                                      _error!,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                _buildInfoCard(context),
+                                const SizedBox(height: 16),
+                                if (_subOrders.isNotEmpty)
+                                  _buildSubOrdersSection(),
+                                const SizedBox(height: 24),
+                                // Submit proof button
+                                if (_isMultiSelectMode &&
+                                    _selectedSubOrders.isNotEmpty)
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        if (_selectedSubOrders.length == 1) {
+                                          final subId =
+                                              _selectedSubOrders.first;
+                                          final subOrder = _subOrders
+                                              .firstWhere(
+                                                (s) =>
+                                                    s['id']?.toString() ==
+                                                    subId,
+                                                orElse: () => {},
+                                              );
+                                          final customer =
+                                              subOrder['customerDetails'] ?? {};
+                                          final address =
+                                              subOrder['deliveryAddress'] ??
+                                              customer['address'] ??
+                                              widget.order.deliveryAddress;
+
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ProofSubmissionPage(
+                                                isAutoOrder: false,
+                                                orderId: widget.order.id,
+                                                subOrders: [subId],
+                                                singleCustomerData: {
+                                                  'firstName':
+                                                      customer['firstName'] ??
+                                                      widget.order.customerName,
+                                                  'lastName':
+                                                      customer['lastName'] ??
+                                                      '',
+                                                  'phoneNumber':
+                                                      customer['phoneNumber'] ??
+                                                      widget
+                                                          .order
+                                                          .customerPhone,
+                                                  'address': address,
+                                                },
+                                                initialMosqueFrontImage:
+                                                    subOrder['mosqueFrontImage'],
+                                                initialMosqueInsideImage:
+                                                    subOrder['mosqueInsideImage'],
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {
+                                              _isMultiSelectMode = false;
+                                              _selectedSubOrders.clear();
+                                            });
+                                            _fetchSubOrders();
+                                          });
+                                        } else {
+                                          _showBatchImagesBottomSheet(context);
+                                        }
+                                      },
+                                      icon: const Icon(
+                                        Icons.upload_file_rounded,
+                                        size: 20,
+                                      ),
+                                      label: Text(
+                                        _selectedSubOrders.length == 1
+                                            ? AppLocalizations.of(
+                                                context,
+                                              )!.completeOrder
+                                            : 'Upload Batch Images',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.buttonBlueDark,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildMapArea(BuildContext context, double lat, double lng) {
-    final height = MediaQuery.of(context).size.height * 0.65;
+    final height = MediaQuery.of(context).size.height * 0.6;
     final target = LatLng(lat, lng);
     return SizedBox(
       height: height,
       width: double.infinity,
       child: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(target: target, zoom: 15),
-            markers: {
-              Marker(markerId: const MarkerId('destination'), position: target),
-            },
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(target: target, zoom: 15),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('destination'),
+                  position: target,
+                ),
+              },
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+            ),
           ),
           PositionedDirectional(
             bottom: 16,
@@ -130,7 +325,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               label: Text(
                 AppLocalizations.of(context)?.getDirections ?? 'Get Directions',
               ),
-              backgroundColor: AppColors.buttonBlue,
+              backgroundColor: AppColors.buttonBlueDark,
               foregroundColor: Colors.white,
             ),
           ),
@@ -140,37 +335,99 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildInfoCard(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final city = widget.order.city;
+    final zone = widget.order.zone;
+
+    String cityName = '-';
+    if (city != null) {
+      cityName = isArabic ? (city['nameAr'] ?? city['name']) : city['name'];
+    }
+
+    String zoneName = '-';
+    if (zone != null) {
+      zoneName = isArabic ? (zone['nameAr'] ?? zone['name']) : zone['name'];
+    }
+
+    final customerName =
+        (isArabic
+            ? (widget.order.nameAr ?? widget.order.name)
+            : widget.order.name) ??
+        '';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEAEFF2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.orderInfo,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.buttonBlue,
+                color: Colors.black87,
               ),
             ),
-            const Divider(),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1, color: Color(0xFFEAEFF2)),
+            ),
+            if (widget.order.type != null)
+              _buildDetailRow(
+                Icons.category_outlined,
+                AppLocalizations.of(context)!.typeLabel,
+                _getLocalizedType(context, widget.order.type!),
+              ),
             _buildDetailRow(
-              Icons.info,
-              AppLocalizations.of(context)!.status,
-              widget.order.status ?? 'N/A',
+              Icons.person_outline,
+              AppLocalizations.of(context)!.locationLabel,
+              customerName,
             ),
             _buildDetailRow(
-              Icons.payment,
-              AppLocalizations.of(context)!.paymentLabel,
-              widget.order.paymentMethod ?? 'N/A',
+              Icons.location_city_outlined,
+              AppLocalizations.of(context)!.cityLabel,
+              cityName,
             ),
+            _buildDetailRow(
+              Icons.map_outlined,
+              AppLocalizations.of(context)!.zoneLabel,
+              zoneName,
+            ),
+            if (widget.order.totalQuantity != null)
+              _buildDetailRow(
+                Icons.inventory_2_outlined,
+                AppLocalizations.of(context)!.totalPackagesLabel,
+                widget.order.totalQuantity.toString(),
+              ),
+            if (widget.order.status != null)
+              _buildDetailRow(
+                Icons.info_outline,
+                AppLocalizations.of(context)!.status,
+                widget.order.status!,
+              ),
+            if (widget.order.paymentMethod != null)
+              _buildDetailRow(
+                Icons.payment_outlined,
+                AppLocalizations.of(context)!.paymentLabel,
+                widget.order.paymentMethod!,
+              ),
             if (widget.order.totalAmount != null)
               _buildDetailRow(
-                Icons.monetization_on,
+                Icons.monetization_on_outlined,
                 AppLocalizations.of(context)!.totalLabel,
                 '\$${widget.order.totalAmount}',
               ),
@@ -198,22 +455,63 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         ..._subOrders.map((subOrder) {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
+          final isSelected = _selectedSubOrders.contains(subId);
+          final isCompleted = subOrder['status'] == 'DELIVERED';
 
           return GestureDetector(
+            onLongPress: () {
+              if (isCompleted) return;
+              if (_subOrders.length > 1) {
+                setState(() {
+                  _isMultiSelectMode = true;
+                  _selectedSubOrders.add(subId);
+                });
+              }
+            },
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => NormalSubOrderDetailsPage(
-                    order: widget.order,
-                    subOrder: subOrder,
+              if (isCompleted) return;
+              if (_isMultiSelectMode) {
+                setState(() {
+                  if (isSelected) {
+                    _selectedSubOrders.remove(subId);
+                    if (_selectedSubOrders.isEmpty) {
+                      _isMultiSelectMode = false;
+                    }
+                  } else {
+                    _selectedSubOrders.add(subId);
+                  }
+                });
+              } else {
+                final customer = subOrder['customerDetails'] ?? {};
+                final address =
+                    subOrder['deliveryAddress'] ??
+                    customer['address'] ??
+                    widget.order.deliveryAddress;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProofSubmissionPage(
+                      isAutoOrder: false,
+                      orderId: widget.order.id,
+                      subOrders: [subId],
+                      singleCustomerData: {
+                        'firstName':
+                            customer['firstName'] ?? widget.order.customerName,
+                        'lastName': customer['lastName'] ?? '',
+                        'phoneNumber':
+                            customer['phoneNumber'] ??
+                            widget.order.customerPhone,
+                        'address': address,
+                      },
+                      initialMosqueFrontImage: subOrder['mosqueFrontImage'],
+                      initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                    ),
                   ),
-                ),
-              ).then((shouldRefresh) {
-                if (shouldRefresh == true) {
+                ).then((_) {
                   _fetchSubOrders();
-                }
-              });
+                });
+              }
             },
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -221,7 +519,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.transparent, width: 2),
+                border: isSelected
+                    ? Border.all(color: AppColors.buttonBlueDark, width: 2)
+                    : Border.all(color: Colors.transparent, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -236,15 +536,40 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          AppLocalizations.of(context)!.subOrderNumber(
-                            subOrder['subOrderNumber']?.toString() ??
-                                (subId.length > 8 ? subId.substring(0, 8) : subId),
-                          ),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.buttonBlueDark,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(context)!.subOrderNumber(
+                                  subOrder['subOrderNumber']?.toString() ??
+                                      (subId.length > 8
+                                          ? subId.substring(0, 8)
+                                          : subId),
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                              ),
+                            ),
+                            if (isCompleted)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'Completed',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const Divider(),
                         if (subOrder['deliveryNotes'] != null &&
@@ -376,6 +701,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
+  String _getLocalizedType(BuildContext context, String type) {
+    final localizations = AppLocalizations.of(context)!;
+    switch (type.toLowerCase()) {
+      case 'campaign':
+        return localizations.typeCampaign;
+      case 'category':
+        return localizations.typeCategory;
+      case 'orphanage':
+        return localizations.typeOrphanage;
+      case 'location':
+        return localizations.typeLocation;
+      default:
+        return type;
+    }
+  }
+
   String _formatDate(dynamic dateStr) {
     if (dateStr == null) return '';
     try {
@@ -415,6 +756,266 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBatchImagesBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final canSave =
+                _batchMosqueFrontImage != null &&
+                _batchMosqueInsideImage != null;
+
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Upload Batch Images',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.buttonBlueDark,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDottedImagePicker(
+                          context,
+                          label: AppLocalizations.of(context)!.mosqueFront,
+                          path: _batchMosqueFrontImage,
+                          onPick: (source) async {
+                            final file = await _picker.pickImage(
+                              source: source,
+                            );
+                            if (file != null) {
+                              setSheetState(
+                                () => _batchMosqueFrontImage = file.path,
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        _buildDottedImagePicker(
+                          context,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.mosqueInsideImage,
+                          path: _batchMosqueInsideImage,
+                          onPick: (source) async {
+                            final file = await _picker.pickImage(
+                              source: source,
+                            );
+                            if (file != null) {
+                              setSheetState(
+                                () => _batchMosqueInsideImage = file.path,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: canSave && !_isBatchUploading
+                            ? () async {
+                                setSheetState(() => _isBatchUploading = true);
+                                setState(() => _isBatchUploading = true);
+                                try {
+                                  await _api.bulkUploadMosqueImages(
+                                    orderId: widget.order.id,
+                                    subOrderIds: _selectedSubOrders.toList(),
+                                    mosqueFrontImagePath:
+                                        _batchMosqueFrontImage!,
+                                    mosqueInsideImagePath:
+                                        _batchMosqueInsideImage!,
+                                  );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Batch images uploaded successfully!',
+                                        ),
+                                      ),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                  setState(() {
+                                    _batchMosqueFrontImage = null;
+                                    _batchMosqueInsideImage = null;
+                                    _isMultiSelectMode = false;
+                                    _selectedSubOrders.clear();
+                                  });
+                                  _fetchSubOrders();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    String errorMessage = e.toString();
+                                    if (e is DioException &&
+                                        e.response?.data is Map &&
+                                        e.response?.data['message'] != null) {
+                                      errorMessage =
+                                          e.response!.data['message'];
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(errorMessage),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  setSheetState(
+                                    () => _isBatchUploading = false,
+                                  );
+                                  setState(() => _isBatchUploading = false);
+                                }
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonBlueDark,
+                          disabledBackgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: _isBatchUploading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Save Images',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDottedImagePicker(
+    BuildContext context, {
+    required String label,
+    required String? path,
+    required Function(ImageSource) onPick,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _showSourceBottomSheet(context, onPick),
+        child: Column(
+          children: [
+            DottedBorder(
+              options: RoundedRectDottedBorderOptions(
+                radius: const Radius.circular(12),
+                color: Colors.grey.shade400,
+                strokeWidth: 1.5,
+                dashPattern: const [6, 4],
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: path != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: path.startsWith('http')
+                            ? Image.network(path, fit: BoxFit.cover)
+                            : Image.file(File(path), fit: BoxFit.cover),
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          color: Colors.grey,
+                          size: 32,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSourceBottomSheet(
+    BuildContext context,
+    Function(ImageSource) onPick,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(AppLocalizations.of(context)!.takeAPhoto),
+              onTap: () {
+                Navigator.pop(context);
+                onPick(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(AppLocalizations.of(context)!.chooseFromGallery),
+              onTap: () {
+                Navigator.pop(context);
+                onPick(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

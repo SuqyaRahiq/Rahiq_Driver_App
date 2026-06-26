@@ -18,7 +18,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
   final bool isAutoOrder;
   final List<String> subOrderIds;
   final DriverOrdersApi _api = DriverOrdersApi(ApiClient());
-  
+
   bool _useSameImages = false;
   bool get useSameImages => _useSameImages;
   bool get isMultiSelect => subOrderIds.length > 1;
@@ -77,7 +77,11 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> pickSubOrderImage(String subOrderId, String type, ImageSource source) async {
+  Future<void> pickSubOrderImage(
+    String subOrderId,
+    String type,
+    ImageSource source,
+  ) async {
     final XFile? file = await _picker.pickImage(source: source);
     if (file != null) {
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
@@ -107,12 +111,19 @@ class ProofSubmissionProvider extends ChangeNotifier {
 
   bool get canSubmit {
     if (isMultiSelect || _useSameImages) {
-      if (_globalMosqueFrontImage == null || _globalMosqueInsideImage == null || _globalPackagesImage == null || _globalProofVideo == null) return false;
+      if (_globalMosqueFrontImage == null ||
+          _globalMosqueInsideImage == null ||
+          _globalPackagesImage == null ||
+          _globalProofVideo == null)
+        return false;
       return true;
     } else {
       if (_proofs.isEmpty) return false;
       final p = _proofs.first;
-      return p.mosqueFrontImage != null && p.mosqueInsideImage != null && p.packagesImage != null && p.proofVideo != null;
+      return p.mosqueFrontImage != null &&
+          p.mosqueInsideImage != null &&
+          p.packagesImage != null &&
+          p.proofVideo != null;
     }
   }
 
@@ -123,14 +134,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
     try {
       if (isMultiSelect || _useSameImages) {
         if (!canSubmit) throw Exception('Please provide all required media.');
-        
-        await _api.bulkUploadProof(
+
+        await _api.bulkUploadMosqueImages(
           orderId: orderId,
           subOrderIds: _proofs.map((p) => p.subOrderId).toList(),
           mosqueFrontImagePath: _globalMosqueFrontImage!,
           mosqueInsideImagePath: _globalMosqueInsideImage!,
-          packagesImagePath: _globalPackagesImage!,
-          proofVideoPath: _globalProofVideo,
         );
       } else {
         // Single submission

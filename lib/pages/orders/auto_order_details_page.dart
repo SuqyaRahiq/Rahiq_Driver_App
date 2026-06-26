@@ -171,8 +171,6 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
 
                                 const SizedBox(height: 16),
 
-
-
                                 if (_subOrders.isNotEmpty)
                                   _buildSubOrdersSection(),
 
@@ -187,10 +185,20 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                     child: ElevatedButton.icon(
                                       onPressed: () {
                                         if (_selectedSubOrders.length == 1) {
-                                          final subId = _selectedSubOrders.first;
-                                          final subOrder = _subOrders.firstWhere((s) => s['id']?.toString() == subId, orElse: () => {});
-                                          final customer = subOrder['customerDetails'] ?? {};
-                                          final address = subOrder['deliveryAddress'] ?? customer['address'];
+                                          final subId =
+                                              _selectedSubOrders.first;
+                                          final subOrder = _subOrders
+                                              .firstWhere(
+                                                (s) =>
+                                                    s['id']?.toString() ==
+                                                    subId,
+                                                orElse: () => {},
+                                              );
+                                          final customer =
+                                              subOrder['customerDetails'] ?? {};
+                                          final address =
+                                              subOrder['deliveryAddress'] ??
+                                              customer['address'];
 
                                           Navigator.push(
                                             context,
@@ -200,13 +208,18 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                                 orderId: widget.item.id,
                                                 subOrders: [subId],
                                                 singleCustomerData: {
-                                                  'firstName': customer['firstName'],
-                                                  'lastName': customer['lastName'],
-                                                  'phoneNumber': customer['phoneNumber'],
+                                                  'firstName':
+                                                      customer['firstName'],
+                                                  'lastName':
+                                                      customer['lastName'],
+                                                  'phoneNumber':
+                                                      customer['phoneNumber'],
                                                   'address': address,
                                                 },
-                                                initialMosqueFrontImage: subOrder['mosqueFrontImage'],
-                                                initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                                                initialMosqueFrontImage:
+                                                    subOrder['mosqueFrontImage'],
+                                                initialMosqueInsideImage:
+                                                    subOrder['mosqueInsideImage'],
                                               ),
                                             ),
                                           ).then((_) {
@@ -406,8 +419,6 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
     );
   }
 
-
-
   Widget _buildSubOrdersSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,9 +438,11 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
           final isSelected = _selectedSubOrders.contains(subId);
+          final isCompleted = subOrder['status'] == 'DELIVERED';
 
           return GestureDetector(
             onLongPress: () {
+              if (isCompleted) return;
               if (_subOrders.length > 1) {
                 setState(() {
                   _isMultiSelectMode = true;
@@ -438,6 +451,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
               }
             },
             onTap: () {
+              if (isCompleted) return;
               if (_isMultiSelectMode) {
                 setState(() {
                   if (isSelected) {
@@ -455,17 +469,18 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                   MaterialPageRoute(
                     builder: (_) {
                       final customer = subOrder['customerDetails'] ?? {};
-                      final address = subOrder['deliveryAddress'] ?? customer['address'];
-                      
+                      final address =
+                          subOrder['deliveryAddress'] ?? customer['address'];
+
                       return ProofSubmissionPage(
                         isAutoOrder: true,
                         orderId: widget.item.id,
                         subOrders: [subId],
                         singleCustomerData: {
-                           'firstName': customer['firstName'],
-                           'lastName': customer['lastName'],
-                           'phoneNumber': customer['phoneNumber'],
-                           'address': address,
+                          'firstName': customer['firstName'],
+                          'lastName': customer['lastName'],
+                          'phoneNumber': customer['phoneNumber'],
+                          'address': address,
                         },
                         initialMosqueFrontImage: subOrder['mosqueFrontImage'],
                         initialMosqueInsideImage: subOrder['mosqueInsideImage'],
@@ -498,16 +513,39 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          AppLocalizations.of(context)!.subOrderNumber(
-                            subOrder['subOrderNumber']?.toString() ??
-                                subOrder['id']?.toString().substring(0, 8) ??
-                                '',
-                          ),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.buttonBlueDark,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(context)!.subOrderNumber(
+                                  subOrder['subOrderNumber']?.toString() ??
+                                      subOrder['id']?.toString().substring(0, 8) ??
+                                      '',
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                              ),
+                            ),
+                            if (isCompleted)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'Completed',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
 
                         const Divider(),
@@ -660,7 +698,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
       builder: (bottomSheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final canSave = _batchMosqueFrontImage != null && _batchMosqueInsideImage != null;
+            final canSave =
+                _batchMosqueFrontImage != null &&
+                _batchMosqueInsideImage != null;
 
             return Container(
               padding: EdgeInsets.only(
@@ -693,21 +733,31 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                           label: AppLocalizations.of(context)!.mosqueFront,
                           path: _batchMosqueFrontImage,
                           onPick: (source) async {
-                            final file = await _picker.pickImage(source: source);
+                            final file = await _picker.pickImage(
+                              source: source,
+                            );
                             if (file != null) {
-                              setSheetState(() => _batchMosqueFrontImage = file.path);
+                              setSheetState(
+                                () => _batchMosqueFrontImage = file.path,
+                              );
                             }
                           },
                         ),
                         const SizedBox(width: 12),
                         _buildDottedImagePicker(
                           context,
-                          label: AppLocalizations.of(context)!.mosqueInsideImage,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.mosqueInsideImage,
                           path: _batchMosqueInsideImage,
                           onPick: (source) async {
-                            final file = await _picker.pickImage(source: source);
+                            final file = await _picker.pickImage(
+                              source: source,
+                            );
                             if (file != null) {
-                              setSheetState(() => _batchMosqueInsideImage = file.path);
+                              setSheetState(
+                                () => _batchMosqueInsideImage = file.path,
+                              );
                             }
                           },
                         ),
@@ -726,12 +776,18 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                   await _api.bulkUploadMosqueImages(
                                     orderId: widget.item.id,
                                     subOrderIds: _selectedSubOrders.toList(),
-                                    mosqueFrontImagePath: _batchMosqueFrontImage!,
-                                    mosqueInsideImagePath: _batchMosqueInsideImage!,
+                                    mosqueFrontImagePath:
+                                        _batchMosqueFrontImage!,
+                                    mosqueInsideImagePath:
+                                        _batchMosqueInsideImage!,
                                   );
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Batch images uploaded successfully!')),
+                                      const SnackBar(
+                                        content: Text(
+                                          'Batch images uploaded successfully!',
+                                        ),
+                                      ),
                                     );
                                     Navigator.pop(context);
                                   }
@@ -745,8 +801,11 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                 } catch (e) {
                                   if (context.mounted) {
                                     String errorMessage = e.toString();
-                                    if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
-                                      errorMessage = e.response!.data['message'];
+                                    if (e is DioException &&
+                                        e.response?.data is Map &&
+                                        e.response?.data['message'] != null) {
+                                      errorMessage =
+                                          e.response!.data['message'];
                                     }
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -756,7 +815,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                     );
                                   }
                                 } finally {
-                                  setSheetState(() => _isBatchUploading = false);
+                                  setSheetState(
+                                    () => _isBatchUploading = false,
+                                  );
                                   setState(() => _isBatchUploading = false);
                                 }
                               }
@@ -773,11 +834,17 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                             ? const SizedBox(
                                 height: 24,
                                 width: 24,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text(
                                 'Save Images',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                       ),
                     ),

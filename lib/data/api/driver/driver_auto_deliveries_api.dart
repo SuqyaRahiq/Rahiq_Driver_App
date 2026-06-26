@@ -18,7 +18,7 @@ class DriverAutoDeliveriesApi {
         throw ApiException(response.data['message'] ?? 'Failed to get auto deliveries', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to get auto deliveries', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get auto deliveries', statusCode: e.response?.statusCode);
     }
   }
 
@@ -29,7 +29,7 @@ class DriverAutoDeliveriesApi {
         throw ApiException(response.data['message'] ?? 'Failed to confirm auto delivery', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
-      throw ApiException(e.response?.data['message'] ?? e.message ?? 'Failed to confirm auto delivery', statusCode: e.response?.statusCode);
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to confirm auto delivery', statusCode: e.response?.statusCode);
     }
   }
 }

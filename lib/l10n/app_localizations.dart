@@ -787,6 +787,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get typeLocation;
+
+  /// No description provided for @saveImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Images'**
+  String get saveImages;
+
+  /// No description provided for @uploadBatchImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Batch Images'**
+  String get uploadBatchImages;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelled;
+
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
+  /// No description provided for @inTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In Transit'**
+  String get inTransit;
+
+  /// No description provided for @accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get accepted;
 }
 
 class _AppLocalizationsDelegate

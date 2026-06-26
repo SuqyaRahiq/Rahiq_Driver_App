@@ -18,10 +18,18 @@ class DriverAuthApi {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return DriverAuthResponse.fromJson(response.data['data']);
       } else {
-        throw ApiException(response.data['message'] ?? 'Login failed', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Login failed',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Login failed', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Login failed',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -29,16 +37,21 @@ class DriverAuthApi {
     try {
       final response = await _apiClient.dio.post(
         '/driver/auth/logout',
-        data: {
-          'refreshToken': refreshToken,
-          if (fcmToken != null) 'fcmToken': fcmToken,
-        },
+        data: {'refreshToken': refreshToken, 'fcmToken': ?fcmToken},
       );
       if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Logout failed', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Logout failed',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Logout failed', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Logout failed',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -55,10 +68,18 @@ class DriverAuthApi {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return DriverProfile.fromJson(response.data['data']);
       } else {
-        throw ApiException(response.data['message'] ?? 'Failed to update profile', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to update profile',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to update profile', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to update profile',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -68,14 +89,26 @@ class DriverAuthApi {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return DriverProfile.fromJson(response.data['data']);
       } else {
-        throw ApiException(response.data['message'] ?? 'Failed to get profile', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to get profile',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to get profile', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get profile',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
-  Future<void> updateDeviceToken(String fcmToken, String deviceType, String deviceId) async {
+  Future<void> updateDeviceToken(
+    String fcmToken,
+    String deviceType,
+    String deviceId,
+  ) async {
     try {
       final response = await _apiClient.dio.patch(
         '/driver/auth/device-token',
@@ -86,10 +119,18 @@ class DriverAuthApi {
         },
       );
       if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(response.data['message'] ?? 'Failed to update device token', statusCode: response.statusCode);
+        throw ApiException(
+          response.data['message'] ?? 'Failed to update device token',
+          statusCode: response.statusCode,
+        );
       }
     } on DioException catch (e) {
-      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to update device token', statusCode: e.response?.statusCode);
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to update device token',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 }

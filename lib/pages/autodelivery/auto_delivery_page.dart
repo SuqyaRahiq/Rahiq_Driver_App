@@ -4,6 +4,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
 
 class AutoDeliveryPage extends StatefulWidget {
   const AutoDeliveryPage({super.key});
@@ -188,15 +189,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                         ),
                         const SizedBox(height: 16),
                         _isLoading
-                            ? SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.5,
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppColors.buttonBlueDark,
-                                  ),
-                                ),
-                              )
+                            ? const ListShimmerLoader()
                             : _error != null
                             ? _buildErrorState()
                             : AnimatedBuilder(
@@ -317,7 +310,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        _formatStatus(item.status),
+                        _formatStatus(context, item.status),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -424,9 +417,20 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
     );
   }
 
-  String _formatStatus(String? status) {
-    if (status == null) return 'PENDING';
-    return status.replaceAll('_', ' ');
+  String _formatStatus(BuildContext context, String? status) {
+    final l10n = AppLocalizations.of(context)!;
+    if (status == null) return l10n.pending;
+    switch (status.toUpperCase()) {
+      case 'PENDING': return l10n.pending;
+      case 'DELIVERED': return l10n.delivered;
+      case 'COMPLETED': return l10n.completed;
+      case 'CANCELLED': return l10n.cancelled;
+      case 'REJECTED': return l10n.rejected;
+      case 'IN_TRANSIT': return l10n.inTransit;
+      case 'ASSIGNED': return l10n.assignedStat;
+      case 'ACCEPTED': return l10n.accepted;
+      default: return status.replaceAll('_', ' ');
+    }
   }
 
   Color _getStatusColor(String? status) {

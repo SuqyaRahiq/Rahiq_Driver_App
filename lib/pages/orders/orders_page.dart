@@ -7,6 +7,7 @@ import 'package:rahiq_driver/pages/orders/order_details_page.dart';
 import 'package:rahiq_driver/pages/orders/auto_order_details_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
 
 class OrderListItem {
   final String id;
@@ -93,7 +94,7 @@ class _OrdersPageState extends State<OrdersPage>
         final title =
             (isArabic ? (order.nameAr ?? order.name) : order.name) ??
             order.customerName ??
-            'Unknown Customer';
+            AppLocalizations.of(context)!.unknownCustomer;
 
         String address = '';
         if (order.city != null) {
@@ -288,15 +289,7 @@ class _OrdersPageState extends State<OrdersPage>
                         ),
                         const SizedBox(height: 16),
                         _isLoading
-                            ? SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.5,
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppColors.buttonBlueDark,
-                                  ),
-                                ),
-                              )
+                            ? const ListShimmerLoader()
                             : _error != null
                             ? _buildErrorState()
                             : AnimatedBuilder(
@@ -332,7 +325,7 @@ class _OrdersPageState extends State<OrdersPage>
   }
 
   Widget _buildOrderCard(OrderListItem order) {
-    final statusColor = _getStatusColor(order.status);
+    // final statusColor = _getStatusColor(order.status);
 
     return Material(
       color: Colors.white,
@@ -556,28 +549,28 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  String _formatStatus(String? status) {
-    if (status == null) return 'PENDING';
-    return status.replaceAll('_', ' ');
-  }
+  // String _formatStatus(String? status) {
+  //   if (status == null) return 'PENDING';
+  //   return status.replaceAll('_', ' ');
+  // }
 
-  Color _getStatusColor(String? status) {
-    switch (status?.toUpperCase()) {
-      case 'DELIVERED':
-      case 'COMPLETED':
-        return Colors.green;
-      case 'CANCELLED':
-      case 'REJECTED':
-        return Colors.red;
-      case 'IN_TRANSIT':
-        return Colors.orange;
-      case 'ASSIGNED':
-      case 'ACCEPTED':
-        return AppColors.buttonBlueDark;
-      default:
-        return Colors.blueGrey;
-    }
-  }
+  // Color _getStatusColor(String? status) {
+  //   switch (status?.toUpperCase()) {
+  //     case 'DELIVERED':
+  //     case 'COMPLETED':
+  //       return Colors.green;
+  //     case 'CANCELLED':
+  //     case 'REJECTED':
+  //       return Colors.red;
+  //     case 'IN_TRANSIT':
+  //       return Colors.orange;
+  //     case 'ASSIGNED':
+  //     case 'ACCEPTED':
+  //       return AppColors.buttonBlueDark;
+  //     default:
+  //       return Colors.blueGrey;
+  //   }
+  // }
 }
 
 class _TabDef {

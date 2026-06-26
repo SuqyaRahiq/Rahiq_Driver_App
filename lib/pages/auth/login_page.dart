@@ -12,6 +12,7 @@ import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -180,13 +181,15 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.buttonBlueDark.withOpacity(0.15),
+                          color: AppColors.buttonBlueDark.withValues(
+                            alpha: 0.15,
+                          ),
                           blurRadius: 50,
                           offset: const Offset(0, 25),
                           spreadRadius: -10,
                         ),
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -207,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.02),
+                                  color: Colors.black.withValues(alpha: 0.02),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -273,8 +276,9 @@ class _LoginPageState extends State<LoginPage> {
                                                 borderRadius:
                                                     BorderRadius.circular(15),
                                                 borderSide: BorderSide(
-                                                  color: Colors.grey
-                                                      .withOpacity(0.2),
+                                                  color: Colors.grey.withValues(
+                                                    alpha: 0.2,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -362,7 +366,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.02),
+                                  color: Colors.black.withValues(alpha: 0.02),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -446,13 +450,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
+                                  ? const WaterLoadingIndicator(
+                                      waveColor1: Colors.white,
+                                      size: 20,
                                     )
                                   : Text(
                                       AppLocalizations.of(context)!.login,

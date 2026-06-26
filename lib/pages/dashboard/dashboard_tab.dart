@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_dashboard_stats.dart';
@@ -144,11 +145,9 @@ class _DashboardTabState extends State<DashboardTab> {
 
   Widget _buildBodyContent(AppLocalizations l10n) {
     if (_isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.only(top: 50.0),
-          child: CircularProgressIndicator(color: AppColors.buttonBlueDark),
-        ),
+      return const Padding(
+        padding: EdgeInsets.only(top: 24.0),
+        child: FullPageShimmerLoader(),
       );
     }
 
@@ -265,7 +264,7 @@ class _DashboardTabState extends State<DashboardTab> {
         border: Border.all(color: const Color(0xFFEAEFF2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -278,7 +277,7 @@ class _DashboardTabState extends State<DashboardTab> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 24),

@@ -371,4 +371,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get typeLocation => 'موقع';
+
+  @override
+  String get saveImages => 'حفظ الصور';
+
+  @override
+  String get uploadBatchImages => 'رفع مجموعة صور';
+
+  @override
+  String get completed => 'مكتمل';
+
+  @override
+  String get cancelled => 'ملغى';
+
+  @override
+  String get rejected => 'مرفوض';
+
+  @override
+  String get inTransit => 'في الطريق';
+
+  @override
+  String get accepted => 'مقبول';
 }

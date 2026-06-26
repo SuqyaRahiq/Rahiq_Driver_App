@@ -372,4 +372,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get typeLocation => 'Location';
+
+  @override
+  String get saveImages => 'Save Images';
+
+  @override
+  String get uploadBatchImages => 'Upload Batch Images';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get cancelled => 'Cancelled';
+
+  @override
+  String get rejected => 'Rejected';
+
+  @override
+  String get inTransit => 'In Transit';
+
+  @override
+  String get accepted => 'Accepted';
 }

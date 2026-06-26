@@ -21,7 +21,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final l10n = AppLocalizations.of(context)!;
     _pages = [
       const DashboardTab(),
       const OrdersPage(),

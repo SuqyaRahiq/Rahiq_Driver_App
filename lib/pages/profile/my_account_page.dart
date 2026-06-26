@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
@@ -243,10 +244,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.buttonBlueDark,
-                  ),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 24.0),
+                  child: FullPageShimmerLoader(),
                 ),
               ),
             ),
@@ -870,7 +870,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _error ?? 'Something went wrong',
+                          _error ?? AppLocalizations.of(context)!.somethingWentWrong,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,

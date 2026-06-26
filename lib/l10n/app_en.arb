@@ -170,5 +170,12 @@
   "typeCampaign": "Campaign",
   "typeCategory": "Category",
   "typeOrphanage": "Orphanage",
-  "typeLocation": "Location"
+  "typeLocation": "Location",
+  "saveImages": "Save Images",
+  "uploadBatchImages": "Upload Batch Images",
+  "completed": "Completed",
+  "cancelled": "Cancelled",
+  "rejected": "Rejected",
+  "inTransit": "In Transit",
+  "accepted": "Accepted"
 }

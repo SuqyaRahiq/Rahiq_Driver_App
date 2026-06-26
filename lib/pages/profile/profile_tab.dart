@@ -3,6 +3,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/profile/my_account_page.dart';
 import 'package:rahiq_driver/pages/profile/app_settings_page.dart';
@@ -280,13 +281,9 @@ class _ProfileTabState extends State<ProfileTab> {
                                   fixedSize: const Size(double.infinity, 50),
                                 ),
                                 child: _isLoggingOut
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
+                                    ? const WaterLoadingIndicator(
+                                        waveColor1: Colors.white,
+                                        size: 20,
                                       )
                                     : Text(l10n.logout),
                               ),
@@ -319,7 +316,7 @@ class _ProfileTabState extends State<ProfileTab> {
         border: Border.all(color: const Color(0xFFEAEFF2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -338,7 +335,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withOpacity(0.08),
+                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: AppColors.buttonBlueDark, size: 22),

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
@@ -46,7 +47,7 @@ class ProofSubmissionPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppColors.buttonBlueDark),
+                    const WaterLoadingIndicator(size: 30),
                     SizedBox(height: 16),
                     Text(
                       AppLocalizations.of(context)!.completingOrder,
@@ -835,7 +836,7 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
         child: SizedBox(
           height: 24,
           width: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: WaterLoadingIndicator(size: 24),
         ),
       );
     }

@@ -1,4 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -143,7 +145,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ),
                 ),
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Padding(
+                        padding: EdgeInsets.only(top: 24.0),
+                        child: FullPageShimmerLoader(),
+                      )
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -162,7 +167,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 if (_error != null)
                                   Container(
                                     padding: const EdgeInsets.all(12),
-                                    color: Colors.red.withOpacity(0.1),
+                                    color: Colors.red.withValues(alpha: 0.1),
                                     child: Text(
                                       _error!,
                                       style: const TextStyle(color: Colors.red),
@@ -244,7 +249,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                             ? AppLocalizations.of(
                                                 context,
                                               )!.completeOrder
-                                            : 'Upload Batch Images',
+                                            : AppLocalizations.of(
+                                                context,
+                                              )!.uploadBatchImages,
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
@@ -322,9 +329,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 }
               },
               icon: const Icon(Icons.directions),
-              label: Text(
-                AppLocalizations.of(context)?.getDirections ?? 'Get Directions',
-              ),
+              label: Text(AppLocalizations.of(context)!.getDirections),
               backgroundColor: AppColors.buttonBlueDark,
               foregroundColor: Colors.white,
             ),
@@ -456,7 +461,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
           final isSelected = _selectedSubOrders.contains(subId);
-          final isCompleted = subOrder['status'] == 'DELIVERED';
+          final isCompleted =
+              subOrder['status'] == 'DELIVERED' ||
+              subOrder['status'] == 'COMPLETED';
 
           return GestureDetector(
             onLongPress: () {
@@ -555,13 +562,15 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             if (isCompleted)
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.green.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'Completed',
+                                child: Text(
+                                  AppLocalizations.of(context)!.completed,
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontSize: 12,
@@ -786,8 +795,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Upload Batch Images',
+                    Text(
+                      AppLocalizations.of(context)!.uploadBatchImages,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -901,16 +910,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           ),
                         ),
                         child: _isBatchUploading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
+                            ? const WaterLoadingIndicator(
+                                waveColor1: Colors.white,
+                                size: 24,
                               )
-                            : const Text(
-                                'Save Images',
+                            : Text(
+                                AppLocalizations.of(context)!.saveImages,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

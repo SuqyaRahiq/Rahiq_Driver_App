@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 
 class AutoOrderDetailsPage extends StatefulWidget {
   final AutoOrderItem item;
@@ -143,10 +145,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                       ),
                     ),
                     child: _isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.buttonBlueDark,
-                            ),
+                        ? const Padding(
+                            padding: EdgeInsets.only(top: 24.0),
+                            child: FullPageShimmerLoader(),
                           )
                         : Padding(
                             padding: const EdgeInsets.fromLTRB(24, 28, 24, 100),
@@ -242,7 +243,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                             ? AppLocalizations.of(
                                                 context,
                                               )!.completeOrder
-                                            : 'Upload Batch Images',
+                                            : AppLocalizations.of(
+                                                context,
+                                              )!.uploadBatchImages,
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
@@ -312,9 +315,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                 }
               },
               icon: const Icon(Icons.directions),
-              label: Text(
-                AppLocalizations.of(context)?.getDirections ?? 'Get Directions',
-              ),
+              label: Text(AppLocalizations.of(context)!.getDirections),
               backgroundColor: AppColors.buttonBlueDark,
               foregroundColor: Colors.white,
             ),
@@ -438,7 +439,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
           final isSelected = _selectedSubOrders.contains(subId);
-          final isCompleted = subOrder['status'] == 'DELIVERED';
+          final isCompleted =
+              subOrder['status'] == 'DELIVERED' ||
+              subOrder['status'] == 'COMPLETED';
 
           return GestureDetector(
             onLongPress: () {
@@ -519,7 +522,10 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                               child: Text(
                                 AppLocalizations.of(context)!.subOrderNumber(
                                   subOrder['subOrderNumber']?.toString() ??
-                                      subOrder['id']?.toString().substring(0, 8) ??
+                                      subOrder['id']?.toString().substring(
+                                        0,
+                                        8,
+                                      ) ??
                                       '',
                                 ),
                                 style: const TextStyle(
@@ -531,13 +537,15 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                             if (isCompleted)
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.green.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'Completed',
+                                child: Text(
+                                  AppLocalizations.of(context)!.completed,
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontSize: 12,
@@ -717,7 +725,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Upload Batch Images',
+                      AppLocalizations.of(context)!.uploadBatchImages,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -831,16 +839,12 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                           ),
                         ),
                         child: _isBatchUploading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
+                            ? const WaterLoadingIndicator(
+                                waveColor1: Colors.white,
+                                size: 24,
                               )
-                            : const Text(
-                                'Save Images',
+                            : Text(
+                                AppLocalizations.of(context)!.saveImages,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

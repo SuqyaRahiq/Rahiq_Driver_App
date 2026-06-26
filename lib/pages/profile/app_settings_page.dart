@@ -139,7 +139,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                             border: Border.all(color: const Color(0xFFEAEFF2)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
+                                color: Colors.grey.withValues(alpha: 0.2),
                                 spreadRadius: 1,
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
@@ -198,7 +198,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                           border: Border.all(color: const Color(0xFFEAEFF2)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha: 0.2),
                               spreadRadius: 1,
                               blurRadius: 10,
                               offset: const Offset(0, 4),
@@ -312,7 +312,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.buttonBlueDark.withOpacity(0.1)
+              ? AppColors.buttonBlueDark.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

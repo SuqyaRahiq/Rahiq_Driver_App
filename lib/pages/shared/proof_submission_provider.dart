@@ -114,8 +114,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
       if (_globalMosqueFrontImage == null ||
           _globalMosqueInsideImage == null ||
           _globalPackagesImage == null ||
-          _globalProofVideo == null)
+          _globalProofVideo == null) {
         return false;
+      }
       return true;
     } else {
       if (_proofs.isEmpty) return false;

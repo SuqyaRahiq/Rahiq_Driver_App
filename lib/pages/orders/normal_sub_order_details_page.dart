@@ -1,5 +1,3 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/models/driver/driver_order.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
@@ -97,50 +95,6 @@ class NormalSubOrderDetailsPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildMapArea(BuildContext context, double lat, double lng) {
-    final height = MediaQuery.of(context).size.height * 0.65;
-    final target = LatLng(lat, lng);
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(target: target, zoom: 15),
-            markers: {
-              Marker(markerId: const MarkerId('destination'), position: target),
-            },
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-          ),
-          PositionedDirectional(
-            bottom: 16,
-            end: 16,
-            child: FloatingActionButton.extended(
-              onPressed: () async {
-                final url =
-                    'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(
-                    Uri.parse(url),
-                    mode: LaunchMode.externalApplication,
-                  );
-                }
-              },
-              icon: const Icon(Icons.directions),
-              label: Text(
-                AppLocalizations.of(context)?.getDirections ?? 'Get Directions',
-              ),
-              backgroundColor: AppColors.buttonBlue,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }

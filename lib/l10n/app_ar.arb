@@ -170,5 +170,12 @@
   "typeCampaign": "حملة",
   "typeCategory": "فئة",
   "typeOrphanage": "دار أيتام",
-  "typeLocation": "موقع"
+  "typeLocation": "موقع",
+  "saveImages": "حفظ الصور",
+  "uploadBatchImages": "رفع مجموعة صور",
+  "completed": "مكتمل",
+  "cancelled": "ملغى",
+  "rejected": "مرفوض",
+  "inTransit": "في الطريق",
+  "accepted": "مقبول"
 }

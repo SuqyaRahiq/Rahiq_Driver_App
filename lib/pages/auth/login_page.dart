@@ -3,6 +3,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/services/notification_service.dart';
@@ -105,8 +106,10 @@ class _LoginPageState extends State<LoginPage> {
             e.response?.data['message'] != null) {
           errorMessage = e.response!.data['message'];
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        CustomSnackbar.show(
+          context: context,
+          message: errorMessage,
+          isError: true,
         );
       }
     } finally {

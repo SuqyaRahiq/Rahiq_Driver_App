@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
@@ -218,16 +219,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                             try {
                                               await provider.submitProofs();
                                               if (context.mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      AppLocalizations.of(
-                                                        context,
-                                                      )!.proofsUploaded,
-                                                    ),
-                                                  ),
+                                                CustomSnackbar.show(
+                                                  context: context,
+                                                  message: AppLocalizations.of(context)!.proofsUploaded,
                                                 );
                                                 Navigator.pop(context);
                                               }
@@ -247,13 +241,10 @@ class ProofSubmissionPage extends StatelessWidget {
                                                       .response!
                                                       .data['message'];
                                                 }
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(errorMessage),
-                                                    backgroundColor: Colors.red,
-                                                  ),
+                                                CustomSnackbar.show(
+                                                  context: context,
+                                                  message: errorMessage,
+                                                  isError: true,
                                                 );
                                               }
                                             }

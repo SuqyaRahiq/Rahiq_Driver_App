@@ -12,6 +12,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
 class AutoOrderDetailsPage extends StatefulWidget {
@@ -790,12 +791,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                         _batchMosqueInsideImage!,
                                   );
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Batch images uploaded successfully!',
-                                        ),
-                                      ),
+                                    CustomSnackbar.show(
+                                      context: context,
+                                      message: 'Batch images uploaded successfully!',
                                     );
                                     Navigator.pop(context);
                                   }
@@ -815,11 +813,10 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                       errorMessage =
                                           e.response!.data['message'];
                                     }
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(errorMessage),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                    CustomSnackbar.show(
+                                      context: context,
+                                      message: errorMessage,
+                                      isError: true,
                                     );
                                   }
                                 } finally {

@@ -3,6 +3,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/profile/my_account_page.dart';
@@ -142,12 +143,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
   void _showTermsAndConditions() {
     // Placeholder: show a coming-soon snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.termsConditions),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    CustomSnackbar.show(
+      context: context,
+      message: AppLocalizations.of(context)!.termsConditions,
     );
   }
 

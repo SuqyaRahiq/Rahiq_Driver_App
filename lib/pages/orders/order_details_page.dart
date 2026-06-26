@@ -1,6 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -861,12 +862,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                         _batchMosqueInsideImage!,
                                   );
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Batch images uploaded successfully!',
-                                        ),
-                                      ),
+                                    CustomSnackbar.show(
+                                      context: context,
+                                      message: 'Batch images uploaded successfully!',
                                     );
                                     Navigator.pop(context);
                                   }
@@ -886,11 +884,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       errorMessage =
                                           e.response!.data['message'];
                                     }
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(errorMessage),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                    CustomSnackbar.show(
+                                      context: context,
+                                      message: errorMessage,
+                                      isError: true,
                                     );
                                   }
                                 } finally {

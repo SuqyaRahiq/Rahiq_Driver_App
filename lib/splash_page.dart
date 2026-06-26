@@ -10,24 +10,10 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-
+class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-
-    _controller.forward();
-
-    // Navigate based on active session status after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         final hasSession = AuthStorage.isLoggedIn;
@@ -39,12 +25,6 @@ class _SplashPageState extends State<SplashPage>
         );
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
@@ -64,37 +44,11 @@ class _SplashPageState extends State<SplashPage>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Stack(
-                  alignment: AlignmentDirectional.centerStart,
-                  children: [
-                    Image.asset('assets/logobg.png', width: 100, height: 100),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(start: 20.0),
-                      child: Image.asset(
-                        'assets/logo.png',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Driver App',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+        body: Center(
+          child: SizedBox(
+            width: 300,
+            height: 300,
+            child: Image.asset('assets/Raheeq_LOGO_transparent.apng'),
           ),
         ),
       ),

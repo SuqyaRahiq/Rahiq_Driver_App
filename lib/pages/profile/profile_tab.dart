@@ -8,6 +8,8 @@ import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/profile/my_account_page.dart';
 import 'package:rahiq_driver/pages/profile/app_settings_page.dart';
+import 'package:rahiq_driver/pages/profile/notifications_page.dart';
+import 'package:rahiq_driver/data/api/driver/driver_notifications_api.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -19,6 +21,27 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   bool _isLoggingOut = false;
+  int _unreadNotificationsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUnreadNotificationsCount();
+  }
+
+  Future<void> _fetchUnreadNotificationsCount() async {
+    try {
+      final api = DriverNotificationsApi(ApiClient());
+      final count = await api.getUnreadCount();
+      if (mounted) {
+        setState(() {
+          _unreadNotificationsCount = count;
+        });
+      }
+    } catch (_) {
+      // Fail silently
+    }
+  }
 
   Future<void> _logout() async {
     final l10n = AppLocalizations.of(context)!;
@@ -146,6 +169,7 @@ class _ProfileTabState extends State<ProfileTab> {
     CustomSnackbar.show(
       context: context,
       message: AppLocalizations.of(context)!.termsConditions,
+      bottomMargin: 130,
     );
   }
 
@@ -244,6 +268,39 @@ class _ProfileTabState extends State<ProfileTab> {
                               },
                             ),
                             const SizedBox(height: 12),
+                            // ── Notifications Section ──────────────────────────
+                            _buildStandaloneTile(
+                              icon: Icons.notifications_none_rounded,
+                              title: l10n.notifications,
+                              trailingWidget: _unreadNotificationsCount > 0
+                                  ? Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        '$_unreadNotificationsCount',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const NotificationsPage(),
+                                  ),
+                                );
+                                // Refresh count when returning
+                                _fetchUnreadNotificationsCount();
+                              },
+                            ),
+                            const SizedBox(height: 12),
                             _buildStandaloneTile(
                               icon: Icons.settings_outlined,
                               title: l10n.appSettings,
@@ -306,6 +363,7 @@ class _ProfileTabState extends State<ProfileTab> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    Widget? trailingWidget,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -349,6 +407,8 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                 ),
+                ?trailingWidget,
+                if (trailingWidget != null) const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: Colors.grey[400],

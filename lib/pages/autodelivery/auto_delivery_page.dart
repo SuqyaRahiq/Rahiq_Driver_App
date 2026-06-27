@@ -187,9 +187,9 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+
                         _isLoading
-                            ? const ListShimmerLoader()
+                            ? const ListShimmerLoader(itemCount: 10)
                             : _error != null
                             ? _buildErrorState()
                             : AnimatedBuilder(
@@ -421,15 +421,24 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
     final l10n = AppLocalizations.of(context)!;
     if (status == null) return l10n.pending;
     switch (status.toUpperCase()) {
-      case 'PENDING': return l10n.pending;
-      case 'DELIVERED': return l10n.delivered;
-      case 'COMPLETED': return l10n.completed;
-      case 'CANCELLED': return l10n.cancelled;
-      case 'REJECTED': return l10n.rejected;
-      case 'IN_TRANSIT': return l10n.inTransit;
-      case 'ASSIGNED': return l10n.assignedStat;
-      case 'ACCEPTED': return l10n.accepted;
-      default: return status.replaceAll('_', ' ');
+      case 'PENDING':
+        return l10n.pending;
+      case 'DELIVERED':
+        return l10n.delivered;
+      case 'COMPLETED':
+        return l10n.completed;
+      case 'CANCELLED':
+        return l10n.cancelled;
+      case 'REJECTED':
+        return l10n.rejected;
+      case 'IN_TRANSIT':
+        return l10n.inTransit;
+      case 'ASSIGNED':
+        return l10n.assignedStat;
+      case 'ACCEPTED':
+        return l10n.accepted;
+      default:
+        return status.replaceAll('_', ' ');
     }
   }
 

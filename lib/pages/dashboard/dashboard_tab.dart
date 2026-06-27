@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/colors.dart';
-import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_dashboard_stats.dart';
@@ -145,9 +145,9 @@ class _DashboardTabState extends State<DashboardTab> {
 
   Widget _buildBodyContent(AppLocalizations l10n) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 24.0),
-        child: FullPageShimmerLoader(),
+      return Padding(
+        padding: const EdgeInsets.only(top: 24.0),
+        child: _buildShimmerDashboard(),
       );
     }
 
@@ -247,6 +247,76 @@ class _DashboardTabState extends State<DashboardTab> {
 
         const SizedBox(height: 150), // bottom padding for nav bar
       ],
+    );
+  }
+
+  Widget _buildShimmerDashboard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildShimmerCard()),
+              const SizedBox(width: 16),
+              Expanded(child: _buildShimmerCard()),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildShimmerCard()),
+              const SizedBox(width: 16),
+              Expanded(child: _buildShimmerCard()),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildShimmerCard()),
+              const SizedBox(width: 16),
+              Expanded(child: _buildShimmerCard()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: 60,
+            height: 24,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 4),
+          Container(
+            width: 100,
+            height: 14,
+            color: Colors.white,
+          ),
+        ],
+      ),
     );
   }
 

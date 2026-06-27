@@ -393,4 +393,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accepted => 'Accepted';
+
+  @override
+  String get latest_updates_and_alerts => 'Latest updates and alerts';
+
+  @override
+  String get mark_all_read => 'Mark all read';
+
+  @override
+  String get clear_notifications => 'Clear notifications';
+
+  @override
+  String get failed_to_clear_notifications => 'Failed to clear notifications';
+
+  @override
+  String get failed_to_mark_all_as_read => 'Failed to mark all as read';
+
+  @override
+  String get no_new_notifications => 'No new notifications';
 }

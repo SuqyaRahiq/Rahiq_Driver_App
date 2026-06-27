@@ -80,7 +80,7 @@
   "enterPassword": "Enter password",
   "normalOrders": "Normal orders",
   "autoOrders": "Auto orders",
-  "uploadMediaToSupportDeliveryCompletion":"Upload media to support delivery completion",
+  "uploadMediaToSupportDeliveryCompletion": "Upload media to support delivery completion",
   "viewAndManageAssignedOrders": "View and manage your assigned orders",
   "noOrders": "No {tabLabel}",
   "@noOrders": {
@@ -177,5 +177,12 @@
   "cancelled": "Cancelled",
   "rejected": "Rejected",
   "inTransit": "In Transit",
-  "accepted": "Accepted"
+  "accepted": "Accepted",
+  "latest_updates_and_alerts": "Latest updates and alerts",
+  "mark_all_read": "Mark all read",
+  "clear_notifications": "Clear notifications",
+  "failed_to_clear_notifications": "Failed to clear notifications",
+  "failed_to_mark_all_as_read": "Failed to mark all as read",
+  "no_new_notifications": "No new notifications",
+  "tryAgain": "Try Again"
 }

@@ -167,7 +167,21 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     // Empty space instead of image
-                    child: const SizedBox.shrink(),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 180,
+                            width: 180,
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          SizedBox(height: 30),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 Padding(

@@ -1,31 +1,40 @@
 class DriverNotification {
   final String id;
   final String? title;
-  final String? message;
-  final bool isRead;
+  final String? body;
+  final String? category;
+  final String? userId;
+  final String? driverId;
+  final String? adminId;
+  final Map<String, dynamic>? data;
+  bool isRead;
   final DateTime? createdAt;
-  final String? targetId;
-  final String? type;
 
   DriverNotification({
     required this.id,
     this.title,
-    this.message,
+    this.body,
+    this.category,
+    this.userId,
+    this.driverId,
+    this.adminId,
+    this.data,
     required this.isRead,
     this.createdAt,
-    this.targetId,
-    this.type,
   });
 
   factory DriverNotification.fromJson(Map<String, dynamic> json) {
     return DriverNotification(
       id: json['id'] ?? '',
       title: json['title'],
-      message: json['message'],
+      body: json['body'],
+      category: json['category'],
+      userId: json['userId'],
+      driverId: json['driverId'],
+      adminId: json['adminId'],
+      data: json['data'],
       isRead: json['isRead'] ?? false,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      targetId: json['targetId'],
-      type: json['type'],
     );
   }
 
@@ -33,11 +42,14 @@ class DriverNotification {
     return {
       'id': id,
       'title': title,
-      'message': message,
+      'body': body,
+      'category': category,
+      'userId': userId,
+      'driverId': driverId,
+      'adminId': adminId,
+      'data': data,
       'isRead': isRead,
       'createdAt': createdAt?.toIso8601String(),
-      'targetId': targetId,
-      'type': type,
     };
   }
 }

@@ -829,6 +829,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Accepted'**
   String get accepted;
+
+  /// No description provided for @latest_updates_and_alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest updates and alerts'**
+  String get latest_updates_and_alerts;
+
+  /// No description provided for @mark_all_read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get mark_all_read;
+
+  /// No description provided for @clear_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear notifications'**
+  String get clear_notifications;
+
+  /// No description provided for @failed_to_clear_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear notifications'**
+  String get failed_to_clear_notifications;
+
+  /// No description provided for @failed_to_mark_all_as_read.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark all as read'**
+  String get failed_to_mark_all_as_read;
+
+  /// No description provided for @no_new_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No new notifications'**
+  String get no_new_notifications;
 }
 
 class _AppLocalizationsDelegate

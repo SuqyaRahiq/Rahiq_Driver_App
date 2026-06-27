@@ -793,7 +793,8 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                   if (context.mounted) {
                                     CustomSnackbar.show(
                                       context: context,
-                                      message: 'Batch images uploaded successfully!',
+                                      message:
+                                          'Batch images uploaded successfully!',
                                     );
                                     Navigator.pop(context);
                                   }

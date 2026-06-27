@@ -35,10 +35,12 @@ class DriverNotificationsApi {
     }
   }
 
-  Future<void> markAsRead(String notificationId) async {
+  Future<String> markAsRead(String notificationId) async {
     try {
       final response = await _apiClient.dio.patch('/driver/notifications/$notificationId/read');
-      if (response.statusCode != 200 || response.data['success'] != true) {
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['message'] ?? 'Success';
+      } else {
         throw ApiException(response.data['message'] ?? 'Failed to mark as read', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
@@ -46,14 +48,29 @@ class DriverNotificationsApi {
     }
   }
 
-  Future<void> markAllAsRead() async {
+  Future<String> markAllAsRead() async {
     try {
       final response = await _apiClient.dio.patch('/driver/notifications/read-all');
-      if (response.statusCode != 200 || response.data['success'] != true) {
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['message'] ?? 'Success';
+      } else {
         throw ApiException(response.data['message'] ?? 'Failed to mark all as read', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to mark all as read', statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<String> clearAllNotifications() async {
+    try {
+      final response = await _apiClient.dio.delete('/driver/notifications');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['message'] ?? 'Success';
+      } else {
+        throw ApiException(response.data['message'] ?? 'Failed to clear all notifications', statusCode: response.statusCode);
+      }
+    } on DioException catch (e) {
+      throw ApiException((e.response?.data is Map ? e.response?.data['message'] : null) ?? e.message ?? 'Failed to clear all notifications', statusCode: e.response?.statusCode);
     }
   }
 

@@ -177,5 +177,12 @@
   "cancelled": "ملغى",
   "rejected": "مرفوض",
   "inTransit": "في الطريق",
-  "accepted": "مقبول"
+  "accepted": "مقبول",
+  "latest_updates_and_alerts": "أحدث التحديثات والتنبيهات",
+  "mark_all_read": "تحديد الكل كمقروء",
+  "clear_notifications": "مسح الإشعارات",
+  "failed_to_clear_notifications": "فشل في مسح الإشعارات",
+  "failed_to_mark_all_as_read": "فشل في تحديد الكل كمقروء",
+  "no_new_notifications": "لا توجد إشعارات جديدة",
+  "tryAgain": "حاول مرة أخرى"
 }

@@ -287,9 +287,9 @@ class _OrdersPageState extends State<OrdersPage>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+
                         _isLoading
-                            ? const ListShimmerLoader()
+                            ? const ListShimmerLoader(itemCount: 10)
                             : _error != null
                             ? _buildErrorState()
                             : AnimatedBuilder(

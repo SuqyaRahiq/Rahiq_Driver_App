@@ -392,4 +392,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accepted => 'مقبول';
+
+  @override
+  String get latest_updates_and_alerts => 'أحدث التحديثات والتنبيهات';
+
+  @override
+  String get mark_all_read => 'تحديد الكل كمقروء';
+
+  @override
+  String get clear_notifications => 'مسح الإشعارات';
+
+  @override
+  String get failed_to_clear_notifications => 'فشل في مسح الإشعارات';
+
+  @override
+  String get failed_to_mark_all_as_read => 'فشل في تحديد الكل كمقروء';
+
+  @override
+  String get no_new_notifications => 'لا توجد إشعارات جديدة';
 }

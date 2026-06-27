@@ -114,6 +114,11 @@ class NotificationService {
   }
 
   Future<String?> getToken() async {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
+      await _firebaseMessaging.getAPNSToken();
+    }
     return await _firebaseMessaging.getToken();
   }
 

@@ -58,7 +58,6 @@ dependencies:
   flutter_dotenv: ^5.2.1
   device_info_plus: ^13.1.0
   google_fonts: ^8.1.0
-  flutter_config: ^2.0.2
 
 dev_dependencies:
   flutter_test:

@@ -66,55 +66,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBlkOItn9hMgKTnsuc4kxrSlm4nOIiffLI"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "579658096080-e8oiqp649otjnrbs4h9rijcp2hnhlme4.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "579658096080-7tafri5hhp47dfpsm1qtjl78a4p13up2.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.rahiq.main"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:579658096080:android:fe77cb5903d183e6d6add5",
-        "android_client_info": {
-          "package_name": "com.rahiq.main"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "579658096080-e70hfih82g3dmti8e2i52dcgvoetto5h.apps.googleusercontent.com",
+          "client_id": "579658096080-lc93nvl8jrfnq3jcg94ub8oe2lofuknr.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.rahiq.main",
-            "certificate_hash": "6e2bdd0ce0951f9be03dfcdc3af81dc9512abe43"
+            "package_name": "com.rahiq.driver",
+            "certificate_hash": "1de6c3414aa83a2a75b21802c41b49252602b3ce"
           }
         },
         {
-          "client_id": "579658096080-qj762lj05jb33btlfl44rpfpq5mea8f3.apps.googleusercontent.com",
+          "client_id": "579658096080-mi04p2gvf0onv7vgl1kap294heragpb7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.rahiq.main",
-            "certificate_hash": "02942607de2e99d0a37f028fe5f32b4a69686e48"
+            "package_name": "com.rahiq.driver",
+            "certificate_hash": "bffc2220a50e5f7d19f300226cdf0e476636c1f7"
           }
         },
         {

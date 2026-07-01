@@ -109,9 +109,11 @@ class _OrdersPageState extends State<OrdersPage>
 
         if (order.totalQuantity != null) {
           if (address.isNotEmpty) {
-            address = '${order.totalQuantity} packages • $address';
+            address =
+                '${order.totalQuantity} ${AppLocalizations.of(context)!.packages} • $address';
           } else {
-            address = '${order.totalQuantity} packages';
+            address =
+                '${order.totalQuantity} ${AppLocalizations.of(context)!.packages}';
           }
         }
 
@@ -136,7 +138,8 @@ class _OrdersPageState extends State<OrdersPage>
             id: auto.id,
             title: auto.name,
             subtitle: l10n.autoOrderNumber(auto.id),
-            address: '${auto.totalQuantity} packages',
+            address:
+                '${auto.totalQuantity} ${AppLocalizations.of(context)!.packages}',
             status:
                 'PENDING', // Default to pending so it appears in the Assigned tab
             createdAt: null, // Auto orders don't have createdAt

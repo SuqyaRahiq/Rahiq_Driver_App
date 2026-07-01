@@ -451,6 +451,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get capacity => 'السعة';
 
   @override
+  String get packages => 'الطرود';
+
+  @override
   String get productDetails => 'تفاصيل المنتج';
 
   @override
@@ -462,4 +465,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get missingMediaError => 'يرجى توفير جميع الوسائط المطلوبة.';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get add => 'إضافة';
 }

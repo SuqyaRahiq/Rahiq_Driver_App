@@ -1,6 +1,6 @@
-import 'product.dart';
-import 'supplier.dart';
-import 'vehicle.dart';
+import 'package:rahiq_driver/data/models/driver/product.dart';
+import 'package:rahiq_driver/data/models/driver/supplier.dart';
+import 'package:rahiq_driver/data/models/driver/vehicle.dart';
 
 class DriverProfile {
   final String id;
@@ -70,9 +70,9 @@ class DriverProfile {
       bankName: json['bankName'],
       bankAccountNumber: json['bankAccountNumber'],
       bankIbanNumber: json['bankIbanNumber'],
-      product: json['product'] != null ? Product.fromJson(json['product']) : null,
-      vehicle: json['vehicle'] != null ? Vehicle.fromJson(json['vehicle']) : null,
-      supplier: json['supplier'] != null ? Supplier.fromJson(json['supplier']) : null,
+      product: json['product'] != null ? Product.fromJson(Map<String, dynamic>.from(json['product'])) : null,
+      vehicle: json['vehicle'] != null ? Vehicle.fromJson(Map<String, dynamic>.from(json['vehicle'])) : null,
+      supplier: json['supplier'] != null ? Supplier.fromJson(Map<String, dynamic>.from(json['supplier'])) : null,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
     );

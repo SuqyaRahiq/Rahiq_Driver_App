@@ -303,10 +303,10 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
   }) {
     final isSelected = currentLocaleCode == localeCode;
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         localeNotifier.value = Locale(localeCode);
-        AuthStorage.saveLanguage(localeCode);
-        Navigator.pop(context);
+        await AuthStorage.saveLanguage(localeCode);
+        if (context.mounted) Navigator.pop(context);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

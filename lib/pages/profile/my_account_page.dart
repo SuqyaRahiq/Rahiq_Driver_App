@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:rahiq_driver/data/models/driver/product.dart';
@@ -922,8 +924,8 @@ class _MyAccountPageState extends State<MyAccountPage> {
                           )
                         : Text(
                             _isEditingBankDetails
-                                ? "Save"
-                                : (hasBankDetails ? "Edit" : "Add"),
+                                ? AppLocalizations.of(context)!.save
+                                : (hasBankDetails ? AppLocalizations.of(context)!.edit : AppLocalizations.of(context)!.add),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
@@ -1215,6 +1217,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
   }
 
   Widget _buildFullPageError() {
+    log(_error.toString());
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(

@@ -706,7 +706,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               Container(
                                 width: 40,
                                 height: 40,
-                                margin: const EdgeInsets.only(right: 12),
+                                margin: const EdgeInsets.only(
+                                  right: 12,
+                                  left: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   color: Colors.grey.withValues(alpha: 0.1),
@@ -741,8 +744,16 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    product['name'] ??
-                                        AppLocalizations.of(context)!.product,
+                                    Directionality.of(context) ==
+                                            TextDirection.ltr
+                                        ? product['name'] ??
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.product
+                                        : product['nameAr'] ??
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.product,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,

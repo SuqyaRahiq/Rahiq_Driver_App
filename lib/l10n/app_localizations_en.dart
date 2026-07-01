@@ -452,6 +452,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get capacity => 'Capacity';
 
   @override
+  String get packages => 'Packages';
+
+  @override
   String get productDetails => 'Product Details';
 
   @override
@@ -464,4 +467,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get missingMediaError => 'Please provide all required media.';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get add => 'Add';
 }

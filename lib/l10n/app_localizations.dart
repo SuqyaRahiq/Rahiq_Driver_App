@@ -944,6 +944,12 @@ abstract class AppLocalizations {
   /// **'Capacity'**
   String get capacity;
 
+  /// No description provided for @packages.
+  ///
+  /// In en, this message translates to:
+  /// **'Packages'**
+  String get packages;
+
   /// No description provided for @productDetails.
   ///
   /// In en, this message translates to:
@@ -967,6 +973,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please provide all required media.'**
   String get missingMediaError;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
 }
 
 class _AppLocalizationsDelegate

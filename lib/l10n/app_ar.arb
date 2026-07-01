@@ -197,8 +197,12 @@
   "orderDetails": "تفاصيل الطلب",
   "viewAndManageOrders": "عرض وإدارة الطلبات",
   "capacity": "السعة",
+  "packages": "الطرود",
   "productDetails": "تفاصيل المنتج",
   "videoDurationLimitNote": "ملاحظة: يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
   "videoDurationLimitError": "يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
-  "missingMediaError": "يرجى توفير جميع الوسائط المطلوبة."
+  "missingMediaError": "يرجى توفير جميع الوسائط المطلوبة.",
+  "save": "حفظ",
+  "edit": "تعديل",
+  "add": "إضافة"
 }

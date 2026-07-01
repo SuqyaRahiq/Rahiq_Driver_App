@@ -1,4 +1,4 @@
-import 'driver_profile.dart';
+import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 
 class DriverAuthResponse {
   final String accessToken;

@@ -1,4 +1,4 @@
-import 'product.dart';
+import 'package:rahiq_driver/data/models/driver/product.dart';
 
 class DriverAutoDelivery {
   final String id;

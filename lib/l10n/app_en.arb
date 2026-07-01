@@ -197,8 +197,12 @@
   "vehicleDetails": "Vehicle Details",
   "vehicleName": "Vehicle Name",
   "capacity": "Capacity",
+  "packages": "Packages",
   "productDetails": "Product Details",
   "videoDurationLimitNote": "Note: Video duration should not exceed 10 seconds.",
   "videoDurationLimitError": "Video duration should not exceed 10 seconds.",
-  "missingMediaError": "Please provide all required media."
+  "missingMediaError": "Please provide all required media.",
+  "save": "Save",
+  "edit": "Edit",
+  "add": "Add"
 }

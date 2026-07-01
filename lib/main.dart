@@ -66,7 +66,10 @@ class MyApp extends StatelessWidget {
               final mediaQueryData = MediaQuery.of(context);
               return MediaQuery(
                 data: mediaQueryData.copyWith(
-                  textScaler: _ArabicTextScaler(mediaQueryData.textScaler, isArabic),
+                  textScaler: _ArabicTextScaler(
+                    mediaQueryData.textScaler,
+                    isArabic,
+                  ),
                 ),
                 child: child!,
               );
@@ -85,11 +88,7 @@ class MyApp extends StatelessWidget {
                 ),
                 useMaterial3: true,
               );
-              return theme.copyWith(
-                textTheme: theme.textTheme.apply(
-                  fontSizeDelta: locale.languageCode == 'ar' ? 2.0 : 0.0,
-                ),
-              );
+              return theme;
             }(),
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -115,7 +114,7 @@ class _ArabicTextScaler extends TextScaler {
   @override
   double scale(double fontSize) {
     double scaled = baseScaler.scale(fontSize);
-    return isArabic ? scaled + 2.0 : scaled;
+    return isArabic ? scaled + 1.0 : scaled;
   }
 
   @override

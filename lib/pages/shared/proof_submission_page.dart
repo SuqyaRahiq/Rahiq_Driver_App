@@ -14,6 +14,7 @@ import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
   final bool isAutoOrder;
+  final bool isAutoDelivery;
   final List<String> subOrders;
   final Map<String, dynamic>? singleCustomerData;
   final String? initialMosqueFrontImage;
@@ -23,6 +24,7 @@ class ProofSubmissionPage extends StatelessWidget {
     super.key,
     required this.orderId,
     required this.isAutoOrder,
+    this.isAutoDelivery = false,
     required this.subOrders,
     this.singleCustomerData,
     this.initialMosqueFrontImage,
@@ -35,6 +37,7 @@ class ProofSubmissionPage extends StatelessWidget {
       create: (_) => ProofSubmissionProvider(
         orderId: orderId,
         isAutoOrder: isAutoOrder,
+        isAutoDelivery: isAutoDelivery,
         subOrderIds: subOrders,
         initialMosqueFrontImage: initialMosqueFrontImage,
         initialMosqueInsideImage: initialMosqueInsideImage,
@@ -231,7 +234,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                                     AppLocalizations.of(
                                                       context,
                                                     )!.error(e.toString());
-                                                if (e is DioException &&
+                                                if (e.toString().contains('missing_media')) {
+                                                  errorMessage = AppLocalizations.of(context)!.missingMediaError;
+                                                } else if (e is DioException &&
                                                     e.response?.data is Map &&
                                                     e
                                                             .response
@@ -481,16 +486,16 @@ class ProofSubmissionPage extends StatelessWidget {
   }
 
   void _showSourceBottomSheet(
-    BuildContext context,
+    BuildContext parentContext,
     Function(ImageSource) onPick, {
     bool isVideo = false,
   }) {
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.4,
+      builder: (sheetContext) => Container(
+        height: MediaQuery.of(parentContext).size.height * 0.4,
         color: Colors.transparent,
         child: Column(
           children: [
@@ -512,7 +517,7 @@ class ProofSubmissionPage extends StatelessWidget {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(sheetContext),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -528,7 +533,7 @@ class ProofSubmissionPage extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    AppLocalizations.of(context)!.selectSource,
+                    AppLocalizations.of(sheetContext)!.selectSource,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 20,
@@ -561,25 +566,61 @@ class ProofSubmissionPage extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
+                        if (isVideo)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.info_outline_rounded,
+                                  color: Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(sheetContext)!.videoDurationLimitNote,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         _buildBottomSheetTile(
                           icon: Icons.camera_alt,
                           title: isVideo
-                              ? AppLocalizations.of(context)!.takeAVideo
-                              : AppLocalizations.of(context)!.takeAPhoto,
-                          onTap: () {
-                            Navigator.pop(context);
-                            onPick(ImageSource.camera);
+                              ? AppLocalizations.of(sheetContext)!.takeAVideo
+                              : AppLocalizations.of(sheetContext)!.takeAPhoto,
+                          onTap: () async {
+                            Navigator.pop(sheetContext);
+                            final error = await onPick(ImageSource.camera);
+                            if (error != null && error is String && parentContext.mounted) {
+                              final errorMsg = error == 'video_too_long' 
+                                  ? AppLocalizations.of(parentContext)!.videoDurationLimitError 
+                                  : error;
+                              CustomSnackbar.show(context: parentContext, message: errorMsg, isError: true);
+                            }
                           },
                         ),
                         const Divider(height: 1, color: Color(0xFFEAEFF2)),
                         _buildBottomSheetTile(
                           icon: Icons.photo_library,
                           title: AppLocalizations.of(
-                            context,
+                            sheetContext,
                           )!.chooseFromGallery,
-                          onTap: () {
-                            Navigator.pop(context);
-                            onPick(ImageSource.gallery);
+                          onTap: () async {
+                            Navigator.pop(sheetContext);
+                            final error = await onPick(ImageSource.gallery);
+                            if (error != null && error is String && parentContext.mounted) {
+                              final errorMsg = error == 'video_too_long' 
+                                  ? AppLocalizations.of(parentContext)!.videoDurationLimitError 
+                                  : error;
+                              CustomSnackbar.show(context: parentContext, message: errorMsg, isError: true);
+                            }
                           },
                         ),
                       ],

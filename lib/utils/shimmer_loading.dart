@@ -42,10 +42,20 @@ class ListShimmerLoader extends StatelessWidget {
                       Container(
                         width: double.infinity,
                         height: 16,
-                        color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      Container(width: 100, height: 14, color: Colors.white),
+                      Container(
+                        width: 100,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -69,7 +79,14 @@ class FullPageShimmerLoader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(height: 200, width: double.infinity, color: Colors.white),
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -79,33 +96,55 @@ class FullPageShimmerLoader extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   height: 24,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                Container(width: 150, height: 16, color: Colors.white),
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  height: 100,
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  width: double.infinity,
-                  height: 100,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  height: 100,
-                  color: Colors.white,
+                  width: 150,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Container(
                   width: double.infinity,
                   height: 100,
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ],
             ),

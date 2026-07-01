@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Logout';
 
   @override
+  String get supplier => 'Supplier';
+
+  @override
   String get logoutConfirmation => 'Are you sure you want to logout?';
 
   @override
@@ -411,4 +414,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get no_new_notifications => 'No new notifications';
+
+  @override
+  String get bankAccountDetails => 'Bank Account Details';
+
+  @override
+  String get bankFullName => 'Account Holder Name';
+
+  @override
+  String get bankName => 'Bank Name';
+
+  @override
+  String get bankAccountNumber => 'Account Number';
+
+  @override
+  String get bankIbanNumber => 'IBAN Number';
+
+  @override
+  String get noBankDetails => 'No bank details added';
+
+  @override
+  String get orderDetails => 'Order Details';
+
+  @override
+  String get viewAndManageOrders => 'View and manage assigned orders';
+
+  @override
+  String get vehicle => 'Vehicle';
+
+  @override
+  String get vehicleDetails => 'Vehicle Details';
+
+  @override
+  String get vehicleName => 'Vehicle Name';
+
+  @override
+  String get capacity => 'Capacity';
+
+  @override
+  String get productDetails => 'Product Details';
+
+  @override
+  String get videoDurationLimitNote =>
+      'Note: Video duration should not exceed 10 seconds.';
+
+  @override
+  String get videoDurationLimitError =>
+      'Video duration should not exceed 10 seconds.';
+
+  @override
+  String get missingMediaError => 'Please provide all required media.';
 }

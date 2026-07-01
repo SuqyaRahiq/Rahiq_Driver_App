@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -20,6 +21,22 @@ class _MyAccountPageState extends State<MyAccountPage> {
   DriverProfile? _profile;
   bool _isLoading = true;
   String? _error;
+  bool _isEditingBankDetails = false;
+  bool _isSavingBankDetails = false;
+  final _bankFormKey = GlobalKey<FormState>();
+  final _bankFullNameController = TextEditingController();
+  final _bankNameController = TextEditingController();
+  final _bankAccountNumberController = TextEditingController();
+  final _bankIbanNumberController = TextEditingController();
+
+  @override
+  void dispose() {
+    _bankFullNameController.dispose();
+    _bankNameController.dispose();
+    _bankAccountNumberController.dispose();
+    _bankIbanNumberController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -259,6 +276,12 @@ class _MyAccountPageState extends State<MyAccountPage> {
   Widget _buildProfileContent() {
     final p = _profile!;
 
+    bool hasBankDetails =
+        (p.bankAccountNumber != null && p.bankAccountNumber!.isNotEmpty) ||
+        (p.bankFullName != null && p.bankFullName!.isNotEmpty) ||
+        (p.bankIbanNumber != null && p.bankIbanNumber!.isNotEmpty) ||
+        (p.bankName != null && p.bankName!.isNotEmpty);
+
     // Show blocked screen if driver account is inactive
     if (p.isActive == false) {
       return _buildBlockedScreen(p);
@@ -291,53 +314,12 @@ class _MyAccountPageState extends State<MyAccountPage> {
                 value: p.lastName,
                 icon: Icons.badge_outlined,
               ),
-              if (p.email != null && p.email!.isNotEmpty)
-                _FieldData(
-                  label: AppLocalizations.of(context)!.email,
-                  value: p.email!,
-                  icon: Icons.mail_outline_rounded,
-                ),
-              if (p.gender != null && p.gender!.isNotEmpty)
-                _FieldData(
-                  label: AppLocalizations.of(context)!.gender,
-                  value: _capitalize(p.gender!),
-                  icon: Icons.wc_rounded,
-                ),
-            ],
-          ),
 
-          const SizedBox(height: 16),
-
-          // ── Contact card ─────────────────────────────────────────────
-          _buildInfoCard(
-            title: AppLocalizations.of(context)!.contactDetails,
-            icon: Icons.phone_outlined,
-            fields: [
               _FieldData(
                 label: AppLocalizations.of(context)!.phoneNumber,
                 value: '${p.countryCode} ${p.phoneNumber}',
                 icon: Icons.phone_rounded,
                 forceLtr: true,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Account details card ──────────────────────────────────────
-          _buildInfoCard(
-            title: AppLocalizations.of(context)!.accountDetails,
-            icon: Icons.manage_accounts_outlined,
-            fields: [
-              _FieldData(
-                label: AppLocalizations.of(context)!.status,
-                value: (p.isActive ?? false)
-                    ? AppLocalizations.of(context)!.active
-                    : AppLocalizations.of(context)!.inactive,
-                icon: Icons.circle,
-                valueColor: (p.isActive ?? false)
-                    ? Colors.green
-                    : Colors.redAccent,
               ),
               if (p.type != null && p.type!.isNotEmpty)
                 _FieldData(
@@ -345,8 +327,46 @@ class _MyAccountPageState extends State<MyAccountPage> {
                   value: _capitalize(p.type!),
                   icon: Icons.local_shipping_rounded,
                 ),
+              if (p.supplier != null) ...[
+                _FieldData(
+                  label: AppLocalizations.of(context)!.supplier,
+                  value: p.supplier!.name,
+                  icon: Icons.business_outlined,
+                ),
+              ],
             ],
           ),
+
+          const SizedBox(height: 16),
+
+          if (p.vehicle != null) ...[
+            const SizedBox(height: 16),
+            _buildInfoCard(
+              title: AppLocalizations.of(context)!.vehicleDetails,
+              icon: Icons.directions_car_outlined,
+              fields: [
+                _FieldData(
+                  label: AppLocalizations.of(context)!.vehicleName,
+                  value: p.vehicle!.name,
+                  icon: Icons.local_shipping_outlined,
+                ),
+                _FieldData(
+                  label: AppLocalizations.of(context)!.capacity,
+                  value: p.vehicle!.capacity.toString(),
+                  icon: Icons.inventory_2_outlined,
+                  forceLtr: true,
+                ),
+              ],
+            ),
+          ],
+
+          if (p.product != null) ...[
+            const SizedBox(height: 16),
+            _buildProductCard(p.product!),
+          ],
+
+          const SizedBox(height: 16),
+          _buildBankDetailsCard(p, hasBankDetails),
 
           if (p.createdAt != null) ...[
             const SizedBox(height: 16),
@@ -676,8 +696,10 @@ class _MyAccountPageState extends State<MyAccountPage> {
     required String title,
     required IconData icon,
     required List<_FieldData> fields,
+    Widget? trailing,
+    Widget? emptyState,
   }) {
-    if (fields.isEmpty) return const SizedBox.shrink();
+    if (fields.isEmpty && emptyState == null) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -709,34 +731,40 @@ class _MyAccountPageState extends State<MyAccountPage> {
                   child: Icon(icon, color: AppColors.buttonBlueDark, size: 18),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
+                if (trailing != null) trailing,
               ],
             ),
           ),
           const Divider(height: 1, color: Color(0xFFEEF1F4)),
-          // Fields
-          ...fields.asMap().entries.map((entry) {
-            final isLast = entry.key == fields.length - 1;
-            return Column(
-              children: [
-                _buildFieldRow(entry.value),
-                if (!isLast)
-                  const Divider(
-                    height: 1,
-                    color: Color(0xFFEEF1F4),
-                    indent: 20,
-                    endIndent: 20,
-                  ),
-              ],
-            );
-          }),
+          if (fields.isEmpty && emptyState != null)
+            emptyState
+          else
+            // Fields
+            ...fields.asMap().entries.map((entry) {
+              final isLast = entry.key == fields.length - 1;
+              return Column(
+                children: [
+                  _buildFieldRow(entry.value),
+                  if (!isLast)
+                    const Divider(
+                      height: 1,
+                      color: Color(0xFFEEF1F4),
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                ],
+              );
+            }),
         ],
       ),
     );
@@ -781,6 +809,408 @@ class _MyAccountPageState extends State<MyAccountPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBankDetailsCard(DriverProfile p, bool hasBankDetails) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.account_balance_outlined,
+                    color: AppColors.buttonBlueDark,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.bankAccountDetails,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    if (_isSavingBankDetails) return;
+                    if (_isEditingBankDetails) {
+                      if (_bankFormKey.currentState!.validate()) {
+                        setState(() => _isSavingBankDetails = true);
+                        try {
+                          final api = DriverAuthApi(ApiClient());
+                          final profile = await api.updateBankAccount({
+                            "bankFullName": _bankFullNameController.text.trim(),
+                            "bankName": _bankNameController.text.trim(),
+                            "bankAccountNumber": _bankAccountNumberController
+                                .text
+                                .trim(),
+                            "bankIbanNumber": _bankIbanNumberController.text
+                                .trim(),
+                          });
+                          await AuthStorage.saveUserData(profile.toJson());
+                          if (mounted) {
+                            setState(() {
+                              _profile = profile;
+                              _isEditingBankDetails = false;
+                              _isSavingBankDetails = false;
+                            });
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            setState(() => _isSavingBankDetails = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
+                        }
+                      }
+                    } else {
+                      setState(() {
+                        _isEditingBankDetails = true;
+                        _bankFullNameController.text = p.bankFullName ?? '';
+                        _bankNameController.text = p.bankName ?? '';
+                        _bankAccountNumberController.text =
+                            p.bankAccountNumber ?? '';
+                        _bankIbanNumberController.text = p.bankIbanNumber ?? '';
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.buttonBlueDark,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _isSavingBankDetails
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            _isEditingBankDetails
+                                ? "Save"
+                                : (hasBankDetails ? "Edit" : "Add"),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEF1F4)),
+          if (_isEditingBankDetails)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _bankFormKey,
+                child: Column(
+                  children: [
+                    _buildTextField(
+                      controller: _bankFullNameController,
+                      label: AppLocalizations.of(context)!.bankFullName,
+                      icon: Icons.person_outline,
+                      enabled: !_isSavingBankDetails,
+                      validator: (value) => value == null || value.isEmpty
+                          ? AppLocalizations.of(context)!.requiredField
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _bankNameController,
+                      label: AppLocalizations.of(context)!.bankName,
+                      icon: Icons.account_balance,
+                      enabled: !_isSavingBankDetails,
+                      validator: (value) => value == null || value.isEmpty
+                          ? AppLocalizations.of(context)!.requiredField
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _bankAccountNumberController,
+                      label: AppLocalizations.of(context)!.bankAccountNumber,
+                      icon: Icons.numbers_outlined,
+                      isLtr: true,
+                      enabled: !_isSavingBankDetails,
+                      validator: (value) => value == null || value.isEmpty
+                          ? AppLocalizations.of(context)!.requiredField
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _bankIbanNumberController,
+                      label: AppLocalizations.of(context)!.bankIbanNumber,
+                      icon: Icons.credit_card_outlined,
+                      isLtr: true,
+                      enabled: !_isSavingBankDetails,
+                      validator: (value) => value == null || value.isEmpty
+                          ? AppLocalizations.of(context)!.requiredField
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (!hasBankDetails)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  AppLocalizations.of(context)!.noBankDetails,
+                  style: const TextStyle(fontSize: 14, color: Colors.black45),
+                ),
+              ),
+            )
+          else
+            Builder(
+              builder: (context) {
+                final fields = <_FieldData>[];
+                if (p.bankFullName != null && p.bankFullName!.isNotEmpty) {
+                  fields.add(
+                    _FieldData(
+                      label: AppLocalizations.of(context)!.bankFullName,
+                      value: p.bankFullName!,
+                      icon: Icons.person_outline,
+                    ),
+                  );
+                }
+                if (p.bankName != null && p.bankName!.isNotEmpty) {
+                  fields.add(
+                    _FieldData(
+                      label: AppLocalizations.of(context)!.bankName,
+                      value: p.bankName!,
+                      icon: Icons.account_balance,
+                    ),
+                  );
+                }
+                if (p.bankAccountNumber != null &&
+                    p.bankAccountNumber!.isNotEmpty) {
+                  fields.add(
+                    _FieldData(
+                      label: AppLocalizations.of(context)!.bankAccountNumber,
+                      value: p.bankAccountNumber!,
+                      icon: Icons.numbers_outlined,
+                      forceLtr: true,
+                    ),
+                  );
+                }
+                if (p.bankIbanNumber != null && p.bankIbanNumber!.isNotEmpty) {
+                  fields.add(
+                    _FieldData(
+                      label: AppLocalizations.of(context)!.bankIbanNumber,
+                      value: p.bankIbanNumber!,
+                      icon: Icons.credit_card_outlined,
+                      forceLtr: true,
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: fields.asMap().entries.map((entry) {
+                    final isLast = entry.key == fields.length - 1;
+                    return Column(
+                      children: [
+                        _buildFieldRow(entry.value),
+                        if (!isLast)
+                          const Divider(
+                            height: 1,
+                            color: Color(0xFFEEF1F4),
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard(Product product) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.water_drop_outlined,
+                    color: AppColors.buttonBlueDark,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.productDetails,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEF1F4)),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                if (product.image != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      product.image!,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey.shade100,
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.product,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black38,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        Directionality.of(context) == TextDirection.ltr
+                            ? product.name
+                            : product.nameAr ?? product.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isLtr = false,
+    bool enabled = true,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      cursorColor: AppColors.buttonBlueDark,
+      textDirection: isLtr ? TextDirection.ltr : null,
+      decoration: InputDecoration(
+        labelText: label,
+
+        labelStyle: TextStyle(color: AppColors.buttonBlueDark),
+        prefixIcon: Icon(icon, size: 20, color: AppColors.buttonBlueDark),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.buttonBlueDark),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+      validator: validator,
     );
   }
 
@@ -870,7 +1300,8 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _error ?? AppLocalizations.of(context)!.somethingWentWrong,
+                          _error ??
+                              AppLocalizations.of(context)!.somethingWentWrong,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
@@ -933,7 +1364,6 @@ class _FieldData {
     required this.label,
     required this.value,
     required this.icon,
-    this.valueColor,
     this.forceLtr = false,
-  });
+  }) : valueColor = null;
 }

@@ -11,7 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
-import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -131,10 +131,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                     ],
                   ),
                 ),
-                // ── Map Area ────────────────────────────────────────────────────
-                if (_getLatitude() != 0.0 && _getLongitude() != 0.0)
-                  _buildMapHeader(context),
-                // ── Rounded white body ─────────────────────────────────────────
+
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -146,10 +143,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                       ),
                     ),
                     child: _isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.only(top: 24.0),
-                            child: FullPageShimmerLoader(),
-                          )
+                        ? _buildShimmerBody(context)
                         : Padding(
                             padding: const EdgeInsets.fromLTRB(24, 28, 24, 100),
                             child: Column(
@@ -276,6 +270,101 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerBody(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 110,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: 140,
+              height: 20,
+              margin: const EdgeInsets.only(left: 8, bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ],
         ),
       ),
     );

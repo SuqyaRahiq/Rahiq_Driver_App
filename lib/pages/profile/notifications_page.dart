@@ -260,6 +260,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 500),
+                        layoutBuilder: (currentChild, previousChildren) =>
+                            Stack(
+                              alignment: Alignment.topCenter,
+                              children: <Widget>[
+                                ...previousChildren,
+                                ?currentChild,
+                              ],
+                            ),
                         child: _buildContent(),
                       ),
                     ),
@@ -276,11 +284,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _buildContent() {
     if (_isLoading) {
       return Padding(
-        padding: const EdgeInsets.only(top: 24.0),
+        padding: const EdgeInsets.only(top: 12),
         child: ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: 8,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
@@ -303,7 +311,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (_errorMessage != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -356,7 +364,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: _notifications.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {

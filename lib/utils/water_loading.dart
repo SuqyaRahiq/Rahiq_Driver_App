@@ -101,6 +101,6 @@ class _WaterLoadingIndicatorState extends State<WaterLoadingIndicator>
       },
     );
 
-    return animationWidget;
+    return SizedBox(height: widget.size, child: animationWidget);
   }
 }

@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Logout'**
   String get logout;
 
+  /// No description provided for @supplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get supplier;
+
   /// No description provided for @logoutConfirmation.
   ///
   /// In en, this message translates to:
@@ -865,6 +871,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No new notifications'**
   String get no_new_notifications;
+
+  /// No description provided for @bankAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account Details'**
+  String get bankAccountDetails;
+
+  /// No description provided for @bankFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Holder Name'**
+  String get bankFullName;
+
+  /// No description provided for @bankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get bankName;
+
+  /// No description provided for @bankAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get bankAccountNumber;
+
+  /// No description provided for @bankIbanNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'IBAN Number'**
+  String get bankIbanNumber;
+
+  /// No description provided for @noBankDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No bank details added'**
+  String get noBankDetails;
+
+  /// No description provided for @orderDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Details'**
+  String get orderDetails;
+
+  /// No description provided for @viewAndManageOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage assigned orders'**
+  String get viewAndManageOrders;
+
+  /// No description provided for @vehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get vehicle;
+
+  /// No description provided for @vehicleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Details'**
+  String get vehicleDetails;
+
+  /// No description provided for @vehicleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Name'**
+  String get vehicleName;
+
+  /// No description provided for @capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get capacity;
+
+  /// No description provided for @productDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Details'**
+  String get productDetails;
+
+  /// No description provided for @videoDurationLimitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Video duration should not exceed 10 seconds.'**
+  String get videoDurationLimitNote;
+
+  /// No description provided for @videoDurationLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Video duration should not exceed 10 seconds.'**
+  String get videoDurationLimitError;
+
+  /// No description provided for @missingMediaError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide all required media.'**
+  String get missingMediaError;
 }
 
 class _AppLocalizationsDelegate

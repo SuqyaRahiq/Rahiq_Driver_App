@@ -133,4 +133,28 @@ class DriverAuthApi {
       );
     }
   }
+
+  Future<DriverProfile> updateBankAccount(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.patch(
+        '/driver/auth/me/bank-account',
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return DriverProfile.fromJson(response.data['data']);
+      } else {
+        throw ApiException(
+          response.data['message'] ?? 'Failed to update bank account',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to update bank account',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
 }

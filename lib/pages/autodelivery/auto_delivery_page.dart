@@ -5,6 +5,7 @@ import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 
 class AutoDeliveryPage extends StatefulWidget {
   const AutoDeliveryPage({super.key});
@@ -86,7 +87,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
         onRefresh: _fetchItems,
         color: AppColors.buttonBlueDark,
         child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               // ── Header ──────────────────────────────────────────────────────
@@ -163,6 +164,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                               borderRadius: BorderRadius.circular(25),
                             ),
                             child: TabBar(
+                              splashBorderRadius: BorderRadius.circular(25),
                               controller: _tabController,
                               indicatorSize: TabBarIndicatorSize.tab,
                               dividerColor: Colors.transparent,
@@ -217,7 +219,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 150),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) => _buildItemCard(items[index]),
@@ -226,41 +228,78 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
 
   Widget _buildItemCard(DriverAutoDelivery item) {
     final statusColor = _getStatusColor(item.status);
+    final isLtr = Directionality.of(context) == TextDirection.ltr;
+    final productName = item.product != null
+        ? (isLtr
+              ? item.product!.name
+              : (item.product!.nameAr ?? item.product!.name))
+        : AppLocalizations.of(context)!.product;
 
     return Material(
       color: Colors.white,
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          // TODO: Navigate to delivery details if needed
-        },
+        onTap: item.status == 'DELIVERED'
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProofSubmissionPage(
+                      orderId: item.id,
+                      isAutoOrder: false,
+                      isAutoDelivery: true,
+                      subOrders: const [],
+                    ),
+                  ),
+                ).then((_) => _fetchItems());
+              },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
+              if (item.product?.image != null)
+                ClipRRect(
                   borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    item.product!.image!,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 50,
+                      height: 50,
+                      color: Colors.grey.shade100,
+                      child: const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.water_drop_outlined,
+                    color: AppColors.buttonBlueDark,
+                    size: 24,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.local_shipping_rounded,
-                  color: AppColors.buttonBlueDark,
-                  size: 24,
-                ),
-              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.customerName ??
-                          AppLocalizations.of(context)!.unknownCustomer,
+                      productName,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -269,37 +308,47 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Batch #${item.id.split('-').first.toUpperCase()}',
+                      item.batchNumber ?? "",
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black38,
                       ),
                     ),
-                    if (item.address != null && item.address!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            size: 12,
-                            color: Colors.black38,
-                          ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              item.address!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black38,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
                     const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 14,
+                          color: AppColors.buttonBlueDark,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item.quantity ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 14,
+                          color: AppColors.buttonBlueDark,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item.orderCount ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -321,11 +370,13 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Colors.grey[400],
-                size: 14,
-              ),
+              item.status == "PENDING"
+                  ? Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.grey[400],
+                      size: 14,
+                    )
+                  : const SizedBox.shrink(),
             ],
           ),
         ),

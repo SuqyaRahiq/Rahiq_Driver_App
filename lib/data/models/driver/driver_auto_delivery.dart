@@ -1,47 +1,63 @@
+import 'product.dart';
+
 class DriverAutoDelivery {
   final String id;
+  final String? batchNumber;
+  final String? productId;
+  final Product? product;
+  final int? quantity;
   final String? status;
-  final String? deliveryDate;
-  final String? customerName;
-  final String? customerPhone;
-  final String? address;
-  final double? latitude;
-  final double? longitude;
+  final DateTime? assignedAt;
+  final DateTime? deliveredAt;
+  final int? orderCount;
 
   DriverAutoDelivery({
     required this.id,
+    this.batchNumber,
+    this.productId,
+    this.product,
+    this.quantity,
     this.status,
-    this.deliveryDate,
-    this.customerName,
-    this.customerPhone,
-    this.address,
-    this.latitude,
-    this.longitude,
+    this.assignedAt,
+    this.deliveredAt,
+    this.orderCount,
   });
 
   factory DriverAutoDelivery.fromJson(Map<String, dynamic> json) {
     return DriverAutoDelivery(
       id: json['id'] ?? '',
+      batchNumber: json['batchNumber'],
+      productId: json['productId'],
+      product: json['product'] != null
+          ? Product.fromJson(json['product'])
+          : null,
+      quantity: json['quantity'] is int
+          ? json['quantity']
+          : int.tryParse(json['quantity']?.toString() ?? ''),
       status: json['status'],
-      deliveryDate: json['deliveryDate'],
-      customerName: json['customerName'],
-      customerPhone: json['customerPhone'],
-      address: json['address'],
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      assignedAt: json['assignedAt'] != null
+          ? DateTime.tryParse(json['assignedAt'])
+          : null,
+      deliveredAt: json['deliveredAt'] != null
+          ? DateTime.tryParse(json['deliveredAt'])
+          : null,
+      orderCount: json['orderCount'] is int
+          ? json['orderCount']
+          : int.tryParse(json['orderCount']?.toString() ?? ''),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'batchNumber': batchNumber,
+      'productId': productId,
+      'product': product?.toJson(),
+      'quantity': quantity,
       'status': status,
-      'deliveryDate': deliveryDate,
-      'customerName': customerName,
-      'customerPhone': customerPhone,
-      'address': address,
-      'latitude': latitude,
-      'longitude': longitude,
+      'assignedAt': assignedAt?.toIso8601String(),
+      'deliveredAt': deliveredAt?.toIso8601String(),
+      'orderCount': orderCount,
     };
   }
 }

@@ -1,5 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -103,7 +104,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    AppLocalizations.of(context)!.orderInfo,
+                                    AppLocalizations.of(context)!.orderDetails,
                                     style: const TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
@@ -111,7 +112,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                     ),
                                   ),
                                   Text(
-                                    widget.order.id,
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.viewAndManageOrders,
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
@@ -146,10 +149,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ),
                 ),
                 child: _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.only(top: 24.0),
-                        child: FullPageShimmerLoader(),
-                      )
+                    ? _buildShimmerLoading(context)
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -283,6 +283,75 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading(BuildContext context) {
+    final height = MediaQuery.of(context).size.height * 0.6;
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: height,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: 120,
+                  height: 20,
+                  margin: const EdgeInsets.only(left: 8, bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -462,13 +531,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
           final isSelected = _selectedSubOrders.contains(subId);
-          final isCompleted =
-              subOrder['status'] == 'DELIVERED' ||
-              subOrder['status'] == 'COMPLETED';
+          final isDelivered = subOrder['status'] == 'DELIVERED';
 
           return GestureDetector(
             onLongPress: () {
-              if (isCompleted) return;
+              if (isDelivered) return;
               if (_subOrders.length > 1) {
                 setState(() {
                   _isMultiSelectMode = true;
@@ -477,7 +544,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               }
             },
             onTap: () {
-              if (isCompleted) return;
+              if (isDelivered) return;
               if (_isMultiSelectMode) {
                 setState(() {
                   if (isSelected) {
@@ -560,7 +627,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 ),
                               ),
                             ),
-                            if (isCompleted)
+                            if (isDelivered)
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -571,7 +638,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  AppLocalizations.of(context)!.completed,
+                                  AppLocalizations.of(context)!.delivered,
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontSize: 12,
@@ -864,7 +931,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   if (context.mounted) {
                                     CustomSnackbar.show(
                                       context: context,
-                                      message: 'Batch images uploaded successfully!',
+                                      message:
+                                          'Batch images uploaded successfully!',
                                     );
                                     Navigator.pop(context);
                                   }

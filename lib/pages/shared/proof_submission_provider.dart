@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
+import 'dart:io';
+import 'package:video_player/video_player.dart';
+import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 
 class SubOrderProof {
   final String subOrderId;
@@ -16,8 +19,10 @@ class SubOrderProof {
 class ProofSubmissionProvider extends ChangeNotifier {
   final String orderId;
   final bool isAutoOrder;
+  final bool isAutoDelivery;
   final List<String> subOrderIds;
   final DriverOrdersApi _api = DriverOrdersApi(ApiClient());
+  final DriverAutoDeliveriesApi _autoDeliveriesApi = DriverAutoDeliveriesApi(ApiClient());
 
   bool _useSameImages = false;
   bool get useSameImages => _useSameImages;
@@ -44,11 +49,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
   ProofSubmissionProvider({
     required this.orderId,
     required this.isAutoOrder,
+    this.isAutoDelivery = false,
     required this.subOrderIds,
     String? initialMosqueFrontImage,
     String? initialMosqueInsideImage,
   }) {
-    if (isAutoOrder || isMultiSelect) {
+    if (isAutoOrder || isMultiSelect || isAutoDelivery) {
       _useSameImages = true;
     }
     _proofs = subOrderIds.map((id) => SubOrderProof(id)).toList();
@@ -92,21 +98,41 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> pickSubOrderVideo(String subOrderId, ImageSource source) async {
-    final XFile? file = await _picker.pickVideo(source: source);
+  Future<bool> _isVideoTooLong(String path) async {
+    try {
+      final controller = VideoPlayerController.file(File(path));
+      await controller.initialize();
+      final duration = controller.value.duration;
+      await controller.dispose();
+      return duration.inSeconds > 10;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<String?> pickSubOrderVideo(String subOrderId, ImageSource source) async {
+    final XFile? file = await _picker.pickVideo(source: source, maxDuration: const Duration(seconds: 10));
     if (file != null) {
+      if (await _isVideoTooLong(file.path)) {
+        return 'video_too_long';
+      }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
       proof.proofVideo = file.path;
       notifyListeners();
     }
+    return null;
   }
 
-  Future<void> pickGlobalVideo(ImageSource source) async {
-    final XFile? file = await _picker.pickVideo(source: source);
+  Future<String?> pickGlobalVideo(ImageSource source) async {
+    final XFile? file = await _picker.pickVideo(source: source, maxDuration: const Duration(seconds: 10));
     if (file != null) {
+      if (await _isVideoTooLong(file.path)) {
+        return 'video_too_long';
+      }
       _globalProofVideo = file.path;
       notifyListeners();
     }
+    return null;
   }
 
   bool get canSubmit {
@@ -133,8 +159,17 @@ class ProofSubmissionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (isMultiSelect || _useSameImages) {
-        if (!canSubmit) throw Exception('Please provide all required media.');
+      if (isAutoDelivery) {
+        if (!canSubmit) throw Exception('missing_media');
+        await _autoDeliveriesApi.confirmAutoDelivery(
+          deliveryId: orderId,
+          mosqueFrontImage: _globalMosqueFrontImage!,
+          mosqueInsideImage: _globalMosqueInsideImage!,
+          packagesImage: _globalPackagesImage!,
+          deliveryVideo: _globalProofVideo!,
+        );
+      } else if (isMultiSelect || _useSameImages) {
+        if (!canSubmit) throw Exception('missing_media');
 
         await _api.bulkUploadMosqueImages(
           orderId: orderId,
@@ -144,7 +179,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
         );
       } else {
         // Single submission
-        if (!canSubmit) throw Exception('Please provide all required media.');
+        if (!canSubmit) throw Exception('missing_media');
         final p = _proofs.first;
         await _api.confirmSubOrder(
           subOrderId: p.subOrderId,

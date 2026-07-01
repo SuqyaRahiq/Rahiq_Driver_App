@@ -1,3 +1,7 @@
+import 'product.dart';
+import 'supplier.dart';
+import 'vehicle.dart';
+
 class DriverProfile {
   final String id;
   final String phoneNumber;
@@ -12,6 +16,13 @@ class DriverProfile {
   final String? vehicleId;
   final String? email;
   final String? gender;
+  final String? bankFullName;
+  final String? bankName;
+  final String? bankAccountNumber;
+  final String? bankIbanNumber;
+  final Product? product;
+  final Vehicle? vehicle;
+  final Supplier? supplier;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -29,6 +40,13 @@ class DriverProfile {
     this.vehicleId,
     this.email,
     this.gender,
+    this.bankFullName,
+    this.bankName,
+    this.bankAccountNumber,
+    this.bankIbanNumber,
+    this.product,
+    this.vehicle,
+    this.supplier,
     this.createdAt,
     this.updatedAt,
   });
@@ -48,6 +66,13 @@ class DriverProfile {
       vehicleId: json['vehicleId'],
       email: json['email'],
       gender: json['gender'],
+      bankFullName: json['bankFullName'],
+      bankName: json['bankName'],
+      bankAccountNumber: json['bankAccountNumber'],
+      bankIbanNumber: json['bankIbanNumber'],
+      product: json['product'] != null ? Product.fromJson(json['product']) : null,
+      vehicle: json['vehicle'] != null ? Vehicle.fromJson(json['vehicle']) : null,
+      supplier: json['supplier'] != null ? Supplier.fromJson(json['supplier']) : null,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
     );
@@ -68,6 +93,13 @@ class DriverProfile {
       'vehicleId': vehicleId,
       'email': email,
       'gender': gender,
+      'bankFullName': bankFullName,
+      'bankName': bankName,
+      'bankAccountNumber': bankAccountNumber,
+      'bankIbanNumber': bankIbanNumber,
+      'product': product?.toJson(),
+      'vehicle': vehicle?.toJson(),
+      'supplier': supplier?.toJson(),
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };

@@ -146,6 +146,14 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (confirmed == true && mounted) {
       setState(() => _isLoggingOut = true);
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.transparent,
+        builder: (_) => const PopScope(canPop: false, child: SizedBox.expand()),
+      );
+
       try {
         final refreshToken = AuthStorage.getRefreshToken() ?? '';
         final api = DriverAuthApi(ApiClient());

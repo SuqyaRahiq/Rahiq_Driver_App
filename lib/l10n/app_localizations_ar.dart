@@ -30,6 +30,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logout => 'تسجيل الخروج';
 
   @override
+  String get supplier => 'المُوَرِّد';
+
+  @override
   String get logoutConfirmation => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
 
   @override
@@ -410,4 +413,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get no_new_notifications => 'لا توجد إشعارات جديدة';
+
+  @override
+  String get bankAccountDetails => 'تفاصيل الحساب البنكي';
+
+  @override
+  String get bankFullName => 'اسم صاحب الحساب';
+
+  @override
+  String get bankName => 'اسم البنك';
+
+  @override
+  String get bankAccountNumber => 'رقم الحساب';
+
+  @override
+  String get bankIbanNumber => 'رقم الآيبان';
+
+  @override
+  String get noBankDetails => 'لم يتم إضافة تفاصيل بنكية';
+
+  @override
+  String get orderDetails => 'تفاصيل الطلب';
+
+  @override
+  String get viewAndManageOrders => 'عرض وإدارة الطلبات';
+
+  @override
+  String get vehicle => 'المركبة';
+
+  @override
+  String get vehicleDetails => 'تفاصيل المركبة';
+
+  @override
+  String get vehicleName => 'اسم المركبة';
+
+  @override
+  String get capacity => 'السعة';
+
+  @override
+  String get productDetails => 'تفاصيل المنتج';
+
+  @override
+  String get videoDurationLimitNote =>
+      'ملاحظة: يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.';
+
+  @override
+  String get videoDurationLimitError => 'يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.';
+
+  @override
+  String get missingMediaError => 'يرجى توفير جميع الوسائط المطلوبة.';
 }

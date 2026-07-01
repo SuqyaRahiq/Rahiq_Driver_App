@@ -186,7 +186,7 @@ class _OrdersPageState extends State<OrdersPage>
         onRefresh: _fetchOrders,
         color: AppColors.buttonBlueDark,
         child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               // ── Header ──────────────────────────────────────────────────────
@@ -263,6 +263,7 @@ class _OrdersPageState extends State<OrdersPage>
                               borderRadius: BorderRadius.circular(25),
                             ),
                             child: TabBar(
+                              splashBorderRadius: BorderRadius.circular(25),
                               controller: _tabController,
                               indicatorSize: TabBarIndicatorSize.tab,
                               dividerColor: Colors.transparent,
@@ -317,7 +318,7 @@ class _OrdersPageState extends State<OrdersPage>
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 150),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
       itemCount: orders.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) => _buildOrderCard(orders[index]),

@@ -1,5 +1,4 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';

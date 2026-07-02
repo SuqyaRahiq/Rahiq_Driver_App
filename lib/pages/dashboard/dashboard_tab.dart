@@ -57,86 +57,106 @@ class _DashboardTabState extends State<DashboardTab> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          RefreshIndicator(
-            onRefresh: _loadStats,
-            child: SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  // ── Header ──────────────────────────
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.buttonBlueDark,
-                    child: SafeArea(
-                      bottom: false,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return RefreshIndicator(
+                color: AppColors.buttonBlueDark,
+                onRefresh: _loadStats,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                      maxHeight: constraints.maxHeight,
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      primary: false,
                       child: Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                              16,
-                              16,
-                              16,
-                              12,
-                            ),
-                            child: Center(
+                          // ── Header ──────────────────────────
+                          Container(
+                            width: double.infinity,
+                            color: AppColors.buttonBlueDark,
+                            child: SafeArea(
+                              bottom: false,
                               child: Column(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    AppLocalizations.of(context)!.dashboard,
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                                  Padding(
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                          16,
+                                          16,
+                                          16,
+                                          12,
+                                        ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.dashboard,
+                                            style: const TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.welcomeToTheDriverDashboard,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.welcomeToTheDriverDashboard,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
+                                  const SizedBox(height: 16),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+
+                          // ── Rounded white body ────────────────────────────────────
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: AppColors.buttonBlueDark,
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              constraints: BoxConstraints(
+                                minHeight: MediaQuery.of(context).size.height,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(30),
+                                  topRight: Radius.circular(30),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                child: _buildBodyContent(l10n),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-
-                  // ── Rounded white body ────────────────────────────────────
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.buttonBlueDark,
-                    ),
-                    child: Container(
-                      width: double.infinity,
-                      constraints: BoxConstraints(
-                        minHeight: MediaQuery.of(context).size.height,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildBodyContent(l10n),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -1,3 +1,7 @@
+import 'dart:developer';
+import 'package:flutter/services.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,6 +22,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   await dotenv.load(fileName: ".env");
   await AuthStorage.init();
   await initializeDateFormatting();
@@ -55,8 +67,16 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder<Locale>(
       valueListenable: localeNotifier,
       builder: (context, locale, child) {
+        final double bottomPadding = MediaQueryData.fromView(
+          View.of(context),
+        ).padding.bottom;
+        final bool isThickNavBar = bottomPadding > 24.0;
+        log('isThickNavBar: $isThickNavBar');
+        log('bottomPadding: $bottomPadding');
+
         return SafeArea(
-          bottom: true,
+          minimum: EdgeInsets.zero,
+          bottom: Platform.isAndroid ? isThickNavBar : false,
           top: false,
           child: MaterialApp(
             title: 'Rahiq Driver',

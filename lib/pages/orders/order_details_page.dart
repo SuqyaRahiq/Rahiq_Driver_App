@@ -34,6 +34,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
+  String? _batchPackagesImage;
   final ImagePicker _picker = ImagePicker();
   bool _isBatchUploading = false;
 
@@ -848,6 +849,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   void _showBatchImagesBottomSheet(BuildContext context) {
+    debugPrint('Bulk Image Upload: Bottom sheet opened');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -857,7 +859,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           builder: (context, setSheetState) {
             final canSave =
                 _batchMosqueFrontImage != null &&
-                _batchMosqueInsideImage != null;
+                _batchMosqueInsideImage != null &&
+                _batchPackagesImage != null;
 
             return Container(
               padding: EdgeInsets.only(
@@ -867,22 +870,60 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.uploadBatchImages,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.buttonBlueDark,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: AppColors.buttonBlueDark,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
+                    padding: const EdgeInsets.only(
+                      top: 24,
+                      left: 16,
+                      right: 16,
+                      bottom: 24,
+                    ),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(bottomSheetContext),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          AppLocalizations.of(bottomSheetContext)!.selectSource,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildDottedImagePicker(
@@ -890,12 +931,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           label: AppLocalizations.of(context)!.mosqueFront,
                           path: _batchMosqueFrontImage,
                           onPick: (source) async {
+                            debugPrint(
+                              'Bulk Image Upload: Mosque front image picking started from source: $source',
+                            );
                             final file = await _picker.pickImage(
                               source: source,
                             );
                             if (file != null) {
+                              debugPrint(
+                                'Bulk Image Upload: Mosque front image picked successfully: ${file.path}',
+                              );
                               setSheetState(
                                 () => _batchMosqueFrontImage = file.path,
+                              );
+                            } else {
+                              debugPrint(
+                                'Bulk Image Upload: Mosque front image picking cancelled',
                               );
                             }
                           },
@@ -908,28 +959,62 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           )!.mosqueInsideImage,
                           path: _batchMosqueInsideImage,
                           onPick: (source) async {
+                            debugPrint(
+                              'Bulk Image Upload: Mosque inside image picking started from source: $source',
+                            );
                             final file = await _picker.pickImage(
                               source: source,
                             );
                             if (file != null) {
+                              debugPrint(
+                                'Bulk Image Upload: Mosque inside image picked successfully: ${file.path}',
+                              );
                               setSheetState(
                                 () => _batchMosqueInsideImage = file.path,
+                              );
+                            } else {
+                              debugPrint(
+                                'Bulk Image Upload: Mosque inside image picking cancelled',
                               );
                             }
                           },
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
+                  ),
+
+                  Padding(
+                    padding: EdgeInsetsGeometry.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         onPressed: canSave && !_isBatchUploading
                             ? () async {
+                                debugPrint(
+                                  'Bulk Image Upload: Upload button pressed',
+                                );
                                 setSheetState(() => _isBatchUploading = true);
                                 setState(() => _isBatchUploading = true);
                                 try {
+                                  debugPrint(
+                                    'Bulk Image Upload: Request started for Order ID: ${widget.order.id}',
+                                  );
+                                  debugPrint(
+                                    'Bulk Image Upload: Request SubOrder IDs: ${_selectedSubOrders.toList()}',
+                                  );
+                                  debugPrint(
+                                    'Bulk Image Upload: Request Mosque Front Image Path: $_batchMosqueFrontImage',
+                                  );
+                                  debugPrint(
+                                    'Bulk Image Upload: Request Mosque Inside Image Path: $_batchMosqueInsideImage',
+                                  );
+                                  debugPrint(
+                                    'Bulk Image Upload: Request Packages Image Path: $_batchPackagesImage',
+                                  );
                                   await _api.bulkUploadMosqueImages(
                                     orderId: widget.order.id,
                                     subOrderIds: _selectedSubOrders.toList(),
@@ -937,6 +1022,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                         _batchMosqueFrontImage!,
                                     mosqueInsideImagePath:
                                         _batchMosqueInsideImage!,
+                                  );
+                                  debugPrint(
+                                    'Bulk Image Upload: Response successful',
                                   );
                                   if (context.mounted) {
                                     CustomSnackbar.show(
@@ -949,11 +1037,15 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   setState(() {
                                     _batchMosqueFrontImage = null;
                                     _batchMosqueInsideImage = null;
+                                    _batchPackagesImage = null;
                                     _isMultiSelectMode = false;
                                     _selectedSubOrders.clear();
                                   });
                                   _fetchSubOrders();
                                 } catch (e) {
+                                  debugPrint(
+                                    'Bulk Image Upload: Error occurred: $e',
+                                  );
                                   if (context.mounted) {
                                     String errorMessage = e.toString();
                                     if (e is DioException &&
@@ -961,6 +1053,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                         e.response?.data['message'] != null) {
                                       errorMessage =
                                           e.response!.data['message'];
+                                      debugPrint(
+                                        'Bulk Image Upload: API Error Response Message: $errorMessage',
+                                      );
                                     }
                                     CustomSnackbar.show(
                                       context: context,
@@ -998,9 +1093,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             );
           },
@@ -1029,7 +1124,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               ),
               child: Container(
                 padding: const EdgeInsets.all(10),
-                height: 100,
+                height: 130,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -1070,31 +1165,155 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   void _showSourceBottomSheet(
-    BuildContext context,
+    BuildContext parentContext,
     Function(ImageSource) onPick,
   ) {
     showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        height: MediaQuery.of(parentContext).size.height * 0.4,
+        color: Colors.transparent,
+        child: Column(
           children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: Text(AppLocalizations.of(context)!.takeAPhoto),
-              onTap: () {
-                Navigator.pop(context);
-                onPick(ImageSource.camera);
-              },
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.buttonBlueDark,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              ),
+              padding: const EdgeInsets.only(
+                top: 24,
+                left: 16,
+                right: 16,
+                bottom: 24,
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(sheetContext),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppLocalizations.of(sheetContext)!.selectSource,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: Text(AppLocalizations.of(context)!.chooseFromGallery),
-              onTap: () {
-                Navigator.pop(context);
-                onPick(ImageSource.gallery);
-              },
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: AppColors.buttonBlueDark,
+                ),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 24,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildBottomSheetTile(
+                          icon: Icons.camera_alt,
+                          title: AppLocalizations.of(sheetContext)!.takeAPhoto,
+                          onTap: () {
+                            Navigator.pop(sheetContext);
+                            onPick(ImageSource.camera);
+                          },
+                        ),
+                        const Divider(height: 1, color: Color(0xFFEAEFF2)),
+                        _buildBottomSheetTile(
+                          icon: Icons.photo_library,
+                          title: AppLocalizations.of(
+                            sheetContext,
+                          )!.chooseFromGallery,
+                          onTap: () {
+                            Navigator.pop(sheetContext);
+                            onPick(ImageSource.gallery);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheetTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: AppColors.buttonBlueDark, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.grey[400],
+                size: 16,
+              ),
+            ],
+          ),
         ),
       ),
     );

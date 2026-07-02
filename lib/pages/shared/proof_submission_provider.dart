@@ -22,7 +22,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
   final bool isAutoDelivery;
   final List<String> subOrderIds;
   final DriverOrdersApi _api = DriverOrdersApi(ApiClient());
-  final DriverAutoDeliveriesApi _autoDeliveriesApi = DriverAutoDeliveriesApi(ApiClient());
+  final DriverAutoDeliveriesApi _autoDeliveriesApi = DriverAutoDeliveriesApi(
+    ApiClient(),
+  );
 
   bool _useSameImages = false;
   bool get useSameImages => _useSameImages;
@@ -110,8 +112,14 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> pickSubOrderVideo(String subOrderId, ImageSource source) async {
-    final XFile? file = await _picker.pickVideo(source: source, maxDuration: const Duration(seconds: 10));
+  Future<String?> pickSubOrderVideo(
+    String subOrderId,
+    ImageSource source,
+  ) async {
+    final XFile? file = await _picker.pickVideo(
+      source: source,
+      maxDuration: const Duration(seconds: 10),
+    );
     if (file != null) {
       if (await _isVideoTooLong(file.path)) {
         return 'video_too_long';
@@ -124,7 +132,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
   }
 
   Future<String?> pickGlobalVideo(ImageSource source) async {
-    final XFile? file = await _picker.pickVideo(source: source, maxDuration: const Duration(seconds: 10));
+    final XFile? file = await _picker.pickVideo(
+      source: source,
+      maxDuration: const Duration(seconds: 10),
+    );
     if (file != null) {
       if (await _isVideoTooLong(file.path)) {
         return 'video_too_long';

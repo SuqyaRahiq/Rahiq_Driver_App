@@ -60,7 +60,7 @@ class _DashboardTabState extends State<DashboardTab> {
           RefreshIndicator(
             onRefresh: _loadStats,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               child: Column(
                 children: [
                   // ── Header ──────────────────────────
@@ -119,7 +119,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     child: Container(
                       width: double.infinity,
                       constraints: BoxConstraints(
-                        minHeight: MediaQuery.of(context).size.height - 160,
+                        minHeight: MediaQuery.of(context).size.height,
                       ),
                       decoration: const BoxDecoration(
                         color: Colors.white,
@@ -304,17 +304,9 @@ class _DashboardTabState extends State<DashboardTab> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            width: 60,
-            height: 24,
-            color: Colors.white,
-          ),
+          Container(width: 60, height: 24, color: Colors.white),
           const SizedBox(height: 4),
-          Container(
-            width: 100,
-            height: 14,
-            color: Colors.white,
-          ),
+          Container(width: 100, height: 14, color: Colors.white),
         ],
       ),
     );

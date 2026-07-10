@@ -133,10 +133,11 @@ class _OrdersPageState extends State<OrdersPage>
       }
 
       for (var auto in autoOrders) {
+        final autoTitle = (isArabic && auto.nameAr.isNotEmpty) ? auto.nameAr : auto.name;
         combined.add(
           OrderListItem(
             id: auto.id,
-            title: auto.name,
+            title: autoTitle,
             subtitle: l10n.autoOrderNumber(auto.id),
             address:
                 '${auto.totalQuantity} ${AppLocalizations.of(context)!.packages}',

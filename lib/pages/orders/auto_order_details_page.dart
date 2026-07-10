@@ -1,4 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -12,6 +13,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:shimmer/shimmer.dart';
+
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -119,7 +121,11 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          widget.item.name,
+                          (Localizations.localeOf(context).languageCode ==
+                                      'ar' &&
+                                  widget.item.nameAr.isNotEmpty)
+                              ? widget.item.nameAr
+                              : widget.item.name,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 20,
@@ -417,6 +423,11 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
   }
 
   Widget _buildCategoryCard() {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final localizedName = (isArabic && widget.item.nameAr.isNotEmpty)
+        ? widget.item.nameAr
+        : widget.item.name;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -465,24 +476,13 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.item.name,
+                    localizedName,
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
                     ),
                   ),
-                  if (widget.item.nameAr.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.item.nameAr,
-                      textDirection: TextDirection.rtl,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black45,
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -648,6 +648,65 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                         ),
 
                         const Divider(),
+                        if (subOrder['customerDetails'] != null) ...[
+                          if ((subOrder['customerDetails']['firstName'] ?? '')
+                                  .toString()
+                                  .isNotEmpty ||
+                              (subOrder['customerDetails']['lastName'] ?? '')
+                                  .toString()
+                                  .isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_outline,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${subOrder['customerDetails']['firstName'] ?? ''} ${subOrder['customerDetails']['lastName'] ?? ''}'
+                                          .trim(),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if ((subOrder['customerDetails']['phoneNumber'] ?? '')
+                              .toString()
+                              .isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      subOrder['customerDetails']['phoneNumber']
+                                          .toString(),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                         if (subOrder['deliveryNotes'] != null &&
                             subOrder['deliveryNotes'].toString().isNotEmpty)
                           Padding(
@@ -665,6 +724,34 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                   child: Text(
                                     AppLocalizations.of(context)!.notes(
                                       subOrder['deliveryNotes'].toString(),
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (subOrder['csNotes'] != null &&
+                            (subOrder['csNotes'] as List).isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.support_agent_outlined,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.notes(
+                                      (subOrder['csNotes'] as List).join('\n'),
                                     ),
                                     style: const TextStyle(
                                       fontSize: 13,
@@ -706,7 +793,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                               Container(
                                 width: 40,
                                 height: 40,
-                                margin: const EdgeInsets.only(right: 12),
+                                margin: EdgeInsetsDirectional.only(end: 12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   color: Colors.grey.withValues(alpha: 0.1),
@@ -741,8 +828,19 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    product['name'] ??
-                                        AppLocalizations.of(context)!.product,
+                                    (Localizations.localeOf(
+                                                  context,
+                                                ).languageCode ==
+                                                'ar' &&
+                                            product['nameAr'] != null &&
+                                            product['nameAr']
+                                                .toString()
+                                                .isNotEmpty)
+                                        ? product['nameAr']
+                                        : (product['name'] ??
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.product),
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -781,7 +879,8 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
     if (dateStr == null) return '';
     try {
       final dt = DateTime.parse(dateStr.toString()).toLocal();
-      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      final locale = Localizations.localeOf(context).languageCode;
+      return DateFormat.yMMMd(locale).add_jm().format(dt);
     } catch (_) {
       return dateStr.toString().length > 10
           ? dateStr.toString().substring(0, 10)

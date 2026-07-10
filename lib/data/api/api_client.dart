@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
@@ -30,7 +31,7 @@ class ApiClient {
         responseHeader: true,
         responseBody: true,
         error: true,
-        logPrint: (obj) => debugPrint(obj.toString()),
+        logPrint: (obj) => log(obj.toString()),
       ),
     );
 
@@ -136,7 +137,7 @@ class ApiClient {
           responseHeader: true,
           responseBody: true,
           error: true,
-          logPrint: (obj) => debugPrint(obj.toString()),
+          logPrint: (obj) => log(obj.toString()),
         ),
       );
       final response = await dioRefresh.post(

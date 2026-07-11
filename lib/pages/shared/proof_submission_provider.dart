@@ -5,6 +5,7 @@ import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
+import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
 
 class SubOrderProof {
   final String subOrderId;
@@ -113,34 +114,61 @@ class ProofSubmissionProvider extends ChangeNotifier {
   }
 
   Future<String?> pickSubOrderVideo(
+    BuildContext context,
     String subOrderId,
     ImageSource source,
   ) async {
-    final XFile? file = await _picker.pickVideo(
-      source: source,
-      maxDuration: const Duration(seconds: 10),
-    );
-    if (file != null) {
-      if (await _isVideoTooLong(file.path)) {
+    String? filePath;
+
+    if (source == ImageSource.camera) {
+      filePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomCameraScreen(maxDurationSeconds: 10),
+        ),
+      );
+    } else {
+      final XFile? file = await _picker.pickVideo(
+        source: source,
+        maxDuration: const Duration(seconds: 10),
+      );
+      filePath = file?.path;
+    }
+
+    if (filePath != null) {
+      if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
-      proof.proofVideo = file.path;
+      proof.proofVideo = filePath;
       notifyListeners();
     }
     return null;
   }
 
-  Future<String?> pickGlobalVideo(ImageSource source) async {
-    final XFile? file = await _picker.pickVideo(
-      source: source,
-      maxDuration: const Duration(seconds: 10),
-    );
-    if (file != null) {
-      if (await _isVideoTooLong(file.path)) {
+  Future<String?> pickGlobalVideo(BuildContext context, ImageSource source) async {
+    String? filePath;
+
+    if (source == ImageSource.camera) {
+      filePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomCameraScreen(maxDurationSeconds: 10),
+        ),
+      );
+    } else {
+      final XFile? file = await _picker.pickVideo(
+        source: source,
+        maxDuration: const Duration(seconds: 10),
+      );
+      filePath = file?.path;
+    }
+
+    if (filePath != null) {
+      if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
       }
-      _globalProofVideo = file.path;
+      _globalProofVideo = filePath;
       notifyListeners();
     }
     return null;

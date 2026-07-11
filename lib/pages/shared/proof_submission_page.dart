@@ -191,7 +191,7 @@ class ProofSubmissionPage extends StatelessWidget {
                                     path: provider.globalProofVideo,
                                     isVideo: true,
                                     onPick: (source) =>
-                                        provider.pickGlobalVideo(source),
+                                        provider.pickGlobalVideo(context, source),
                                   ),
                                   const SizedBox(width: 12),
                                   const Expanded(child: SizedBox()),
@@ -405,7 +405,7 @@ class ProofSubmissionPage extends StatelessWidget {
               path: proof.proofVideo,
               isVideo: true,
               onPick: (source) =>
-                  provider.pickSubOrderVideo(proof.subOrderId, source),
+                  provider.pickSubOrderVideo(context, proof.subOrderId, source),
             ),
             const SizedBox(width: 12),
             const Expanded(child: SizedBox()),

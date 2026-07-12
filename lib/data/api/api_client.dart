@@ -60,6 +60,19 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
+          DioException customException = e;
+          if (e.response?.data is Map && e.response?.data['message'] != null) {
+            customException = ApiDioException(
+              requestOptions: e.requestOptions,
+              apiMessage: e.response!.data['message'].toString(),
+              response: e.response,
+              type: e.type,
+              error: e.error,
+              message: e.message,
+            );
+          }
+          e = customException;
+
           if (e.response?.statusCode == 401) {
             if (!_isRefreshing) {
               _isRefreshing = true;
@@ -157,5 +170,23 @@ class ApiClient {
       return false;
     }
     return false;
+  }
+}
+
+class ApiDioException extends DioException {
+  final String apiMessage;
+
+  ApiDioException({
+    required super.requestOptions,
+    required this.apiMessage,
+    super.response,
+    super.type,
+    super.error,
+    super.message,
+  });
+
+  @override
+  String toString() {
+    return apiMessage;
   }
 }

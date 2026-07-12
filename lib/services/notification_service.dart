@@ -100,14 +100,14 @@ class NotificationService {
     // Handle messages when app is opened from background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('A new onMessageOpenedApp event was published!');
-      _handleNotificationClick(message.data);
+      _handleNotificationClick(message.toMap());
     });
 
     // Check if app was opened from a terminated state
     RemoteMessage? initialMessage = await _firebaseMessaging
         .getInitialMessage();
     if (initialMessage != null) {
-      _handleNotificationClick(initialMessage.data);
+      _handleNotificationClick(initialMessage.toMap());
     }
 
     _isInitialized = true;
@@ -147,7 +147,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: jsonEncode(message.data),
+        payload: jsonEncode(message.toMap()),
       );
     }
   }

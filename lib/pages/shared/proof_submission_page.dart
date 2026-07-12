@@ -10,6 +10,8 @@ import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/data/models/driver/place.dart';
+import 'package:rahiq_driver/pages/shared/driver_specific_mosque_page.dart' as import_page;
 
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
@@ -19,6 +21,7 @@ class ProofSubmissionPage extends StatelessWidget {
   final Map<String, dynamic>? singleCustomerData;
   final String? initialMosqueFrontImage;
   final String? initialMosqueInsideImage;
+  final String? orderType;
 
   const ProofSubmissionPage({
     super.key,
@@ -29,6 +32,7 @@ class ProofSubmissionPage extends StatelessWidget {
     this.singleCustomerData,
     this.initialMosqueFrontImage,
     this.initialMosqueInsideImage,
+    this.orderType,
   });
 
   @override
@@ -352,6 +356,127 @@ class ProofSubmissionPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!provider.useSameImages) ...[
+          _buildSectionTitle('Delivery Location'),
+          RadioListTile<bool>(
+            title: Text('Delivered to target location', style: TextStyle(fontSize: 14)),
+            value: false,
+            groupValue: proof.deliveredToDifferentMosque,
+            activeColor: AppColors.buttonBlueDark,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (val) {
+              if (val != null) {
+                proof.deliveredToDifferentMosque = val;
+                provider.updateUI();
+              }
+            },
+          ),
+          RadioListTile<bool>(
+            title: Text('Delivered to a different location', style: TextStyle(fontSize: 14)),
+            value: true,
+            groupValue: proof.deliveredToDifferentMosque,
+            activeColor: AppColors.buttonBlueDark,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (val) {
+              if (val != null) {
+                proof.deliveredToDifferentMosque = val;
+                provider.updateUI();
+              }
+            },
+          ),
+          if (proof.deliveredToDifferentMosque) ...[
+            const SizedBox(height: 12),
+            TextField(
+              onChanged: (val) {
+                proof.differentMosqueReason = val;
+                provider.updateUI();
+              },
+              maxLines: 2,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.reasonForChangingLocation,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.buttonBlueDark),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final String? category = await showModalBottomSheet<String>(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                AppLocalizations.of(context)!.select_category,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            ListTile(
+                              title: Text(AppLocalizations.of(context)!.orphanage),
+                              onTap: () => Navigator.pop(context, 'orphanages'),
+                            ),
+                            ListTile(
+                              title: Text(AppLocalizations.of(context)!.mosque),
+                              onTap: () => Navigator.pop(context, 'mosques'),
+                            ),
+                            ListTile(
+                              title: Text(AppLocalizations.of(context)!.meqat_mosque),
+                              onTap: () => Navigator.pop(context, 'meqat_mosques'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+
+                  if (category == null) return;
+
+                  if (!context.mounted) return;
+
+                  final Place? selected = await Navigator.push<Place>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => 
+                          import_page.SpecificMosquePage(
+                        slug: category,
+                        title: AppLocalizations.of(context)!.locationLabel,
+                      ),
+                    ),
+                  );
+                  if (selected != null) {
+                    proof.deliveredLocationId = selected.id;
+                    proof.deliveredLocationName = selected.localizedName(Localizations.localeOf(context).languageCode == 'ar');
+                    provider.updateUI();
+                  }
+                },
+                child: Text(
+                  proof.deliveredLocationName ?? AppLocalizations.of(context)!.selectLocation,
+                  style: const TextStyle(color: AppColors.buttonBlueDark),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
           _buildSectionTitle(AppLocalizations.of(context)!.imagesInstructions),
           SizedBox(height: 12),
           Row(

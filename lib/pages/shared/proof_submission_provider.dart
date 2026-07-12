@@ -13,6 +13,10 @@ class SubOrderProof {
   String? mosqueInsideImage;
   String? packagesImage;
   String? proofVideo;
+  bool deliveredToDifferentMosque = false;
+  String? differentMosqueReason;
+  String? deliveredLocationId;
+  String? deliveredLocationName;
 
   SubOrderProof(this.subOrderId);
 }
@@ -189,7 +193,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
       return p.mosqueFrontImage != null &&
           p.mosqueInsideImage != null &&
           p.packagesImage != null &&
-          p.proofVideo != null;
+          p.proofVideo != null &&
+          (!p.deliveredToDifferentMosque ||
+              (p.differentMosqueReason != null &&
+                  p.differentMosqueReason!.isNotEmpty));
     }
   }
 
@@ -226,6 +233,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
           mosqueInsideImagePath: p.mosqueInsideImage!,
           packagesImagePath: p.packagesImage!,
           proofVideoPath: p.proofVideo!,
+          deliveredToDifferentMosque: p.deliveredToDifferentMosque,
+          differentMosqueReason: p.differentMosqueReason,
+          deliveredLocationId: p.deliveredLocationId,
         );
       }
       _isSubmitting = false;
@@ -236,5 +246,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  void updateUI() {
+    notifyListeners();
   }
 }

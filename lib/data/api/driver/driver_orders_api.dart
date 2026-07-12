@@ -174,6 +174,9 @@ class DriverOrdersApi {
     required String mosqueInsideImagePath,
     required String packagesImagePath,
     required String proofVideoPath,
+    bool deliveredToDifferentMosque = false,
+    String? differentMosqueReason,
+    String? deliveredLocationId,
   }) async {
     try {
       FormData formData = FormData.fromMap({});
@@ -208,6 +211,16 @@ class DriverOrdersApi {
             await MultipartFile.fromFile(proofVideoPath),
           ),
         );
+      }
+
+      formData.fields.add(MapEntry('deliveredToDifferentMosque', deliveredToDifferentMosque.toString()));
+      if (deliveredToDifferentMosque) {
+        if (differentMosqueReason != null && differentMosqueReason.isNotEmpty) {
+          formData.fields.add(MapEntry('differentMosqueReason', differentMosqueReason));
+        }
+        if (deliveredLocationId != null && deliveredLocationId.isNotEmpty) {
+          formData.fields.add(MapEntry('deliveredLocationId', deliveredLocationId));
+        }
       }
 
       final response = await _apiClient.dio.post(
@@ -328,6 +341,51 @@ class DriverOrdersApi {
             'Failed to bulk upload mosque images',
         statusCode: e.response?.statusCode,
       );
+    }
+  }
+
+  Future<Response> getMosques({
+    int page = 1,
+    int limit = 100,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final queryParameters = <String, dynamic>{'page': page, 'limit': limit};
+      if (latitude != null) queryParameters['latitude'] = latitude;
+      if (longitude != null) queryParameters['longitude'] = longitude;
+
+      final response = await _apiClient.dio.get(
+        '/mosques',
+        queryParameters: queryParameters,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> getOrphanages({int page = 1, int limit = 100}) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/orphanages',
+        queryParameters: {'page': page, 'limit': limit},
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> getMiqatMosques({int page = 1, int limit = 100}) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/meqat-mosques',
+        queryParameters: {'page': page, 'limit': limit},
+      );
+      return response;
+    } catch (e) {
+      rethrow;
     }
   }
 }

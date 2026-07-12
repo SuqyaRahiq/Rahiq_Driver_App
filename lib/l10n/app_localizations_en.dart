@@ -476,4 +476,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get add => 'Add';
+
+  @override
+  String get choose_specific_orphanage => 'Choose Specific Orphanage';
+
+  @override
+  String get select_an_orphanage_to_deliver_water_to =>
+      'Select an orphanage to deliver water to';
+
+  @override
+  String get list_of_orphanages => 'List of Orphanages';
+
+  @override
+  String get choose_specific_meqat_mosque => 'Choose Specific Meqat Mosque';
+
+  @override
+  String get select_a_mosque_to_deliver_water_to =>
+      'Select a mosque to deliver water to';
+
+  @override
+  String get list_of_meqat_mosques => 'List of Meqat Mosques';
+
+  @override
+  String get choose_specific_mosque => 'Choose Specific Mosque';
+
+  @override
+  String get list_of_mosques => 'List of Mosques';
+
+  @override
+  String get search_orphanages => 'Search Orphanages';
+
+  @override
+  String get search_meqat_mosques => 'Search Meqat Mosques';
+
+  @override
+  String get search_mosques => 'Search Mosques';
+
+  @override
+  String get choose_from_map => 'Choose from Map';
+
+  @override
+  String get select_city => 'Select City';
+
+  @override
+  String get select_category => 'Select Category';
+
+  @override
+  String get mosque => 'Mosque';
+
+  @override
+  String get meqat_mosque => 'Meqat Mosque';
+
+  @override
+  String get orphanage => 'Orphanage';
+
+  @override
+  String get reasonForChangingLocation => 'Reason for changing location...';
+
+  @override
+  String get selectLocation => 'Select Location';
 }

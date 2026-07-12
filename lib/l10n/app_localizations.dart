@@ -991,6 +991,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get add;
+
+  /// No description provided for @choose_specific_orphanage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Specific Orphanage'**
+  String get choose_specific_orphanage;
+
+  /// No description provided for @select_an_orphanage_to_deliver_water_to.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an orphanage to deliver water to'**
+  String get select_an_orphanage_to_deliver_water_to;
+
+  /// No description provided for @list_of_orphanages.
+  ///
+  /// In en, this message translates to:
+  /// **'List of Orphanages'**
+  String get list_of_orphanages;
+
+  /// No description provided for @choose_specific_meqat_mosque.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Specific Meqat Mosque'**
+  String get choose_specific_meqat_mosque;
+
+  /// No description provided for @select_a_mosque_to_deliver_water_to.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a mosque to deliver water to'**
+  String get select_a_mosque_to_deliver_water_to;
+
+  /// No description provided for @list_of_meqat_mosques.
+  ///
+  /// In en, this message translates to:
+  /// **'List of Meqat Mosques'**
+  String get list_of_meqat_mosques;
+
+  /// No description provided for @choose_specific_mosque.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Specific Mosque'**
+  String get choose_specific_mosque;
+
+  /// No description provided for @list_of_mosques.
+  ///
+  /// In en, this message translates to:
+  /// **'List of Mosques'**
+  String get list_of_mosques;
+
+  /// No description provided for @search_orphanages.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Orphanages'**
+  String get search_orphanages;
+
+  /// No description provided for @search_meqat_mosques.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Meqat Mosques'**
+  String get search_meqat_mosques;
+
+  /// No description provided for @search_mosques.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Mosques'**
+  String get search_mosques;
+
+  /// No description provided for @choose_from_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Map'**
+  String get choose_from_map;
+
+  /// No description provided for @select_city.
+  ///
+  /// In en, this message translates to:
+  /// **'Select City'**
+  String get select_city;
+
+  /// No description provided for @select_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Category'**
+  String get select_category;
+
+  /// No description provided for @mosque.
+  ///
+  /// In en, this message translates to:
+  /// **'Mosque'**
+  String get mosque;
+
+  /// No description provided for @meqat_mosque.
+  ///
+  /// In en, this message translates to:
+  /// **'Meqat Mosque'**
+  String get meqat_mosque;
+
+  /// No description provided for @orphanage.
+  ///
+  /// In en, this message translates to:
+  /// **'Orphanage'**
+  String get orphanage;
+
+  /// No description provided for @reasonForChangingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for changing location...'**
+  String get reasonForChangingLocation;
+
+  /// No description provided for @selectLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Location'**
+  String get selectLocation;
 }
 
 class _AppLocalizationsDelegate

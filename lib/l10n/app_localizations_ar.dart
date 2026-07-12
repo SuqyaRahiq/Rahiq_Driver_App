@@ -474,4 +474,63 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get add => 'إضافة';
+
+  @override
+  String get choose_specific_orphanage => 'اختر دار أيتام محدد';
+
+  @override
+  String get select_an_orphanage_to_deliver_water_to =>
+      'اختر دار أيتام لتوصيل الماء إليه';
+
+  @override
+  String get list_of_orphanages => 'قائمة دور الأيتام';
+
+  @override
+  String get choose_specific_meqat_mosque => 'اختر ميقات محدد';
+
+  @override
+  String get select_a_mosque_to_deliver_water_to =>
+      'اختر مسجد لتوصيل الماء إليه';
+
+  @override
+  String get list_of_meqat_mosques => 'قائمة المواقيت';
+
+  @override
+  String get choose_specific_mosque => 'اختر مسجد محدد';
+
+  @override
+  String get list_of_mosques => 'قائمة المساجد';
+
+  @override
+  String get search_orphanages => 'ابحث عن دار أيتام';
+
+  @override
+  String get search_meqat_mosques => 'ابحث عن ميقات';
+
+  @override
+  String get search_mosques => 'ابحث عن مسجد';
+
+  @override
+  String get choose_from_map => 'اختر من الخريطة';
+
+  @override
+  String get select_city => 'اختر المدينة';
+
+  @override
+  String get select_category => 'اختر الفئة';
+
+  @override
+  String get mosque => 'مسجد';
+
+  @override
+  String get meqat_mosque => 'ميقات';
+
+  @override
+  String get orphanage => 'دار أيتام';
+
+  @override
+  String get reasonForChangingLocation => 'سبب تغيير الموقع...';
+
+  @override
+  String get selectLocation => 'اختر الموقع';
 }

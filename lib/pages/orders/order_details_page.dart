@@ -228,6 +228,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                     subOrder['mosqueFrontImage'],
                                                 initialMosqueInsideImage:
                                                     subOrder['mosqueInsideImage'],
+                                                orderType: widget.order.type,
                                               ),
                                             ),
                                           ).then((_) {
@@ -581,6 +582,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                       },
                       initialMosqueFrontImage: subOrder['mosqueFrontImage'],
                       initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                      orderType: widget.order.type,
                     ),
                   ),
                 ).then((_) {

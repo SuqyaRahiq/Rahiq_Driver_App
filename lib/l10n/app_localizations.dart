@@ -440,11 +440,23 @@ abstract class AppLocalizations {
   /// **'Enter phone number'**
   String get enterPhoneNumber;
 
+  /// No description provided for @pleaseEnterYourPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your phone number'**
+  String get pleaseEnterYourPhoneNumber;
+
   /// No description provided for @enterPassword.
   ///
   /// In en, this message translates to:
   /// **'Enter password'**
   String get enterPassword;
+
+  /// No description provided for @pleaseEnterYourPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get pleaseEnterYourPassword;
 
   /// No description provided for @normalOrders.
   ///

@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/common_widgets/language_switch.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/services/notification_service.dart';
@@ -144,6 +145,12 @@ class _LoginPageState extends State<LoginPage> {
             color: Colors.white,
           ),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsetsDirectional.only(end: 24),
+            child: LanguageSwitchButton(isFromLogin: true),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
@@ -218,236 +225,335 @@ class _LoginPageState extends State<LoginPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Phone Input
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: AppColors.indicatorGrey,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children: [
-                                Theme(
-                                  data: Theme.of(context).copyWith(
-                                    textSelectionTheme:
-                                        const TextSelectionThemeData(
-                                          cursorColor: AppColors.buttonBlueDark,
+                          FormField<String>(
+                            validator: (_) {
+                              if (_phoneController.text.trim().isEmpty) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.pleaseEnterYourPhoneNumber;
+                              }
+                              return null;
+                            },
+                            builder: (state) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(25),
+                                      border: Border.all(
+                                        color: state.hasError
+                                            ? Colors.red.shade700
+                                            : AppColors.indicatorGrey,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.02,
+                                          ),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
                                         ),
-                                  ),
-                                  child: Builder(
-                                    builder: (context) => InkWell(
-                                      onTap: () {
-                                        showCountryPicker(
-                                          favorite: const ["SA"],
-                                          context: context,
-                                          showPhoneCode: true,
-                                          onSelect: (Country country) {
-                                            setState(() {
-                                              _selectedCountry = country;
-                                            });
-                                          },
-                                          countryListTheme: CountryListThemeData(
-                                            bottomSheetHeight:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.height *
-                                                0.7,
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                                  topLeft: Radius.circular(30),
-                                                  topRight: Radius.circular(30),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Theme(
+                                          data: Theme.of(context).copyWith(
+                                            textSelectionTheme:
+                                                const TextSelectionThemeData(
+                                                  cursorColor:
+                                                      AppColors.buttonBlueDark,
                                                 ),
-                                            inputDecoration: InputDecoration(
+                                          ),
+                                          child: Builder(
+                                            builder: (context) => InkWell(
+                                              onTap: () {
+                                                showCountryPicker(
+                                                  favorite: const ["SA"],
+                                                  context: context,
+                                                  showPhoneCode: true,
+                                                  onSelect: (Country country) {
+                                                    setState(() {
+                                                      _selectedCountry =
+                                                          country;
+                                                    });
+                                                  },
+                                                  countryListTheme: CountryListThemeData(
+                                                    bottomSheetHeight:
+                                                        MediaQuery.of(
+                                                          context,
+                                                        ).size.height *
+                                                        0.7,
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                30,
+                                                              ),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                30,
+                                                              ),
+                                                        ),
+                                                    inputDecoration: InputDecoration(
+                                                      hintText:
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          )!.search,
+                                                      prefixIcon: const Icon(
+                                                        Icons.search,
+                                                      ),
+                                                      enabledBorder: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              15,
+                                                            ),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                              color: AppColors
+                                                                  .buttonBlueDark,
+                                                            ),
+                                                      ),
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              15,
+                                                            ),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                              color: AppColors
+                                                                  .buttonBlueDark,
+                                                            ),
+                                                      ),
+                                                      border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              15,
+                                                            ),
+                                                        borderSide: BorderSide(
+                                                          color: Colors.grey
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 14,
+                                                    backgroundColor:
+                                                        Colors.grey[200],
+                                                    backgroundImage: NetworkImage(
+                                                      "https://flagcdn.com/w80/${_selectedCountry.countryCode.toLowerCase()}.png",
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Directionality(
+                                                    textDirection:
+                                                        TextDirection.ltr,
+                                                    child: Text(
+                                                      "+${_selectedCountry.phoneCode}",
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const Icon(
+                                                    Icons.keyboard_arrow_down,
+                                                    size: 18,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          height: 24,
+                                          width: 1,
+                                          color: Colors.grey[300],
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: TextField(
+                                            cursorColor:
+                                                AppColors.buttonBlueDark,
+                                            controller: _phoneController,
+                                            keyboardType: TextInputType.phone,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                            decoration: InputDecoration(
                                               hintText: AppLocalizations.of(
                                                 context,
-                                              )!.search,
-                                              prefixIcon: const Icon(
-                                                Icons.search,
-                                              ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                borderSide: const BorderSide(
-                                                  color:
-                                                      AppColors.buttonBlueDark,
-                                                ),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                borderSide: const BorderSide(
-                                                  color:
-                                                      AppColors.buttonBlueDark,
-                                                ),
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                borderSide: BorderSide(
-                                                  color: Colors.grey.withValues(
-                                                    alpha: 0.2,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 14,
-                                            backgroundColor: Colors.grey[200],
-                                            backgroundImage: NetworkImage(
-                                              "https://flagcdn.com/w80/${_selectedCountry.countryCode.toLowerCase()}.png",
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Directionality(
-                                            textDirection: TextDirection.ltr,
-                                            child: Text(
-                                              "+${_selectedCountry.phoneCode}",
-                                              style: const TextStyle(
+                                              )!.enterPhoneNumber,
+                                              hintStyle: const TextStyle(
+                                                color: Colors.grey,
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.w600,
                                               ),
+                                              border: InputBorder.none,
                                             ),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                            onChanged: (val) {
+                                              state.didChange(val);
+                                              if (state.hasError)
+                                                state.validate();
+                                            },
                                           ),
-                                          const Icon(
-                                            Icons.keyboard_arrow_down,
-                                            size: 18,
-                                            color: Colors.grey,
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  height: 24,
-                                  width: 1,
-                                  color: Colors.grey[300],
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextFormField(
-                                    cursorColor: AppColors.buttonBlueDark,
-                                    controller: _phoneController,
-                                    keyboardType: TextInputType.phone,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(
-                                        context,
-                                      )!.enterPhoneNumber,
-                                      hintStyle: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
+                                  if (state.hasError)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 16,
+                                        right: 16,
+                                        top: 8,
                                       ),
-                                      border: InputBorder.none,
+                                      child: Text(
+                                        state.errorText!,
+                                        style: TextStyle(
+                                          color: Colors.red.shade700,
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ),
-                                    style: const TextStyle(fontSize: 14),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.requiredField;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
 
                           // Password Input
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: AppColors.indicatorGrey,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.lock_outline,
-                                  color: Colors.grey,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  height: 24,
-                                  width: 1,
-                                  color: Colors.grey[300],
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextFormField(
-                                    cursorColor: AppColors.buttonBlueDark,
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(
-                                        context,
-                                      )!.enterPassword,
-                                      hintStyle: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
+                          FormField<String>(
+                            validator: (_) {
+                              if (_passwordController.text.trim().isEmpty) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.pleaseEnterYourPassword;
+                              }
+                              return null;
+                            },
+                            builder: (state) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(25),
+                                      border: Border.all(
+                                        color: state.hasError
+                                            ? Colors.red.shade700
+                                            : AppColors.indicatorGrey,
                                       ),
-                                      border: InputBorder.none,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.02,
+                                          ),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                    style: const TextStyle(fontSize: 14),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.requiredField;
-                                      }
-                                      return null;
-                                    },
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.lock_outline,
+                                          color: Colors.grey,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          height: 24,
+                                          width: 1,
+                                          color: Colors.grey[300],
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: TextField(
+                                            cursorColor:
+                                                AppColors.buttonBlueDark,
+                                            controller: _passwordController,
+                                            obscureText: _obscurePassword,
+                                            decoration: InputDecoration(
+                                              hintText: AppLocalizations.of(
+                                                context,
+                                              )!.enterPassword,
+                                              hintStyle: const TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                              border: InputBorder.none,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                            onChanged: (val) {
+                                              state.didChange(val);
+                                              if (state.hasError)
+                                                state.validate();
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          icon: Icon(
+                                            _obscurePassword
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: Colors.grey,
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _obscurePassword =
+                                                  !_obscurePassword;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: Colors.grey,
-                                    size: 20,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
+                                  if (state.hasError)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 16,
+                                        right: 16,
+                                        top: 8,
+                                      ),
+                                      child: Text(
+                                        state.errorText!,
+                                        style: TextStyle(
+                                          color: Colors.red.shade700,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
                           ),
 
                           const SizedBox(height: 32),

@@ -186,7 +186,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPhoneNumber => 'Enter phone number';
 
   @override
+  String get pleaseEnterYourPhoneNumber => 'Please enter your phone number';
+
+  @override
   String get enterPassword => 'Enter password';
+
+  @override
+  String get pleaseEnterYourPassword => 'Please enter your password';
 
   @override
   String get normalOrders => 'Normal orders';

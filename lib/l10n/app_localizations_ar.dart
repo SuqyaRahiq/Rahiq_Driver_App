@@ -186,7 +186,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterPhoneNumber => 'أدخل رقم الهاتف';
 
   @override
+  String get pleaseEnterYourPhoneNumber => 'الرجاء إدخال رقم الهاتف';
+
+  @override
   String get enterPassword => 'أدخل كلمة المرور';
+
+  @override
+  String get pleaseEnterYourPassword => 'الرجاء إدخال كلمة المرور';
 
   @override
   String get normalOrders => 'الطلبات العادية';

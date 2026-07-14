@@ -11,7 +11,8 @@ import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/data/models/driver/place.dart';
-import 'package:rahiq_driver/pages/shared/driver_specific_mosque_page.dart' as import_page;
+import 'package:rahiq_driver/pages/shared/driver_specific_mosque_page.dart'
+    as import_page;
 
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
@@ -194,8 +195,8 @@ class ProofSubmissionPage extends StatelessWidget {
                                     )!.productInsideMosque,
                                     path: provider.globalProofVideo,
                                     isVideo: true,
-                                    onPick: (source) =>
-                                        provider.pickGlobalVideo(context, source),
+                                    onPick: (source) => provider
+                                        .pickGlobalVideo(context, source),
                                   ),
                                   const SizedBox(width: 12),
                                   const Expanded(child: SizedBox()),
@@ -228,7 +229,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                               if (context.mounted) {
                                                 CustomSnackbar.show(
                                                   context: context,
-                                                  message: AppLocalizations.of(context)!.proofsUploaded,
+                                                  message: AppLocalizations.of(
+                                                    context,
+                                                  )!.proofsUploaded,
                                                 );
                                                 Navigator.pop(context);
                                               }
@@ -238,8 +241,13 @@ class ProofSubmissionPage extends StatelessWidget {
                                                     AppLocalizations.of(
                                                       context,
                                                     )!.error(e.toString());
-                                                if (e.toString().contains('missing_media')) {
-                                                  errorMessage = AppLocalizations.of(context)!.missingMediaError;
+                                                if (e.toString().contains(
+                                                  'missing_media',
+                                                )) {
+                                                  errorMessage =
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.missingMediaError;
                                                 } else if (e is DioException &&
                                                     e.response?.data is Map &&
                                                     e
@@ -358,7 +366,10 @@ class ProofSubmissionPage extends StatelessWidget {
         if (!provider.useSameImages) ...[
           _buildSectionTitle('Delivery Location'),
           RadioListTile<bool>(
-            title: Text('Delivered to target location', style: TextStyle(fontSize: 14)),
+            title: Text(
+              'Delivered to target location',
+              style: TextStyle(fontSize: 14),
+            ),
             value: false,
             groupValue: proof.deliveredToDifferentMosque,
             activeColor: AppColors.buttonBlueDark,
@@ -371,7 +382,10 @@ class ProofSubmissionPage extends StatelessWidget {
             },
           ),
           RadioListTile<bool>(
-            title: Text('Delivered to a different location', style: TextStyle(fontSize: 14)),
+            title: Text(
+              'Delivered to a different location',
+              style: TextStyle(fontSize: 14),
+            ),
             value: true,
             groupValue: proof.deliveredToDifferentMosque,
             activeColor: AppColors.buttonBlueDark,
@@ -392,7 +406,9 @@ class ProofSubmissionPage extends StatelessWidget {
               },
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.reasonForChangingLocation,
+                hintText: AppLocalizations.of(
+                  context,
+                )!.reasonForChangingLocation,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -414,25 +430,70 @@ class ProofSubmissionPage extends StatelessWidget {
                   final String? category = await showModalBottomSheet<String>(
                     context: context,
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
                     ),
                     builder: (context) {
                       return SafeArea(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text(
-                                AppLocalizations.of(context)!.select_category,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                            Container(
+                              width: double.infinity,
+                              decoration: const BoxDecoration(
+                                color: AppColors.buttonBlueDark,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(30),
+                                  topRight: Radius.circular(30),
                                 ),
                               ),
+                              padding: const EdgeInsets.only(
+                                top: 24,
+                                left: 16,
+                                right: 16,
+                                bottom: 24,
+                              ),
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.arrow_back_ios_new_rounded,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.select_category,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 48),
+                                ],
+                              ),
                             ),
+
                             ListTile(
-                              title: Text(AppLocalizations.of(context)!.orphanage),
+                              title: Text(
+                                AppLocalizations.of(context)!.orphanage,
+                              ),
                               onTap: () => Navigator.pop(context, 'orphanages'),
                             ),
                             ListTile(
@@ -440,8 +501,11 @@ class ProofSubmissionPage extends StatelessWidget {
                               onTap: () => Navigator.pop(context, 'mosques'),
                             ),
                             ListTile(
-                              title: Text(AppLocalizations.of(context)!.meqat_mosque),
-                              onTap: () => Navigator.pop(context, 'meqat_mosques'),
+                              title: Text(
+                                AppLocalizations.of(context)!.meqat_mosque,
+                              ),
+                              onTap: () =>
+                                  Navigator.pop(context, 'meqat_mosques'),
                             ),
                           ],
                         ),
@@ -456,8 +520,7 @@ class ProofSubmissionPage extends StatelessWidget {
                   final Place? selected = await Navigator.push<Place>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => 
-                          import_page.SpecificMosquePage(
+                      builder: (context) => import_page.SpecificMosquePage(
                         slug: category,
                         title: AppLocalizations.of(context)!.locationLabel,
                       ),
@@ -465,12 +528,15 @@ class ProofSubmissionPage extends StatelessWidget {
                   );
                   if (selected != null) {
                     proof.deliveredLocationId = selected.id;
-                    proof.deliveredLocationName = selected.localizedName(Localizations.localeOf(context).languageCode == 'ar');
+                    proof.deliveredLocationName = selected.localizedName(
+                      Localizations.localeOf(context).languageCode == 'ar',
+                    );
                     provider.updateUI();
                   }
                 },
                 child: Text(
-                  proof.deliveredLocationName ?? AppLocalizations.of(context)!.selectLocation,
+                  proof.deliveredLocationName ??
+                      AppLocalizations.of(context)!.selectLocation,
                   style: const TextStyle(color: AppColors.buttonBlueDark),
                 ),
               ),
@@ -704,7 +770,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    AppLocalizations.of(sheetContext)!.videoDurationLimitNote,
+                                    AppLocalizations.of(
+                                      sheetContext,
+                                    )!.videoDurationLimitNote,
                                     style: const TextStyle(
                                       fontSize: 13,
                                       color: Colors.orange,
@@ -723,11 +791,19 @@ class ProofSubmissionPage extends StatelessWidget {
                           onTap: () async {
                             Navigator.pop(sheetContext);
                             final error = await onPick(ImageSource.camera);
-                            if (error != null && error is String && parentContext.mounted) {
-                              final errorMsg = error == 'video_too_long' 
-                                  ? AppLocalizations.of(parentContext)!.videoDurationLimitError 
+                            if (error != null &&
+                                error is String &&
+                                parentContext.mounted) {
+                              final errorMsg = error == 'video_too_long'
+                                  ? AppLocalizations.of(
+                                      parentContext,
+                                    )!.videoDurationLimitError
                                   : error;
-                              CustomSnackbar.show(context: parentContext, message: errorMsg, isError: true);
+                              CustomSnackbar.show(
+                                context: parentContext,
+                                message: errorMsg,
+                                isError: true,
+                              );
                             }
                           },
                         ),
@@ -740,11 +816,19 @@ class ProofSubmissionPage extends StatelessWidget {
                           onTap: () async {
                             Navigator.pop(sheetContext);
                             final error = await onPick(ImageSource.gallery);
-                            if (error != null && error is String && parentContext.mounted) {
-                              final errorMsg = error == 'video_too_long' 
-                                  ? AppLocalizations.of(parentContext)!.videoDurationLimitError 
+                            if (error != null &&
+                                error is String &&
+                                parentContext.mounted) {
+                              final errorMsg = error == 'video_too_long'
+                                  ? AppLocalizations.of(
+                                      parentContext,
+                                    )!.videoDurationLimitError
                                   : error;
-                              CustomSnackbar.show(context: parentContext, message: errorMsg, isError: true);
+                              CustomSnackbar.show(
+                                context: parentContext,
+                                message: errorMsg,
+                                isError: true,
+                              );
                             }
                           },
                         ),

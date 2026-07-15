@@ -225,5 +225,6 @@
   "meqat_mosque": "Meqat Mosque",
   "orphanage": "Orphanage",
   "reasonForChangingLocation": "Reason for changing location...",
-  "selectLocation": "Select Location"
+  "selectLocation": "Select Location",
+  "selectNewLocation": "Select New Location"
 }

@@ -1044,7 +1044,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                     'Bulk Image Upload: Error occurred: $e',
                                   );
                                   if (context.mounted) {
-                                    String errorMessage = e.toString();
+                                    String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
                                     if (e is DioException &&
                                         e.response?.data is Map &&
                                         e.response?.data['message'] != null) {

@@ -1117,6 +1117,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Location'**
   String get selectLocation;
+
+  /// No description provided for @selectNewLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select New Location'**
+  String get selectNewLocation;
 }
 
 class _AppLocalizationsDelegate

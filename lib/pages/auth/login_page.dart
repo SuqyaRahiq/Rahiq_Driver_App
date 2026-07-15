@@ -101,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        String errorMessage = e.toString();
+        String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
         if (e is DioException &&
             e.response?.data is Map &&
             e.response?.data['message'] != null) {

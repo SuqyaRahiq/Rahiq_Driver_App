@@ -237,10 +237,7 @@ class ProofSubmissionPage extends StatelessWidget {
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
-                                                String errorMessage =
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.error(e.toString());
+                                                String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
                                                 if (e.toString().contains(
                                                   'missing_media',
                                                 )) {
@@ -405,11 +402,21 @@ class ProofSubmissionPage extends StatelessWidget {
                 provider.updateUI();
               },
               maxLines: 2,
+              cursorColor: Colors.black,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(
                   context,
                 )!.reasonForChangingLocation,
                 border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 contentPadding: const EdgeInsets.all(12),
@@ -425,9 +432,13 @@ class ProofSubmissionPage extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  backgroundColor: proof.deliveredLocationName != null
+                      ? AppColors.buttonBlueDark
+                      : Colors.white,
                 ),
                 onPressed: () async {
                   final String? category = await showModalBottomSheet<String>(
+                    backgroundColor: Colors.white,
                     context: context,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(
@@ -444,8 +455,8 @@ class ProofSubmissionPage extends StatelessWidget {
                               decoration: const BoxDecoration(
                                 color: AppColors.buttonBlueDark,
                                 borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(30),
-                                  topRight: Radius.circular(30),
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20),
                                 ),
                               ),
                               padding: const EdgeInsets.only(
@@ -489,23 +500,60 @@ class ProofSubmissionPage extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            SizedBox(height: 4),
 
-                            ListTile(
-                              title: Text(
-                                AppLocalizations.of(context)!.orphanage,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
-                              onTap: () => Navigator.pop(context, 'orphanages'),
-                            ),
-                            ListTile(
-                              title: Text(AppLocalizations.of(context)!.mosque),
-                              onTap: () => Navigator.pop(context, 'mosques'),
-                            ),
-                            ListTile(
-                              title: Text(
-                                AppLocalizations.of(context)!.meqat_mosque,
+                              child: Material(
+                                elevation: 2,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                child: ListTile(
+                                  title: Text(
+                                    AppLocalizations.of(context)!.orphanage,
+                                  ),
+                                  onTap: () =>
+                                      Navigator.pop(context, 'orphanages'),
+                                ),
                               ),
-                              onTap: () =>
-                                  Navigator.pop(context, 'meqat_mosques'),
+                            ),
+                            SizedBox(height: 4),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Material(
+                                elevation: 2,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                child: ListTile(
+                                  title: Text(
+                                    AppLocalizations.of(context)!.mosque,
+                                  ),
+                                  onTap: () =>
+                                      Navigator.pop(context, 'mosques'),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Material(
+                                elevation: 2,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                child: ListTile(
+                                  title: Text(
+                                    AppLocalizations.of(context)!.meqat_mosque,
+                                  ),
+                                  onTap: () =>
+                                      Navigator.pop(context, 'meqat_mosques'),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -536,8 +584,12 @@ class ProofSubmissionPage extends StatelessWidget {
                 },
                 child: Text(
                   proof.deliveredLocationName ??
-                      AppLocalizations.of(context)!.selectLocation,
-                  style: const TextStyle(color: AppColors.buttonBlueDark),
+                      AppLocalizations.of(context)!.selectNewLocation,
+                  style: TextStyle(
+                    color: proof.deliveredLocationName != null
+                        ? Colors.white
+                        : AppColors.buttonBlueDark,
+                  ),
                 ),
               ),
             ),

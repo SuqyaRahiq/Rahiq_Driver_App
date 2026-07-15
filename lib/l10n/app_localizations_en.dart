@@ -541,4 +541,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectLocation => 'Select Location';
+
+  @override
+  String get selectNewLocation => 'Select New Location';
 }

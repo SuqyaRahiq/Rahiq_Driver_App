@@ -539,4 +539,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectLocation => 'اختر الموقع';
+
+  @override
+  String get selectNewLocation => 'اختر موقع جديد';
 }

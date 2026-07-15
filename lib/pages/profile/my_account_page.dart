@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -887,8 +888,12 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         } catch (e) {
                           if (mounted) {
                             setState(() => _isSavingBankDetails = false);
+                            String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
+                            if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+                              errorMessage = e.response!.data['message'];
+                            }
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(e.toString())),
+                              SnackBar(content: Text(errorMessage)),
                             );
                           }
                         }

@@ -13,7 +13,7 @@ class DashboardTab extends StatefulWidget {
   State<DashboardTab> createState() => _DashboardTabState();
 }
 
-class _DashboardTabState extends State<DashboardTab> {
+class _DashboardTabState extends State<DashboardTab> with WidgetsBindingObserver {
   late DriverOrdersApi _api;
   DriverDashboardStats? _stats;
   bool _isLoading = true;
@@ -22,8 +22,22 @@ class _DashboardTabState extends State<DashboardTab> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _api = DriverOrdersApi(ApiClient());
     _loadStats();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadStats();
+    }
   }
 
   Future<void> _loadStats() async {

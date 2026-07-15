@@ -35,7 +35,7 @@
             android:value="AIzaSyB___mbW9IyVrmRpxFN1sYXwPjtZVhZ-x0"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_launcher" />
+            android:resource="@drawable/ic_notification" />
     </application>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Required to query activities that can process text, see:

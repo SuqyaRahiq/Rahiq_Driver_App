@@ -266,16 +266,28 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
     String listTabText;
 
     if (widget.slug == 'orphanages') {
-      title = widget.title ?? (AppLocalizations.of(context)!.choose_specific_orphanage);
-      subtitle = AppLocalizations.of(context)!.select_an_orphanage_to_deliver_water_to;
+      title =
+          widget.title ??
+          (AppLocalizations.of(context)!.choose_specific_orphanage);
+      subtitle = AppLocalizations.of(
+        context,
+      )!.select_an_orphanage_to_deliver_water_to;
       listTabText = AppLocalizations.of(context)!.list_of_orphanages;
     } else if (widget.slug == 'meqat_mosques') {
-      title = widget.title ?? (AppLocalizations.of(context)!.choose_specific_meqat_mosque);
-      subtitle = AppLocalizations.of(context)!.select_a_mosque_to_deliver_water_to;
+      title =
+          widget.title ??
+          (AppLocalizations.of(context)!.choose_specific_meqat_mosque);
+      subtitle = AppLocalizations.of(
+        context,
+      )!.select_a_mosque_to_deliver_water_to;
       listTabText = AppLocalizations.of(context)!.list_of_meqat_mosques;
     } else {
-      title = widget.title ?? (AppLocalizations.of(context)!.choose_specific_mosque);
-      subtitle = AppLocalizations.of(context)!.select_a_mosque_to_deliver_water_to;
+      title =
+          widget.title ??
+          (AppLocalizations.of(context)!.choose_specific_mosque);
+      subtitle = AppLocalizations.of(
+        context,
+      )!.select_a_mosque_to_deliver_water_to;
       listTabText = AppLocalizations.of(context)!.list_of_mosques;
     }
 
@@ -494,7 +506,9 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
-                  color: isSelected ? AppColors.buttonBlue : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.buttonBlueDark
+                      : Colors.transparent,
                   width: 2,
                 ),
               ),
@@ -604,7 +618,7 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.buttonBlue.withValues(alpha: .2),
+                    color: AppColors.buttonBlueDark.withValues(alpha: .2),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.transparent),
                   ),
@@ -613,14 +627,14 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
                     children: [
                       const Icon(
                         Icons.trending_up_outlined,
-                        color: AppColors.buttonBlue,
+                        color: AppColors.buttonBlueDark,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         isAr ? 'احتياج عالي' : 'High Need',
                         style: const TextStyle(
-                          color: AppColors.buttonBlue,
+                          color: AppColors.buttonBlueDark,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),

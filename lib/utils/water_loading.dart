@@ -72,7 +72,7 @@ class _WaterLoadingIndicatorState extends State<WaterLoadingIndicator>
             height: barHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(barWidth / 2),
-              color: widget.waveColor1 ?? AppColors.buttonBlue,
+              color: widget.waveColor1 ?? AppColors.buttonBlueDark,
             ),
           );
         });

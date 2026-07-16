@@ -101,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
         if (e is DioException &&
             e.response?.data is Map &&
@@ -112,12 +113,6 @@ class _LoginPageState extends State<LoginPage> {
           message: errorMessage,
           isError: true,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }

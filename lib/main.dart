@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
                 data: mediaQueryData.copyWith(
                   textScaler: _ArabicTextScaler(
                     mediaQueryData.textScaler,
-                    true,
+                    locale.languageCode == 'ar',
                   ),
                 ),
                 child: child!,

@@ -5,16 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/main.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
+import 'api_exception.dart';
 
 class ApiClient {
   static const String baseUrl =
       'https://api-staging.suqyarahiq.com/api/v1'; // Adjust to real base URL
-  late Dio dio;
+
+  static final ApiClient _instance = ApiClient._internal();
+  factory ApiClient() => _instance;
+
+  late final Dio dio;
 
   bool _isRefreshing = false;
   final _pendingRequests = <Completer<bool>>[];
 
-  ApiClient() {
+  ApiClient._internal() {
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -170,6 +175,48 @@ class ApiClient {
       return false;
     }
     return false;
+  }
+
+  // ── API Response Helpers ─────────────────────────────────────────────
+
+  /// Validates a successful API response and returns the data.
+  /// Throws [ApiException] if the response indicates failure.
+  static T handleResponse<T>(
+    Response response,
+    T Function(dynamic data) mapper, {
+    String fallbackError = 'Request failed',
+  }) {
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return mapper(response.data);
+    }
+    throw ApiException(
+      response.data['message'] ?? fallbackError,
+      statusCode: response.statusCode,
+    );
+  }
+
+  /// Validates a successful API response that returns no meaningful data.
+  /// Throws [ApiException] if the response indicates failure.
+  static void handleVoidResponse(
+    Response response, {
+    String fallbackError = 'Request failed',
+  }) {
+    if (response.statusCode != 200 || response.data['success'] != true) {
+      throw ApiException(
+        response.data['message'] ?? fallbackError,
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  /// Converts a [DioException] into a user-friendly [ApiException].
+  static Never handleDioError(DioException e, {String fallbackError = 'Request failed'}) {
+    throw ApiException(
+      (e.response?.data is Map ? e.response?.data['message'] : null) ??
+          e.message ??
+          fallbackError,
+      statusCode: e.response?.statusCode,
+    );
   }
 }
 

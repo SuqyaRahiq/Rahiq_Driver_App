@@ -173,14 +173,7 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  void _showTermsAndConditions() {
-    // Placeholder: show a coming-soon snackbar
-    CustomSnackbar.show(
-      context: context,
-      message: AppLocalizations.of(context)!.termsConditions,
-      bottomMargin: 130,
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +334,7 @@ class _ProfileTabState extends State<ProfileTab> {
                                   // Show error toast
                                   CustomSnackbar.show(
                                     context: context,
-                                    message: "couldnot launch url",
+                                    message: AppLocalizations.of(context)!.somethingWentWrong,
                                   );
                                 }
                               },
@@ -364,7 +357,7 @@ class _ProfileTabState extends State<ProfileTab> {
                                   // Show error toast
                                   CustomSnackbar.show(
                                     context: context,
-                                    message: "couldnot launch url",
+                                    message: AppLocalizations.of(context)!.somethingWentWrong,
                                   );
                                 }
                               },

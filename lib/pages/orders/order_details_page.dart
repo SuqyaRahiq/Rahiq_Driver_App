@@ -105,9 +105,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     try {
       final response = await _api.getNormalOrderSubOrders(widget.order.id);
       setState(() {
-        _subOrders = (response as List)
-            .map((e) => NormalSubOrder.fromJson(e as Map<String, dynamic>))
-            .toList();
+        _subOrders = response;
         _isLoading = false;
       });
     } catch (e) {
@@ -351,7 +349,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildShimmerLoading(BuildContext context) {
-    final hasMap = (widget.order.latitude ?? 0.0) != 0.0 &&
+    final hasMap =
+        (widget.order.latitude ?? 0.0) != 0.0 &&
         (widget.order.longitude ?? 0.0) != 0.0;
 
     return Shimmer.fromColors(
@@ -537,12 +536,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.order.type != null)
-              _buildDetailRow(
-                Icons.category_outlined,
-                AppLocalizations.of(context)!.typeLabel,
-                _getLocalizedType(context, widget.order.type!),
-              ),
+            // if (widget.order.type != null)
+            //   _buildDetailRow(
+            //     Icons.category_outlined,
+            //     AppLocalizations.of(context)!.typeLabel,
+            //     _getLocalizedType(context, widget.order.type!),
+            //   ),
             _buildDetailRow(
               Icons.person_outline,
               AppLocalizations.of(context)!.locationLabel,

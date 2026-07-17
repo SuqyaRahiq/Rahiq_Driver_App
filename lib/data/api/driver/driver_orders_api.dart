@@ -1,10 +1,9 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
-import '../../models/driver/auto_order_item.dart'; // AutoOrderItem
+import '../../models/driver/auto_order_item.dart';
 import '../../models/driver/driver_order.dart';
 import '../../models/driver/driver_dashboard_stats.dart';
+import '../../models/driver/normal_sub_order.dart';
 import '../api_client.dart';
-import '../api_exception.dart';
 
 class DriverOrdersApi {
   final ApiClient _apiClient;
@@ -14,46 +13,31 @@ class DriverOrdersApi {
   Future<List<DriverOrder>> getNormalOrders() async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/normal');
-      log(
-        '\x1B[33m*** NORMAL ORDERS GET API RESPONSE ***\n${response.data}\n\x1B[0m',
+      return ApiClient.handleResponse(
+        response,
+        (data) {
+          final List<dynamic> items = data['data']['items'] ?? [];
+          return items.map((json) => DriverOrder.fromJson(json)).toList();
+        },
+        fallbackError: 'Failed to get normal orders',
       );
-
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> data = response.data['data']['items'] ?? [];
-        return data.map((json) => DriverOrder.fromJson(json)).toList();
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get normal orders',
-          statusCode: response.statusCode,
-        );
-      }
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get normal orders',
-        statusCode: e.response?.statusCode,
-      );
+      ApiClient.handleDioError(e, fallbackError: 'Failed to get normal orders');
     }
   }
 
   Future<DriverDashboardStats> getDashboardStats() async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/dashboard');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverDashboardStats.fromJson(response.data['data']['stats']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get dashboard stats',
-          statusCode: response.statusCode,
-        );
-      }
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverDashboardStats.fromJson(data['data']['stats']),
+        fallbackError: 'Failed to get dashboard stats',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get dashboard stats',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get dashboard stats',
       );
     }
   }
@@ -68,102 +52,79 @@ class DriverOrdersApi {
         '/driver/orders/normal/location/$orderId',
         data: {'latitude': latitude, 'longitude': longitude},
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to update order location',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to update order location',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to update order location',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to update order location',
       );
     }
   }
 
-  Future<List<dynamic>> getNormalOrderSubOrders(String orderId) async {
+  Future<List<NormalSubOrder>> getNormalOrderSubOrders(String orderId) async {
     try {
       final response = await _apiClient.dio.get(
         '/driver/orders/normal/location/$orderId',
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        var data = response.data['data'];
-        if (data is Map && data.containsKey('items')) {
-          data = data['items'];
-        }
-        if (data is List) {
-          return data;
-        }
-        return [];
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get sub orders',
-          statusCode: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get sub orders',
-        statusCode: e.response?.statusCode,
+      return ApiClient.handleResponse(
+        response,
+        (data) {
+          var items = data['data'];
+          if (items is Map && items.containsKey('items')) {
+            items = items['items'];
+          }
+          if (items is List) {
+            return items.map((json) => NormalSubOrder.fromJson(json)).toList();
+          }
+          return <NormalSubOrder>[];
+        },
+        fallbackError: 'Failed to get sub orders',
       );
+    } on DioException catch (e) {
+      ApiClient.handleDioError(e, fallbackError: 'Failed to get sub orders');
     }
   }
 
   Future<List<AutoOrderItem>> getAutoOrders() async {
     try {
       final response = await _apiClient.dio.get('/driver/orders/auto');
-      log(
-        '\x1B[33m*** AUTO ORDERS GET API RESPONSE ***\n${response.data}\n\x1B[0m',
+      return ApiClient.handleResponse(
+        response,
+        (data) {
+          final List<dynamic> items = data['data']['items'] ?? [];
+          return items.map((json) => AutoOrderItem.fromJson(json)).toList();
+        },
+        fallbackError: 'Failed to get auto orders',
       );
-
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> items = response.data['data']['items'] ?? [];
-        return items.map((json) => AutoOrderItem.fromJson(json)).toList();
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get auto orders',
-          statusCode: response.statusCode,
-        );
-      }
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get auto orders',
-        statusCode: e.response?.statusCode,
-      );
+      ApiClient.handleDioError(e, fallbackError: 'Failed to get auto orders');
     }
   }
 
-  Future<List<dynamic>> getAutoOrderDetails(String orderId, String type) async {
+  Future<List<NormalSubOrder>> getAutoOrderDetails(
+    String orderId,
+    String type,
+  ) async {
     try {
       final response = await _apiClient.dio.get(
         '/driver/orders/auto/$orderId',
         queryParameters: {'type': type},
       );
-      log(
-        '\x1B[33m*** AUTO ORDER API FULL RESPONSE ***\n${response.data}\n\x1B[0m',
+      return ApiClient.handleResponse(
+        response,
+        (data) {
+          final List<dynamic> items = data['data']['items'] ?? [];
+          return items.map((json) => NormalSubOrder.fromJson(json)).toList();
+        },
+        fallbackError: 'Failed to get auto order details',
       );
-
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data']['items'] ?? [];
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get auto order details',
-          statusCode: response.statusCode,
-        );
-      }
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get auto order details',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get auto order details',
       );
     }
   }
@@ -213,13 +174,23 @@ class DriverOrdersApi {
         );
       }
 
-      formData.fields.add(MapEntry('deliveredToDifferentMosque', deliveredToDifferentMosque.toString()));
+      formData.fields.add(
+        MapEntry(
+          'deliveredToDifferentMosque',
+          deliveredToDifferentMosque.toString(),
+        ),
+      );
       if (deliveredToDifferentMosque) {
-        if (differentMosqueReason != null && differentMosqueReason.isNotEmpty) {
-          formData.fields.add(MapEntry('differentMosqueReason', differentMosqueReason));
+        if (differentMosqueReason != null &&
+            differentMosqueReason.isNotEmpty) {
+          formData.fields.add(
+            MapEntry('differentMosqueReason', differentMosqueReason),
+          );
         }
         if (deliveredLocationId != null && deliveredLocationId.isNotEmpty) {
-          formData.fields.add(MapEntry('deliveredLocationId', deliveredLocationId));
+          formData.fields.add(
+            MapEntry('deliveredLocationId', deliveredLocationId),
+          );
         }
       }
 
@@ -227,71 +198,17 @@ class DriverOrdersApi {
         '/driver/orders/sub-orders/$subOrderId/confirm',
         data: formData,
       );
-
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to confirm sub order',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to confirm sub order',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to confirm sub order',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to confirm sub order',
       );
     }
   }
-
-  // Future<void> bulkUploadProof({
-  //   required String orderId,
-  //   required String mosqueFrontImagePath,
-  //   required String mosqueInsideImagePath,
-  //   required String packagesImagePath,
-  //   required List<String> subOrderIds,
-  //   String? proofVideoPath,
-  // }) async {
-  //   try {
-  //     FormData formData = FormData.fromMap({
-  //       'orderId': orderId,
-  //       'mosqueFrontImage': await MultipartFile.fromFile(mosqueFrontImagePath),
-  //       'mosqueInsideImage': await MultipartFile.fromFile(
-  //         mosqueInsideImagePath,
-  //       ),
-  //       'packagesImage': await MultipartFile.fromFile(packagesImagePath),
-  //     });
-
-  //     for (var id in subOrderIds) {
-  //       formData.fields.add(MapEntry('subOrderIds', id));
-  //     }
-
-  //     if (proofVideoPath != null) {
-  //       formData.files.add(
-  //         MapEntry('proofVideo', await MultipartFile.fromFile(proofVideoPath)),
-  //       );
-  //     }
-
-  //     final response = await _apiClient.dio.post(
-  //       '/driver/orders/bulk-upload-proof',
-  //       data: formData,
-  //     );
-
-  //     if (response.statusCode != 200 || response.data['success'] != true) {
-  //       throw ApiException(
-  //         response.data['message'] ?? 'Failed to bulk upload proof',
-  //         statusCode: response.statusCode,
-  //       );
-  //     }
-  //   } on DioException catch (e) {
-  //     throw ApiException(
-  //       (e.response?.data is Map ? e.response?.data['message'] : null) ??
-  //           e.message ??
-  //           'Failed to bulk upload proof',
-  //       statusCode: e.response?.statusCode,
-  //     );
-  //   }
-  // }
 
   Future<void> bulkUploadMosqueImages({
     required String orderId,
@@ -327,19 +244,14 @@ class DriverOrdersApi {
         '/driver/orders/bulk-upload-proof',
         data: formData,
       );
-
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to bulk upload mosque images',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to bulk upload mosque images',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to bulk upload mosque images',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to bulk upload mosque images',
       );
     }
   }

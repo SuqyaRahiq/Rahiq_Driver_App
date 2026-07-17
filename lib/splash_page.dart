@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
@@ -15,17 +16,36 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        final hasSession = AuthStorage.isLoggedIn;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) =>
-                hasSession ? const HomePage() : const LoginPage(),
-          ),
-        );
-      }
-    });
+    _navigateAfterSplash();
+  }
+
+  Future<void> _navigateAfterSplash() async {
+    // Show splash for at least 2 seconds
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    if (!AuthStorage.isLoggedIn) {
+      _goTo(const LoginPage());
+      return;
+    }
+
+    // Validate the stored session by attempting a token refresh
+    final isSessionValid = await ApiClient().refreshToken();
+    if (!mounted) return;
+
+    if (isSessionValid) {
+      _goTo(const HomePage());
+    } else {
+      await AuthStorage.clearTokens();
+      if (mounted) _goTo(const LoginPage());
+    }
+  }
+
+  void _goTo(Widget page) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override

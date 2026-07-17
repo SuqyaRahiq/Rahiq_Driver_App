@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import '../../models/driver/driver_auth_response.dart';
 import '../../models/driver/driver_profile.dart';
 import '../api_client.dart';
-import '../api_exception.dart';
 
 class DriverAuthApi {
   final ApiClient _apiClient;
@@ -15,21 +14,13 @@ class DriverAuthApi {
         '/driver/auth/login',
         data: credentials,
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverAuthResponse.fromJson(response.data['data']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Login failed',
-          statusCode: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Login failed',
-        statusCode: e.response?.statusCode,
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverAuthResponse.fromJson(data['data']),
+        fallbackError: 'Login failed',
       );
+    } on DioException catch (e) {
+      ApiClient.handleDioError(e, fallbackError: 'Login failed');
     }
   }
 
@@ -39,19 +30,9 @@ class DriverAuthApi {
         '/driver/auth/logout',
         data: {'refreshToken': refreshToken, 'fcmToken': ?fcmToken},
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Logout failed',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(response, fallbackError: 'Logout failed');
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Logout failed',
-        statusCode: e.response?.statusCode,
-      );
+      ApiClient.handleDioError(e, fallbackError: 'Logout failed');
     }
   }
 
@@ -65,42 +46,26 @@ class DriverAuthApi {
         '/driver/auth/me',
         data: formData,
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverProfile.fromJson(response.data['data']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to update profile',
-          statusCode: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to update profile',
-        statusCode: e.response?.statusCode,
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverProfile.fromJson(data['data']),
+        fallbackError: 'Failed to update profile',
       );
+    } on DioException catch (e) {
+      ApiClient.handleDioError(e, fallbackError: 'Failed to update profile');
     }
   }
 
   Future<DriverProfile> getProfile() async {
     try {
       final response = await _apiClient.dio.get('/driver/auth/me');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverProfile.fromJson(response.data['data']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get profile',
-          statusCode: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get profile',
-        statusCode: e.response?.statusCode,
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverProfile.fromJson(data['data']),
+        fallbackError: 'Failed to get profile',
       );
+    } on DioException catch (e) {
+      ApiClient.handleDioError(e, fallbackError: 'Failed to get profile');
     }
   }
 
@@ -120,18 +85,14 @@ class DriverAuthApi {
           if (locale != null) 'locale': locale,
         },
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to update device token',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to update device token',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to update device token',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to update device token',
       );
     }
   }
@@ -142,20 +103,15 @@ class DriverAuthApi {
         '/driver/auth/me/bank-account',
         data: data,
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverProfile.fromJson(response.data['data']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to update bank account',
-          statusCode: response.statusCode,
-        );
-      }
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverProfile.fromJson(data['data']),
+        fallbackError: 'Failed to update bank account',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to update bank account',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to update bank account',
       );
     }
   }
@@ -169,19 +125,12 @@ class DriverAuthApi {
           if (fcmToken != null) 'fcmToken': fcmToken,
         },
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to update locale',
-          statusCode: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to update locale',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to update locale',
       );
+    } on DioException catch (e) {
+      ApiClient.handleDioError(e, fallbackError: 'Failed to update locale');
     }
   }
 }

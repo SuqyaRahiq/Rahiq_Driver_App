@@ -554,28 +554,6 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  // String _formatStatus(String? status) {
-  //   if (status == null) return 'PENDING';
-  //   return status.replaceAll('_', ' ');
-  // }
-
-  // Color _getStatusColor(String? status) {
-  //   switch (status?.toUpperCase()) {
-  //     case 'DELIVERED':
-  //     case 'COMPLETED':
-  //       return Colors.green;
-  //     case 'CANCELLED':
-  //     case 'REJECTED':
-  //       return Colors.red;
-  //     case 'IN_TRANSIT':
-  //       return Colors.orange;
-  //     case 'ASSIGNED':
-  //     case 'ACCEPTED':
-  //       return AppColors.buttonBlueDark;
-  //     default:
-  //       return Colors.blueGrey;
-  //   }
-  // }
 }
 
 class _TabDef {

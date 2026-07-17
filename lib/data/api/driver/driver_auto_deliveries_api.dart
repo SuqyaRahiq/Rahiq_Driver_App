@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../models/driver/driver_auto_delivery.dart';
 import '../api_client.dart';
-import '../api_exception.dart';
 
 class DriverAutoDeliveriesApi {
   final ApiClient _apiClient;
@@ -11,21 +10,18 @@ class DriverAutoDeliveriesApi {
   Future<List<DriverAutoDelivery>> getAutoDeliveries() async {
     try {
       final response = await _apiClient.dio.get('/driver/auto-deliveries');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((json) => DriverAutoDelivery.fromJson(json)).toList();
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get auto deliveries',
-          statusCode: response.statusCode,
-        );
-      }
+      return ApiClient.handleResponse(
+        response,
+        (data) {
+          final List<dynamic> items = data['data'] ?? [];
+          return items.map((json) => DriverAutoDelivery.fromJson(json)).toList();
+        },
+        fallbackError: 'Failed to get auto deliveries',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get auto deliveries',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get auto deliveries',
       );
     }
   }
@@ -53,39 +49,32 @@ class DriverAutoDeliveriesApi {
         '/driver/auto-deliveries/$deliveryId/confirm',
         data: formData,
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to confirm auto delivery',
-          statusCode: response.statusCode,
-        );
-      }
+      ApiClient.handleVoidResponse(
+        response,
+        fallbackError: 'Failed to confirm auto delivery',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to confirm auto delivery',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to confirm auto delivery',
       );
     }
   }
 
   Future<DriverAutoDelivery> getAutoDeliveryDetails(String deliveryId) async {
     try {
-      final response = await _apiClient.dio.get('/driver/auto-deliveries/$deliveryId');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return DriverAutoDelivery.fromJson(response.data['data']);
-      } else {
-        throw ApiException(
-          response.data['message'] ?? 'Failed to get auto delivery details',
-          statusCode: response.statusCode,
-        );
-      }
+      final response = await _apiClient.dio.get(
+        '/driver/auto-deliveries/$deliveryId',
+      );
+      return ApiClient.handleResponse(
+        response,
+        (data) => DriverAutoDelivery.fromJson(data['data']),
+        fallbackError: 'Failed to get auto delivery details',
+      );
     } on DioException catch (e) {
-      throw ApiException(
-        (e.response?.data is Map ? e.response?.data['message'] : null) ??
-            e.message ??
-            'Failed to get auto delivery details',
-        statusCode: e.response?.statusCode,
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get auto delivery details',
       );
     }
   }

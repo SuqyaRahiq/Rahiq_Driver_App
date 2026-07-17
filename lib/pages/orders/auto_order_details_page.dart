@@ -111,7 +111,7 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
         widget.item.type,
       );
       setState(() {
-        _subOrders = details;
+        _subOrders = details.map((s) => s.toJson()).toList();
         _isLoading = false;
       });
     } catch (e) {

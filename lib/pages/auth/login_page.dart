@@ -7,12 +7,12 @@ import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/common_widgets/language_switch.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
+import 'package:rahiq_driver/data/api/api_exception.dart';
 import 'package:rahiq_driver/services/notification_service.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
-import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -104,12 +104,9 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
-        if (e is DioException &&
-            e.response?.data is Map &&
-            e.response?.data['message'] != null) {
-          errorMessage = e.response!.data['message'];
-        }
+        final errorMessage = e is ApiException
+            ? e.message
+            : AppLocalizations.of(context)!.somethingWentWrong;
         CustomSnackbar.show(
           context: context,
           message: errorMessage,

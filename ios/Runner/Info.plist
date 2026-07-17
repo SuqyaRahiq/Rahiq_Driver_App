@@ -79,5 +79,7 @@
 	<string>This app requires microphone access to record audio with proof of delivery videos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to your location to show it on the map and find the nearest delivery locations.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app requires access to your location in the background to show it on the map and track your delivery route.</string>
 </dict>
 </plist>

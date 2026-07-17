@@ -282,6 +282,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildContent() {
+    final minHeight = MediaQuery.of(context).size.height -
+        90 -
+        MediaQuery.paddingOf(context).top;
+
     if (_isLoading) {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
@@ -309,54 +313,60 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _fetchNotifications,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.buttonBlueDark,
-                  foregroundColor: Colors.white,
+      return SizedBox(
+        height: minHeight,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
                 ),
-                child: Text(AppLocalizations.of(context)!.tryAgain),
-              ),
-            ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _fetchNotifications,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.buttonBlueDark,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.tryAgain),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
     if (_notifications.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.notifications_off_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.no_new_notifications,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+      return SizedBox(
+        height: minHeight,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.notifications_off_outlined,
+                size: 64,
+                color: Colors.grey[400],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.no_new_notifications,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }

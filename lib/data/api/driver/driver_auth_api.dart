@@ -107,8 +107,9 @@ class DriverAuthApi {
   Future<void> updateDeviceToken(
     String fcmToken,
     String deviceType,
-    String deviceId,
-  ) async {
+    String deviceId, {
+    String? locale,
+  }) async {
     try {
       final response = await _apiClient.dio.patch(
         '/driver/auth/device-token',
@@ -116,6 +117,7 @@ class DriverAuthApi {
           'fcmToken': fcmToken,
           'deviceType': deviceType,
           'deviceId': deviceId,
+          if (locale != null) 'locale': locale,
         },
       );
       if (response.statusCode != 200 || response.data['success'] != true) {
@@ -153,6 +155,31 @@ class DriverAuthApi {
         (e.response?.data is Map ? e.response?.data['message'] : null) ??
             e.message ??
             'Failed to update bank account',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  Future<void> updateLocale(String locale, {String? fcmToken}) async {
+    try {
+      final response = await _apiClient.dio.patch(
+        '/driver/auth/locale',
+        data: {
+          'locale': locale,
+          if (fcmToken != null) 'fcmToken': fcmToken,
+        },
+      );
+      if (response.statusCode != 200 || response.data['success'] != true) {
+        throw ApiException(
+          response.data['message'] ?? 'Failed to update locale',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to update locale',
         statusCode: e.response?.statusCode,
       );
     }

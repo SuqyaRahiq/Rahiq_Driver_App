@@ -375,6 +375,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildNotificationItem(DriverNotification notification) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final title = (isArabic && notification.titleAr != null) 
+        ? notification.titleAr! 
+        : (notification.title ?? '');
+    final body = (isArabic && notification.bodyAr != null) 
+        ? notification.bodyAr! 
+        : (notification.body ?? '');
+
     return GestureDetector(
       onTap: () => _readNotification(notification),
       child: AnimatedContainer(
@@ -426,7 +434,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          notification.title ?? '',
+                          title,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: notification.isRead
@@ -449,7 +457,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    notification.body ?? '',
+                    body,
                     style: TextStyle(
                       fontSize: 14,
                       color: notification.isRead

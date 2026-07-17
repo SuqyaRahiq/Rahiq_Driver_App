@@ -517,6 +517,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get search_mosques => 'ابحث عن مسجد';
 
   @override
+  String get privacy_policy => 'سياسة الخصوصية';
+
+  @override
   String get choose_from_map => 'اختر من الخريطة';
 
   @override
@@ -542,4 +545,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectNewLocation => 'اختر موقع جديد';
+
+  @override
+  String get date => 'تاريخ';
+
+  @override
+  String get quantity => 'الكمية';
+
+  @override
+  String get notes_text => 'ملاحظات';
+
+  @override
+  String get select_all => 'اختر الكل';
+
+  @override
+  String get customer_name => 'اسم العميل';
 }

@@ -68,4 +68,25 @@ class DriverAutoDeliveriesApi {
       );
     }
   }
+
+  Future<DriverAutoDelivery> getAutoDeliveryDetails(String deliveryId) async {
+    try {
+      final response = await _apiClient.dio.get('/driver/auto-deliveries/$deliveryId');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return DriverAutoDelivery.fromJson(response.data['data']);
+      } else {
+        throw ApiException(
+          response.data['message'] ?? 'Failed to get auto delivery details',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw ApiException(
+        (e.response?.data is Map ? e.response?.data['message'] : null) ??
+            e.message ??
+            'Failed to get auto delivery details',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
 }

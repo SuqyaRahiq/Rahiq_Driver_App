@@ -1,7 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/data/api/api_client.dart';
+import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -109,6 +114,33 @@ class NotificationService {
     if (initialMessage != null) {
       _handleNotificationClick(initialMessage.toMap());
     }
+
+    _firebaseMessaging.onTokenRefresh.listen((fcmToken) async {
+      final token = AuthStorage.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        try {
+          String? deviceId;
+          final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+          if (Platform.isIOS) {
+            final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+            deviceId = iosInfo.identifierForVendor;
+          } else if (Platform.isAndroid) {
+            final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+            deviceId = androidInfo.id;
+          }
+          final localeCode = AuthStorage.getLanguage();
+          final api = DriverAuthApi(ApiClient());
+          await api.updateDeviceToken(
+            fcmToken,
+            Platform.isIOS ? "IOS" : "ANDROID",
+            deviceId ?? "dummy_device_id",
+            locale: localeCode,
+          );
+        } catch (e) {
+          debugPrint('Failed to sync refreshed FCM token: $e');
+        }
+      }
+    });
 
     _isInitialized = true;
   }

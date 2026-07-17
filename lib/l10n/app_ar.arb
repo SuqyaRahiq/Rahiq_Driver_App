@@ -226,5 +226,11 @@
   "orphanage": "دار أيتام",
   "reasonForChangingLocation": "سبب تغيير الموقع...",
   "selectNewLocation": "اختر موقع جديد",
-  "selectLocation": "اختر الموقع"
+  "selectLocation": "اختر الموقع",
+  "date": "تاريخ",
+  "quantity": "الكمية",
+  "notes_text": "ملاحظات",
+  "select_all": "اختر الكل",
+  "customer_name": "اسم العميل",
+  "privacy_policy": "سياسة الخصوصية"
 }

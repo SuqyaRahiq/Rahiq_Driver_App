@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
@@ -20,9 +24,11 @@ class ProofSubmissionPage extends StatelessWidget {
   final bool isAutoDelivery;
   final List<String> subOrders;
   final Map<String, dynamic>? singleCustomerData;
+  final NormalSubOrder? normalSubOrder;
   final String? initialMosqueFrontImage;
   final String? initialMosqueInsideImage;
   final String? orderType;
+  final Product? product;
 
   const ProofSubmissionPage({
     super.key,
@@ -31,7 +37,9 @@ class ProofSubmissionPage extends StatelessWidget {
     this.isAutoDelivery = false,
     required this.subOrders,
     this.singleCustomerData,
+    this.normalSubOrder,
     this.initialMosqueFrontImage,
+    this.product,
     this.initialMosqueInsideImage,
     this.orderType,
   });
@@ -181,7 +189,7 @@ class ProofSubmissionPage extends StatelessWidget {
                                 )!.imagesInstructions,
                               ),
                               _buildGlobalImagesPicker(context, provider),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 12),
                               _buildSectionTitle(
                                 AppLocalizations.of(context)!.video,
                               ),
@@ -237,7 +245,10 @@ class ProofSubmissionPage extends StatelessWidget {
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
-                                                String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
+                                                String errorMessage =
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.somethingWentWrong;
                                                 if (e.toString().contains(
                                                   'missing_media',
                                                 )) {
@@ -362,37 +373,43 @@ class ProofSubmissionPage extends StatelessWidget {
       children: [
         if (!provider.useSameImages) ...[
           _buildSectionTitle('Delivery Location'),
-          RadioListTile<bool>(
-            title: Text(
-              'Delivered to target location',
-              style: TextStyle(fontSize: 14),
+          Material(
+            color: Colors.transparent,
+            child: RadioListTile<bool>(
+              title: const Text(
+                'Delivered to target location',
+                style: TextStyle(fontSize: 14),
+              ),
+              value: false,
+              groupValue: proof.deliveredToDifferentMosque,
+              activeColor: AppColors.buttonBlueDark,
+              contentPadding: EdgeInsets.zero,
+              onChanged: (val) {
+                if (val != null) {
+                  proof.deliveredToDifferentMosque = val;
+                  provider.updateUI();
+                }
+              },
             ),
-            value: false,
-            groupValue: proof.deliveredToDifferentMosque,
-            activeColor: AppColors.buttonBlueDark,
-            contentPadding: EdgeInsets.zero,
-            onChanged: (val) {
-              if (val != null) {
-                proof.deliveredToDifferentMosque = val;
-                provider.updateUI();
-              }
-            },
           ),
-          RadioListTile<bool>(
-            title: Text(
-              'Delivered to a different location',
-              style: TextStyle(fontSize: 14),
+          Material(
+            color: Colors.transparent,
+            child: RadioListTile<bool>(
+              title: const Text(
+                'Delivered to a different location',
+                style: TextStyle(fontSize: 14),
+              ),
+              value: true,
+              groupValue: proof.deliveredToDifferentMosque,
+              activeColor: AppColors.buttonBlueDark,
+              contentPadding: EdgeInsets.zero,
+              onChanged: (val) {
+                if (val != null) {
+                  proof.deliveredToDifferentMosque = val;
+                  provider.updateUI();
+                }
+              },
             ),
-            value: true,
-            groupValue: proof.deliveredToDifferentMosque,
-            activeColor: AppColors.buttonBlueDark,
-            contentPadding: EdgeInsets.zero,
-            onChanged: (val) {
-              if (val != null) {
-                proof.deliveredToDifferentMosque = val;
-                provider.updateUI();
-              }
-            },
           ),
           if (proof.deliveredToDifferentMosque) ...[
             const SizedBox(height: 12),
@@ -634,8 +651,6 @@ class ProofSubmissionPage extends StatelessWidget {
               ),
             ],
           ),
-
-          const SizedBox(height: 16),
         ],
         _buildSectionTitle(AppLocalizations.of(context)!.video),
         SizedBox(height: 12),
@@ -944,9 +959,35 @@ class ProofSubmissionPage extends StatelessWidget {
     BuildContext context,
     Map<String, dynamic> customer,
   ) {
-    final address = customer['address'];
-    final name = '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'
-        .trim();
+    final normalSub = normalSubOrder;
+    final address = normalSub?.customerDetails?.address ?? customer['address'];
+    final firstName =
+        normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';
+    final lastName =
+        normalSub?.customerDetails?.lastName ?? customer['lastName'] ?? '';
+    final name = '$firstName $lastName'.trim();
+    final subOrderNumber =
+        normalSub?.subOrderNumber ?? customer['subOrderNumber'] ?? "";
+    final phoneNumber =
+        normalSub?.customerDetails?.phoneNumber ?? customer['phoneNumber'];
+    final countryCode =
+        normalSub?.customerDetails?.countryCode ??
+        customer['countryCode'] ??
+        '';
+    final quantity = normalSub?.quantity ?? customer['quantity'];
+    final orderedDate = customer['orderedDate'];
+
+    String formatDate(dynamic dateStr) {
+      if (dateStr == null) return '';
+      try {
+        final dt = DateTime.parse(dateStr.toString()).toLocal();
+        return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } catch (_) {
+        return dateStr.toString().length > 10
+            ? dateStr.toString().substring(0, 10)
+            : dateStr.toString();
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -968,28 +1009,18 @@ class ProofSubmissionPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    color: AppColors.buttonBlueDark,
-                    size: 17,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  AppLocalizations.of(context)!.customerDetails,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    subOrderNumber,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -997,48 +1028,88 @@ class ProofSubmissionPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Color(0xFFEEF1F4)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (name.isNotEmpty) ...[
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    AppLocalizations.of(context)!.customer_name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 12),
                 ],
-                if (customer['phoneNumber'] != null &&
-                    customer['phoneNumber'].toString().isNotEmpty) ...[
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 16,
+                if (phoneNumber != null &&
+                    phoneNumber.toString().isNotEmpty) ...[
+                  Text(
+                    AppLocalizations.of(context)!.phoneNumber,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    '$countryCode$phoneNumber',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (quantity != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    AppLocalizations.of(context)!.quantity,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    Directionality.of(context) == TextDirection.ltr
+                        ? "$quantity ${product?.name ?? ''}"
+                        : "$quantity ${product?.nameAr ?? ''}",
+
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+
+                if (orderedDate != null) ...[
+                  const SizedBox(height: 12),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(
+                      AppLocalizations.of(context)!.date,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                         color: Colors.grey,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${customer['phoneNumber']}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                  Text(
+                    formatDate(orderedDate),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
                 if (address != null && address.toString().isNotEmpty) ...[
@@ -1046,12 +1117,14 @@ class ProofSubmissionPage extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: Colors.grey,
+                      Text(
+                        AppLocalizations.of(context)!.locationLabel,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
                       ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           address.toString(),
@@ -1064,6 +1137,91 @@ class ProofSubmissionPage extends StatelessWidget {
                     ],
                   ),
                 ],
+                const SizedBox(height: 12),
+                if (phoneNumber != null && phoneNumber.toString().isNotEmpty)
+                  Row(
+                    children: [
+                      Material(
+                        elevation: 3,
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            if (phoneNumber != null &&
+                                phoneNumber.toString().isNotEmpty) {
+                              final number = '$countryCode$phoneNumber'
+                                  .replaceAll('+', '');
+                              launchUrl(
+                                Uri.parse('https://wa.me/$number'),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            height: 45,
+                            width: 45,
+                            child: Image.asset("assets/whatsapp.png"),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Material(
+                        elevation: 3,
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            if (phoneNumber != null &&
+                                phoneNumber.toString().isNotEmpty) {
+                              final number = '$countryCode$phoneNumber';
+                              launchUrl(Uri.parse('sms:$number'));
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            height: 45,
+                            width: 45,
+                            child: const Icon(CupertinoIcons.text_bubble),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Material(
+                        elevation: 3,
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            if (phoneNumber != null &&
+                                phoneNumber.toString().isNotEmpty) {
+                              final number = '$countryCode$phoneNumber';
+                              launchUrl(Uri.parse('tel:$number'));
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            height: 45,
+                            width: 45,
+                            child: const Icon(CupertinoIcons.phone),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

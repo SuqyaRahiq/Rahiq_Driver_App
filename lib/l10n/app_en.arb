@@ -218,6 +218,7 @@
   "search_orphanages": "Search Orphanages",
   "search_meqat_mosques": "Search Meqat Mosques",
   "search_mosques": "Search Mosques",
+  "privacy_policy": "Privacy Policy",
   "choose_from_map": "Choose from Map",
   "select_city": "Select City",
   "select_category": "Select Category",
@@ -226,5 +227,10 @@
   "orphanage": "Orphanage",
   "reasonForChangingLocation": "Reason for changing location...",
   "selectLocation": "Select Location",
-  "selectNewLocation": "Select New Location"
+  "selectNewLocation": "Select New Location",
+  "date": "Date",
+  "quantity": "Quantity",
+  "notes_text": "Notes",
+  "select_all": "Select All",
+  "customer_name": "Customer Name"
 }

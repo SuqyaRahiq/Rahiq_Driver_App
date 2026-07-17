@@ -2,6 +2,8 @@ class DriverNotification {
   final String id;
   final String? title;
   final String? body;
+  final String? titleAr;
+  final String? bodyAr;
   final String? category;
   final String? userId;
   final String? driverId;
@@ -14,6 +16,8 @@ class DriverNotification {
     required this.id,
     this.title,
     this.body,
+    this.titleAr,
+    this.bodyAr,
     this.category,
     this.userId,
     this.driverId,
@@ -28,6 +32,8 @@ class DriverNotification {
       id: json['id'] ?? '',
       title: json['title'],
       body: json['body'],
+      titleAr: json['titleAr'],
+      bodyAr: json['bodyAr'],
       category: json['category'],
       userId: json['userId'],
       driverId: json['driverId'],
@@ -43,6 +49,8 @@ class DriverNotification {
       'id': id,
       'title': title,
       'body': body,
+      'titleAr': titleAr,
+      'bodyAr': bodyAr,
       'category': category,
       'userId': userId,
       'driverId': driverId,

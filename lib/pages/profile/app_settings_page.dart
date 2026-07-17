@@ -4,6 +4,9 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/main.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/data/api/api_client.dart';
+import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
+import 'package:rahiq_driver/services/notification_service.dart';
 
 class AppSettingsPage extends StatefulWidget {
   const AppSettingsPage({super.key});
@@ -306,6 +309,23 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
       onTap: () async {
         localeNotifier.value = Locale(localeCode);
         await AuthStorage.saveLanguage(localeCode);
+
+        try {
+          final token = AuthStorage.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            String? fcmToken;
+            try {
+              fcmToken = await NotificationService().getToken();
+            } catch (e) {
+              debugPrint('Failed to get FCM token for locale update: $e');
+            }
+            final api = DriverAuthApi(ApiClient());
+            await api.updateLocale(localeCode, fcmToken: fcmToken);
+          }
+        } catch (e) {
+          debugPrint('Failed to sync locale to backend: $e');
+        }
+
         if (context.mounted) Navigator.pop(context);
       },
       child: Container(

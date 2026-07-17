@@ -75,6 +75,7 @@ class _LoginPageState extends State<LoginPage> {
         debugPrint('Failed to get device info: $e');
       }
 
+      final localeCode = mounted ? Localizations.localeOf(context).languageCode : 'en';
       final response = await api.login({
         "countryCode": "+${_selectedCountry.phoneCode}",
         "phoneNumber": _phoneController.text.trim(),
@@ -82,6 +83,7 @@ class _LoginPageState extends State<LoginPage> {
         "fcmToken": fcmToken ?? "dummy_fcm_token",
         "deviceId": deviceId ?? "dummy_device_id",
         "password": _passwordController.text.trim(),
+        "locale": localeCode,
       });
 
       await AuthStorage.saveTokens(
@@ -279,6 +281,8 @@ class _LoginPageState extends State<LoginPage> {
                                                     });
                                                   },
                                                   countryListTheme: CountryListThemeData(
+                                                    backgroundColor:
+                                                        Colors.white,
                                                     bottomSheetHeight:
                                                         MediaQuery.of(
                                                           context,
@@ -568,8 +572,8 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               child: _isLoading
-                                  ? const WaterLoadingIndicator(
-                                      waveColor1: Colors.white,
+                                  ? WaterLoadingIndicator(
+                                      waveColor1: AppColors.buttonBlueDark,
                                       size: 20,
                                     )
                                   : Text(

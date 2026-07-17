@@ -1,5 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -33,6 +34,62 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
   List<dynamic> _subOrders = [];
   bool _isMultiSelectMode = false;
   final Set<String> _selectedSubOrders = {};
+
+  bool _isDateAscending = false;
+  bool _isQuantityAscending = false;
+  bool _isNotesTop = false;
+  String _primarySort = 'date';
+
+  List<dynamic> _getSortedSubOrders() {
+    List<dynamic> sorted = List.from(_subOrders);
+
+    sorted.sort((a, b) {
+      if (_isNotesTop) {
+        final aHasNotes =
+            (a['deliveryNotes'] != null &&
+                a['deliveryNotes'].toString().isNotEmpty) ||
+            (a['csNotes'] != null && (a['csNotes'] as List).isNotEmpty);
+        final bHasNotes =
+            (b['deliveryNotes'] != null &&
+                b['deliveryNotes'].toString().isNotEmpty) ||
+            (b['csNotes'] != null && (b['csNotes'] as List).isNotEmpty);
+        if (aHasNotes && !bHasNotes) return -1;
+        if (!aHasNotes && bHasNotes) return 1;
+      }
+
+      int dateComparison = 0;
+      final aDateStr = a['assignedDate']?.toString();
+      final bDateStr = b['assignedDate']?.toString();
+      final aDate = aDateStr != null ? DateTime.tryParse(aDateStr) : null;
+      final bDate = bDateStr != null ? DateTime.tryParse(bDateStr) : null;
+      if (aDate != null && bDate != null) {
+        dateComparison = _isDateAscending
+            ? aDate.compareTo(bDate)
+            : bDate.compareTo(aDate);
+      } else if (aDate != null) {
+        dateComparison = -1;
+      } else if (bDate != null) {
+        dateComparison = 1;
+      }
+
+      int qtyComparison = 0;
+      final aQty = int.tryParse(a['quantity']?.toString() ?? '0') ?? 0;
+      final bQty = int.tryParse(b['quantity']?.toString() ?? '0') ?? 0;
+      qtyComparison = _isQuantityAscending
+          ? aQty.compareTo(bQty)
+          : bQty.compareTo(aQty);
+
+      if (_primarySort == 'date') {
+        if (dateComparison != 0) return dateComparison;
+        return qtyComparison;
+      } else {
+        if (qtyComparison != 0) return qtyComparison;
+        return dateComparison;
+      }
+    });
+
+    return sorted;
+  }
 
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
@@ -209,6 +266,28 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                               builder: (_) => ProofSubmissionPage(
                                                 isAutoOrder: true,
                                                 orderId: widget.item.id,
+                                                product: Product(
+                                                  id:
+                                                      (subOrder['product'] ??
+                                                              {})['id']
+                                                          ?.toString() ??
+                                                      '',
+                                                  name:
+                                                      (subOrder['product'] ??
+                                                              {})['name']
+                                                          ?.toString() ??
+                                                      '',
+                                                  nameAr:
+                                                      (subOrder['product'] ??
+                                                              {})['nameAr']
+                                                          ?.toString() ??
+                                                      '',
+                                                  image:
+                                                      (subOrder['product'] ??
+                                                              {})['image']
+                                                          ?.toString() ??
+                                                      '',
+                                                ),
                                                 subOrders: [subId],
                                                 singleCustomerData: {
                                                   'firstName':
@@ -303,37 +382,41 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
             Container(
               width: 140,
               height: 20,
-              margin: const EdgeInsets.only(left: 8, bottom: 12),
+              margin: const EdgeInsets.only(left: 8, bottom: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 80,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 80,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Container(
@@ -512,21 +595,131 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
   }
 
   Widget _buildSubOrdersSection() {
+    final bool isAllSelected =
+        _subOrders
+            .where(
+              (s) => s['status'] != 'DELIVERED' && s['status'] != 'COMPLETED',
+            )
+            .isNotEmpty &&
+        _selectedSubOrders.length ==
+            _subOrders
+                .where(
+                  (s) =>
+                      s['status'] != 'DELIVERED' && s['status'] != 'COMPLETED',
+                )
+                .length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 8, bottom: 12),
-          child: Text(
-            AppLocalizations.of(context)!.batchDeliveries,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.subOrdersLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
-        ..._subOrders.map((subOrder) {
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              FilterChip(
+                showCheckmark: false,
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: isAllSelected ? Colors.white : Colors.black87,
+                ),
+                label: Text(AppLocalizations.of(context)!.select_all),
+                selected: isAllSelected,
+                onSelected: (val) {
+                  setState(() {
+                    if (val == true) {
+                      _isMultiSelectMode = true;
+                      _selectedSubOrders.addAll(
+                        _subOrders
+                            .where(
+                              (s) =>
+                                  s['status'] != 'DELIVERED' &&
+                                  s['status'] != 'COMPLETED',
+                            )
+                            .map((s) => s['id'].toString()),
+                      );
+                    } else {
+                      _isMultiSelectMode = false;
+                      _selectedSubOrders.clear();
+                    }
+                  });
+                },
+                selectedColor: AppColors.buttonBlueDark,
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: Text(
+                  '${AppLocalizations.of(context)!.date} ${_isDateAscending ? '↑' : '↓'}',
+                ),
+                selected: _isDateAscending,
+                onSelected: (val) {
+                  setState(() {
+                    _isDateAscending = val;
+                    _primarySort = 'date';
+                  });
+                },
+                selectedColor: AppColors.buttonBlueDark,
+                showCheckmark: false,
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: _isDateAscending ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: Text(
+                  '${AppLocalizations.of(context)!.quantity} ${_isQuantityAscending ? '↑' : '↓'}',
+                ),
+                selected: _isQuantityAscending,
+                onSelected: (val) {
+                  setState(() {
+                    _isQuantityAscending = val;
+                    _primarySort = 'quantity';
+                  });
+                },
+                selectedColor: AppColors.buttonBlueDark,
+                showCheckmark: false,
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: _isQuantityAscending ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                showCheckmark: false,
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: _isNotesTop ? Colors.white : Colors.black87,
+                ),
+                label: Text(AppLocalizations.of(context)!.notes_text),
+                selected: _isNotesTop,
+                onSelected: (val) {
+                  setState(() {
+                    _isNotesTop = val;
+                  });
+                },
+                selectedColor: AppColors.buttonBlueDark,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        ..._getSortedSubOrders().map((subOrder) {
           final product = subOrder['product'] ?? {};
           final subId = subOrder['id']?.toString() ?? '';
           final isSelected = _selectedSubOrders.contains(subId);
@@ -569,12 +762,34 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                       return ProofSubmissionPage(
                         isAutoOrder: true,
                         orderId: widget.item.id,
+                        product: Product(
+                          id:
+                              (subOrder['product'] ?? {})['id']?.toString() ??
+                              '',
+                          name:
+                              (subOrder['product'] ?? {})['name']?.toString() ??
+                              '',
+                          nameAr:
+                              (subOrder['product'] ?? {})['nameAr']
+                                  ?.toString() ??
+                              '',
+                          image:
+                              (subOrder['product'] ?? {})['image']
+                                  ?.toString() ??
+                              '',
+                        ),
                         subOrders: [subId],
                         singleCustomerData: {
                           'firstName': customer['firstName'],
                           'lastName': customer['lastName'],
                           'phoneNumber': customer['phoneNumber'],
                           'address': address,
+                          'subOrderNumber':
+                              subOrder['subOrderNumber']?.toString() ??
+                              (subId.length > 8
+                                  ? subId.substring(0, 8)
+                                  : subId),
+                          'quantity': subOrder['quantity'],
                         },
                         initialMosqueFrontImage: subOrder['mosqueFrontImage'],
                         initialMosqueInsideImage: subOrder['mosqueInsideImage'],
@@ -1044,7 +1259,9 @@ class _AutoOrderDetailsPageState extends State<AutoOrderDetailsPage> {
                                     'Bulk Image Upload: Error occurred: $e',
                                   );
                                   if (context.mounted) {
-                                    String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
+                                    String errorMessage = AppLocalizations.of(
+                                      context,
+                                    )!.somethingWentWrong;
                                     if (e is DioException &&
                                         e.response?.data is Map &&
                                         e.response?.data['message'] != null) {

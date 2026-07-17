@@ -11,6 +11,7 @@ import 'package:rahiq_driver/pages/profile/app_settings_page.dart';
 import 'package:rahiq_driver/pages/profile/notifications_page.dart';
 import 'package:rahiq_driver/data/api/driver/driver_notifications_api.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -323,9 +324,50 @@ class _ProfileTabState extends State<ProfileTab> {
                             ),
                             const SizedBox(height: 12),
                             _buildStandaloneTile(
-                              icon: Icons.shield_outlined,
-                              title: l10n.termsConditions,
-                              onTap: _showTermsAndConditions,
+                              icon: Icons.file_copy_outlined,
+                              title: AppLocalizations.of(
+                                context,
+                              )!.termsConditions,
+                              onTap: () async {
+                                final url = Uri.parse(
+                                  "https://suqyarahiq.com/terms-and-conditions.html",
+                                );
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                } else {
+                                  // Show error toast
+                                  CustomSnackbar.show(
+                                    context: context,
+                                    message: "couldnot launch url",
+                                  );
+                                }
+                              },
+                            ),
+                            _buildStandaloneTile(
+                              icon: Icons.policy_outlined,
+                              title: AppLocalizations.of(
+                                context,
+                              )!.privacy_policy,
+                              onTap: () async {
+                                final url = Uri.parse(
+                                  "https://suqyarahiq.com/privacy-policy.html",
+                                );
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                } else {
+                                  // Show error toast
+                                  CustomSnackbar.show(
+                                    context: context,
+                                    message: "couldnot launch url",
+                                  );
+                                }
+                              },
                             ),
 
                             const SizedBox(height: 24),

@@ -346,14 +346,14 @@ class _OrdersPageState extends State<OrdersPage>
               MaterialPageRoute(
                 builder: (_) => AutoOrderDetailsPage(item: order.originalModel),
               ),
-            );
+            ).then((_) => _fetchOrders());
           } else {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => OrderDetailsPage(order: order.originalModel),
               ),
-            );
+            ).then((_) => _fetchOrders());
           }
         },
         child: Padding(

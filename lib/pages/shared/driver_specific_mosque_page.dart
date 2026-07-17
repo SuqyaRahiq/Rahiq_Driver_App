@@ -500,105 +500,120 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
         return Stack(
           children: [
             Card(
-              clipBehavior: Clip.antiAlias,
-              color: isSelected ? const Color(0xFFE8F4FA) : Colors.white,
-              elevation: isSelected ? 5 : 3,
+              elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
                   color: isSelected
                       ? AppColors.buttonBlueDark
                       : Colors.transparent,
-                  width: 2,
+                  width: 1.5,
                 ),
               ),
+              color: Colors.white,
+              clipBehavior: Clip.antiAlias,
               child: InkWell(
                 onTap: () {
                   Navigator.of(context).pop(item);
                 },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
+                child: Row(
                   children: [
-                    if (item.image != null && item.image!.isNotEmpty)
-                      CachedNetworkImage(
-                        imageUrl: item.image!,
-                        height: 140,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: 140,
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: WaterLoadingIndicator(size: 30),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 140,
-                          color: Colors.grey[100],
-                          child: Icon(
-                            widget.slug == 'orphanages'
-                                ? Icons.home
-                                : Icons.mosque,
-                            size: 40,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        height: 140,
-                        color: Colors.grey[100],
-                        child: Icon(
-                          widget.slug == 'orphanages'
-                              ? Icons.home
-                              : Icons.mosque,
-                          size: 40,
-                          color: Colors.grey[400],
+                    Padding(
+                      padding: const EdgeInsetsDirectional.all(12),
+                      child: SizedBox(
+                        height: 73,
+                        width: 80,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: (item.image != null && item.image!.isNotEmpty)
+                              ? CachedNetworkImage(
+                                  imageUrl: item.image!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    height: 75,
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: WaterLoadingIndicator(size: 20),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        height: 75,
+                                        color: Colors.grey[100],
+                                        child: Icon(
+                                          widget.slug == 'orphanages'
+                                              ? Icons.home
+                                              : Icons.mosque,
+                                          size: 20,
+                                          color: Colors.grey[400],
+                                        ),
+                                      ),
+                                )
+                              : Container(
+                                  height: 75,
+                                  color: Colors.grey[100],
+                                  child: Icon(
+                                    widget.slug == 'orphanages'
+                                        ? Icons.home
+                                        : Icons.mosque,
+                                    size: 20,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    ),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Text(
                                   item.localizedName(isAr),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: isAr ? 16 : 14,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          if (item.address.isNotEmpty)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.black,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    item.address,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                          if (item.address.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(
+                                end: 16,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      item.address,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      maxLines: 2,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                          ],
                         ],
                       ),
                     ),

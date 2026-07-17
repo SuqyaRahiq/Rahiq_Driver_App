@@ -5,7 +5,6 @@ import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
-import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/pages/autodelivery/auto_delivery_details_page.dart';
 
 class AutoDeliveryPage extends StatefulWidget {
@@ -31,8 +30,13 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
     super.didChangeDependencies();
     final l10n = AppLocalizations.of(context)!;
     _tabs = [
-      _TabDef(l10n.pending, ['PENDING', 'ASSIGNED', 'IN_TRANSIT', 'ACCEPTED']),
-      _TabDef(l10n.delivered, ['DELIVERED', 'COMPLETED']),
+      _TabDef(l10n.assignedStat, [
+        'PENDING',
+        'ASSIGNED',
+        'IN_TRANSIT',
+        'ACCEPTED',
+      ]),
+      _TabDef(l10n.delivered, ['DELIVERED', 'COMPLETED', 'CONFIRMED']),
     ];
   }
 

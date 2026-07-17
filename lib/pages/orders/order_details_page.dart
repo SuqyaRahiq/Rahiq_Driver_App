@@ -14,6 +14,8 @@ import 'package:dio/dio.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/data/models/driver/product.dart';
+import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final DriverOrder order;
@@ -28,9 +30,63 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late DriverOrdersApi _api;
   bool _isLoading = true;
   String? _error;
-  List<dynamic> _subOrders = [];
+  List<NormalSubOrder> _subOrders = [];
   bool _isMultiSelectMode = false;
   final Set<String> _selectedSubOrders = {};
+
+  bool _isDateAscending = false;
+  bool _isQuantityAscending = false;
+  bool _isNotesTop = false;
+  String _primarySort = 'date';
+
+  List<NormalSubOrder> _getSortedSubOrders() {
+    List<NormalSubOrder> sorted = List.from(_subOrders);
+
+    sorted.sort((a, b) {
+      if (_isNotesTop) {
+        final aHasNotes =
+            (a.deliveryNotes != null && a.deliveryNotes!.isNotEmpty) ||
+            (a.csNotes != null && a.csNotes!.isNotEmpty);
+        final bHasNotes =
+            (b.deliveryNotes != null && b.deliveryNotes!.isNotEmpty) ||
+            (b.csNotes != null && b.csNotes!.isNotEmpty);
+        if (aHasNotes && !bHasNotes) return -1;
+        if (!aHasNotes && bHasNotes) return 1;
+      }
+
+      int dateComparison = 0;
+      final aDateStr = a.assignedDate?.toString();
+      final bDateStr = b.assignedDate?.toString();
+      final aDate = aDateStr != null ? DateTime.tryParse(aDateStr) : null;
+      final bDate = bDateStr != null ? DateTime.tryParse(bDateStr) : null;
+      if (aDate != null && bDate != null) {
+        dateComparison = _isDateAscending
+            ? aDate.compareTo(bDate)
+            : bDate.compareTo(aDate);
+      } else if (aDate != null) {
+        dateComparison = -1;
+      } else if (bDate != null) {
+        dateComparison = 1;
+      }
+
+      int qtyComparison = 0;
+      final aQty = a.quantity ?? 0;
+      final bQty = b.quantity ?? 0;
+      qtyComparison = _isQuantityAscending
+          ? aQty.compareTo(bQty)
+          : bQty.compareTo(aQty);
+
+      if (_primarySort == 'date') {
+        if (dateComparison != 0) return dateComparison;
+        return qtyComparison;
+      } else {
+        if (qtyComparison != 0) return qtyComparison;
+        return dateComparison;
+      }
+    });
+
+    return sorted;
+  }
 
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
@@ -49,7 +105,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     try {
       final response = await _api.getNormalOrderSubOrders(widget.order.id);
       setState(() {
-        _subOrders = response;
+        _subOrders = (response as List)
+            .map((e) => NormalSubOrder.fromJson(e as Map<String, dynamic>))
+            .toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -191,45 +249,49 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                               _selectedSubOrders.first;
                                           final subOrder = _subOrders
                                               .firstWhere(
-                                                (s) =>
-                                                    s['id']?.toString() ==
-                                                    subId,
-                                                orElse: () => {},
+                                                (s) => s.id.toString() == subId,
                                               );
                                           final customer =
-                                              subOrder['customerDetails'] ?? {};
+                                              subOrder.customerDetails;
                                           final address =
-                                              subOrder['deliveryAddress'] ??
-                                              customer['address'] ??
                                               widget.order.deliveryAddress;
 
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (_) => ProofSubmissionPage(
-                                                isAutoOrder: false,
-                                                orderId: widget.order.id,
-                                                subOrders: [subId],
-                                                singleCustomerData: {
-                                                  'firstName':
-                                                      customer['firstName'] ??
-                                                      widget.order.customerName,
-                                                  'lastName':
-                                                      customer['lastName'] ??
-                                                      '',
-                                                  'phoneNumber':
-                                                      customer['phoneNumber'] ??
-                                                      widget
-                                                          .order
-                                                          .customerPhone,
-                                                  'address': address,
-                                                },
-                                                initialMosqueFrontImage:
-                                                    subOrder['mosqueFrontImage'],
-                                                initialMosqueInsideImage:
-                                                    subOrder['mosqueInsideImage'],
-                                                orderType: widget.order.type,
-                                              ),
+                                              builder: (_) =>
+                                                  ProofSubmissionPage(
+                                                    isAutoOrder: false,
+                                                    orderId: widget.order.id,
+                                                    subOrders: [subId],
+                                                    singleCustomerData: {
+                                                      'firstName':
+                                                          customer?.firstName ??
+                                                          widget
+                                                              .order
+                                                              .customerName,
+                                                      'lastName':
+                                                          customer?.lastName ??
+                                                          '',
+                                                      'phoneNumber':
+                                                          customer
+                                                              ?.phoneNumber ??
+                                                          widget
+                                                              .order
+                                                              .customerPhone,
+                                                      'address': address,
+                                                    },
+                                                    normalSubOrder: subOrder,
+                                                    initialMosqueFrontImage:
+                                                        subOrder
+                                                            .mosqueFrontImage,
+                                                    initialMosqueInsideImage:
+                                                        subOrder
+                                                            .mosqueInsideImage,
+                                                    orderType:
+                                                        widget.order.type,
+                                                    product: subOrder.product,
+                                                  ),
                                             ),
                                           ).then((_) {
                                             setState(() {
@@ -289,26 +351,29 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildShimmerLoading(BuildContext context) {
-    final height = MediaQuery.of(context).size.height * 0.6;
+    final hasMap = (widget.order.latitude ?? 0.0) != 0.0 &&
+        (widget.order.longitude ?? 0.0) != 0.0;
+
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: height,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+          if (hasMap)
+            Container(
+              height: MediaQuery.of(context).size.height * 0.3,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
               ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -326,12 +391,34 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 Container(
                   width: 120,
                   height: 20,
-                  margin: const EdgeInsets.only(left: 8, bottom: 12),
+                  margin: const EdgeInsets.only(left: 8, bottom: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 80,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   height: 120,
@@ -358,7 +445,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildMapArea(BuildContext context, double lat, double lng) {
-    final height = MediaQuery.of(context).size.height * 0.6;
+    final height = MediaQuery.of(context).size.height * 0.3;
     final target = LatLng(lat, lng);
     return SizedBox(
       height: height,
@@ -450,18 +537,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              AppLocalizations.of(context)!.orderInfo,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: Color(0xFFEAEFF2)),
-            ),
             if (widget.order.type != null)
               _buildDetailRow(
                 Icons.category_outlined,
@@ -514,25 +589,135 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildSubOrdersSection() {
+    final bool isAllSelected =
+        _subOrders
+            .where((s) => s.status != 'DELIVERED' && s.status != 'COMPLETED')
+            .isNotEmpty &&
+        _selectedSubOrders.length ==
+            _subOrders
+                .where(
+                  (s) =>
+                      s.status != 'DELIVERED' &&
+                      s.status != 'COMPLETED' &&
+                      s.status != 'CONFIRMED',
+                )
+                .length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 12),
-          child: Text(
-            AppLocalizations.of(context)!.subOrdersLabel,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.subOrdersLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
-        ..._subOrders.map((subOrder) {
-          final product = subOrder['product'] ?? {};
-          final subId = subOrder['id']?.toString() ?? '';
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FilterChip(
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isAllSelected ? Colors.white : Colors.black87,
+              ),
+              label: Text(AppLocalizations.of(context)!.select_all),
+              selected: isAllSelected,
+              onSelected: (val) {
+                setState(() {
+                  if (val == true) {
+                    _isMultiSelectMode = true;
+                    _selectedSubOrders.addAll(
+                      _subOrders
+                          .where(
+                            (s) =>
+                                s.status != 'DELIVERED' &&
+                                s.status != 'COMPLETED' &&
+                                s.status != 'CONFIRMED',
+                          )
+                          .map((s) => s.id.toString()),
+                    );
+                  } else {
+                    _isMultiSelectMode = false;
+                    _selectedSubOrders.clear();
+                  }
+                });
+              },
+              selectedColor: AppColors.buttonBlueDark,
+            ),
+            FilterChip(
+              label: Text(
+                '${AppLocalizations.of(context)!.date} ${_isDateAscending ? '↑' : '↓'}',
+              ),
+              selected: _isDateAscending,
+              onSelected: (val) {
+                setState(() {
+                  _isDateAscending = val;
+                  _primarySort = 'date';
+                });
+              },
+              selectedColor: AppColors.buttonBlueDark,
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: _isDateAscending ? Colors.white : Colors.black87,
+              ),
+            ),
+
+            FilterChip(
+              label: Text(
+                '${AppLocalizations.of(context)!.quantity} ${_isQuantityAscending ? '↑' : '↓'}',
+              ),
+              selected: _isQuantityAscending,
+              onSelected: (val) {
+                setState(() {
+                  _isQuantityAscending = val;
+                  _primarySort = 'quantity';
+                });
+              },
+              selectedColor: AppColors.buttonBlueDark,
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: _isQuantityAscending ? Colors.white : Colors.black87,
+              ),
+            ),
+
+            FilterChip(
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: _isNotesTop ? Colors.white : Colors.black87,
+              ),
+              label: Text(AppLocalizations.of(context)!.notes_text),
+              selected: _isNotesTop,
+              onSelected: (val) {
+                setState(() {
+                  _isNotesTop = val;
+                });
+              },
+              selectedColor: AppColors.buttonBlueDark,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 8),
+        ..._getSortedSubOrders().map((subOrder) {
+          final product = subOrder.product;
+          final subId = subOrder.id.toString();
           final isSelected = _selectedSubOrders.contains(subId);
-          final isDelivered = subOrder['status'] == 'DELIVERED';
+          final isDelivered = subOrder.status == 'DELIVERED';
 
           return GestureDetector(
             onLongPress: () {
@@ -558,11 +743,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   }
                 });
               } else {
-                final customer = subOrder['customerDetails'] ?? {};
+                final customer = subOrder.customerDetails;
                 final address =
-                    subOrder['deliveryAddress'] ??
-                    customer['address'] ??
-                    widget.order.deliveryAddress;
+                    customer?.address ?? widget.order.deliveryAddress;
 
                 Navigator.push(
                   context,
@@ -573,16 +756,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                       subOrders: [subId],
                       singleCustomerData: {
                         'firstName':
-                            customer['firstName'] ?? widget.order.customerName,
-                        'lastName': customer['lastName'] ?? '',
+                            customer?.firstName ?? widget.order.customerName,
+                        'lastName': customer?.lastName ?? '',
                         'phoneNumber':
-                            customer['phoneNumber'] ??
-                            widget.order.customerPhone,
+                            customer?.phoneNumber ?? widget.order.customerPhone,
                         'address': address,
+                        'subOrderNumber':
+                            subOrder.subOrderNumber?.toString() ??
+                            (subId.length > 8 ? subId.substring(0, 8) : subId),
+                        'quantity': subOrder.quantity,
+                        'orderedDate': widget.order.createdAt,
+                        'countryCode': customer?.countryCode,
                       },
-                      initialMosqueFrontImage: subOrder['mosqueFrontImage'],
-                      initialMosqueInsideImage: subOrder['mosqueInsideImage'],
+                      initialMosqueFrontImage: subOrder.mosqueFrontImage,
+                      initialMosqueInsideImage: subOrder.mosqueInsideImage,
                       orderType: widget.order.type,
+                      product: product,
                     ),
                   ),
                 ).then((_) {
@@ -618,7 +807,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             Expanded(
                               child: Text(
                                 AppLocalizations.of(context)!.subOrderNumber(
-                                  subOrder['subOrderNumber']?.toString() ??
+                                  subOrder.subOrderNumber?.toString() ??
                                       (subId.length > 8
                                           ? subId.substring(0, 8)
                                           : subId),
@@ -651,8 +840,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           ],
                         ),
                         const Divider(),
-                        if (subOrder['deliveryNotes'] != null &&
-                            subOrder['deliveryNotes'].toString().isNotEmpty)
+                        if (subOrder.deliveryNotes != null &&
+                            subOrder.deliveryNotes!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
@@ -666,9 +855,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    AppLocalizations.of(context)!.notes(
-                                      subOrder['deliveryNotes'].toString(),
-                                    ),
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.notes(subOrder.deliveryNotes!),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontStyle: FontStyle.italic,
@@ -679,7 +868,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ],
                             ),
                           ),
-                        if (subOrder['assignedDate'] != null)
+                        if (subOrder.assignedDate != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
@@ -692,7 +881,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 const SizedBox(width: 8),
                                 Text(
                                   AppLocalizations.of(context)!.assigned(
-                                    _formatDate(subOrder['assignedDate']),
+                                    _formatDate(subOrder.assignedDate!),
                                   ),
                                   style: const TextStyle(
                                     fontSize: 13,
@@ -704,8 +893,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           ),
                         Row(
                           children: [
-                            if (product['image'] != null &&
-                                product['image'].toString().isNotEmpty)
+                            if (product?.image != null &&
+                                product!.image!.isNotEmpty)
                               Container(
                                 width: 40,
                                 height: 40,
@@ -719,7 +908,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 ),
                                 clipBehavior: Clip.antiAlias,
                                 child: Image.network(
-                                  product['image'],
+                                  product!.image!,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       const Icon(
@@ -749,11 +938,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   Text(
                                     Directionality.of(context) ==
                                             TextDirection.ltr
-                                        ? product['name'] ??
+                                        ? product?.name ??
                                               AppLocalizations.of(
                                                 context,
                                               )!.product
-                                        : product['nameAr'] ??
+                                        : product?.nameAr ??
                                               AppLocalizations.of(
                                                 context,
                                               )!.product,
@@ -766,7 +955,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   const SizedBox(height: 2),
                                   Text(
                                     AppLocalizations.of(context)!.qty(
-                                      subOrder['quantity']?.toString() ?? '1',
+                                      subOrder.quantity?.toString() ?? '1',
                                     ),
                                     style: const TextStyle(
                                       fontSize: 12,
@@ -1049,7 +1238,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                     'Bulk Image Upload: Error occurred: $e',
                                   );
                                   if (context.mounted) {
-                                    String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
+                                    String errorMessage = AppLocalizations.of(
+                                      context,
+                                    )!.somethingWentWrong;
                                     if (e is DioException &&
                                         e.response?.data is Map &&
                                         e.response?.data['message'] != null) {

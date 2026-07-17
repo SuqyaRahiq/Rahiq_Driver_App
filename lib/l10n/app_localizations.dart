@@ -1070,6 +1070,12 @@ abstract class AppLocalizations {
   /// **'Search Mosques'**
   String get search_mosques;
 
+  /// No description provided for @privacy_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacy_policy;
+
   /// No description provided for @choose_from_map.
   ///
   /// In en, this message translates to:
@@ -1123,6 +1129,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select New Location'**
   String get selectNewLocation;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// No description provided for @notes_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes_text;
+
+  /// No description provided for @select_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get select_all;
+
+  /// No description provided for @customer_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Name'**
+  String get customer_name;
 }
 
 class _AppLocalizationsDelegate

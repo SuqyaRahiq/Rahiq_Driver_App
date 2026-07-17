@@ -519,6 +519,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get search_mosques => 'Search Mosques';
 
   @override
+  String get privacy_policy => 'Privacy Policy';
+
+  @override
   String get choose_from_map => 'Choose from Map';
 
   @override
@@ -544,4 +547,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectNewLocation => 'Select New Location';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get notes_text => 'Notes';
+
+  @override
+  String get select_all => 'Select All';
+
+  @override
+  String get customer_name => 'Customer Name';
 }

@@ -727,7 +727,14 @@ class _MyAccountPageState extends State<MyAccountPage> {
                     color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: AppColors.buttonBlueDark, size: 18),
+                  child: Transform.flip(
+                    flipX: Directionality.of(context) == TextDirection.rtl,
+                    child: Icon(
+                      icon,
+                      color: AppColors.buttonBlueDark,
+                      size: 18,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -740,7 +747,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                     ),
                   ),
                 ),
-                if (trailing != null) trailing,
+                ?trailing,
               ],
             ),
           ),
@@ -774,7 +781,10 @@ class _MyAccountPageState extends State<MyAccountPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
-          Icon(field.icon, size: 16, color: Colors.grey[400]),
+          Transform.flip(
+            flipX: Directionality.of(context) == TextDirection.rtl,
+            child: Icon(field.icon, size: 16, color: Colors.grey[400]),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

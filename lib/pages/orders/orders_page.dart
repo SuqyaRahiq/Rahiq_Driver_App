@@ -759,15 +759,19 @@ class _OrdersPageState extends State<OrdersPage>
                         duration: const Duration(milliseconds: 300),
                         transitionBuilder: (child, animation) =>
                             ScaleTransition(scale: animation, child: child),
-                        child: Icon(
-                          _isMapMode
-                              ? Icons.my_location_rounded
-                              : Icons.map_rounded,
-                          key: ValueKey(_isMapMode),
-                          color: _isMapMode
-                              ? Colors.white
-                              : AppColors.buttonBlueDark,
-                          size: _isMapMode ? 24 : 26,
+                        child: Transform.flip(
+                          flipX:
+                              Directionality.of(context) == TextDirection.rtl,
+                          child: Icon(
+                            _isMapMode
+                                ? Icons.my_location_rounded
+                                : Icons.map_rounded,
+                            key: ValueKey(_isMapMode),
+                            color: _isMapMode
+                                ? Colors.white
+                                : AppColors.buttonBlueDark,
+                            size: _isMapMode ? 24 : 26,
+                          ),
                         ),
                       ),
                     ),
@@ -849,10 +853,15 @@ class _OrdersPageState extends State<OrdersPage>
                 spacing: 6,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Symbols.package_2,
-                    size: 40,
-                    color: isMapMode ? Colors.white : AppColors.buttonBlueDark,
+                  Transform.flip(
+                    flipX: Directionality.of(context) == TextDirection.rtl,
+                    child: Icon(
+                      Symbols.package_2,
+                      size: 40,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                    ),
                   ),
                   Text(
                     AppLocalizations.of(context)!.quantity,
@@ -894,10 +903,15 @@ class _OrdersPageState extends State<OrdersPage>
                 spacing: 6,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Symbols.delivery_truck_speed,
-                    size: 40,
-                    color: isMapMode ? Colors.white : AppColors.buttonBlueDark,
+                  Transform.flip(
+                    flipX: Directionality.of(context) == TextDirection.rtl,
+                    child: Icon(
+                      Symbols.delivery_truck_speed,
+                      size: 40,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                    ),
                   ),
                   Text(
                     AppLocalizations.of(context)!.orders,
@@ -1073,26 +1087,55 @@ class _OrdersPageState extends State<OrdersPage>
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (order.imageUrl != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: order.imageUrl!,
-                    width: 64,
-                    height: 64,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        color: Colors.white,
-                      ),
-                    ),
-                    errorWidget: (context, url, error) {
-                      return Container(
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (order.imageUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: order.imageUrl!,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              width: 64,
+                              height: 64,
+                              color: Colors.white,
+                            ),
+                          ),
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              width: 64,
+                              height: 64,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.buttonBlueDark.withValues(
+                                  alpha: 0.08,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                order.category?.toLowerCase() == "orphanage" ||
+                                        order.category?.toLowerCase() ==
+                                            "orphanages"
+                                    ? Icons.home
+                                    : Icons.mosque,
+                                color: AppColors.buttonBlueDark,
+                                size: 32,
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    else
+                      Container(
                         width: 64,
                         height: 64,
                         padding: const EdgeInsets.all(12),
@@ -1110,91 +1153,76 @@ class _OrdersPageState extends State<OrdersPage>
                           color: AppColors.buttonBlueDark,
                           size: 32,
                         ),
-                      );
-                    },
-                  ),
-                )
-              else
-                Container(
-                  width: 64,
-                  height: 64,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    order.category?.toLowerCase() == "orphanage" ||
-                            order.category?.toLowerCase() == "orphanages"
-                        ? Icons.home
-                        : Icons.mosque,
-                    color: AppColors.buttonBlueDark,
-                    size: 32,
-                  ),
-                ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      order.title,
-                      maxLines: order.isAuto ? 1 : null,
-                      overflow: order.isAuto ? TextOverflow.ellipsis : null,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black87,
                       ),
-                    ),
-                    const SizedBox(height: 3),
-
-                    if (order.packages != 0 && order.orders != 0) ...[
-                      Column(
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              const Icon(
-                                Symbols.package_2,
-                                size: 20,
-                                color: AppColors.buttonBlueDark,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                "${order.packages} ${AppLocalizations.of(context)!.packages}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.buttonBlueDark,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            order.title,
+                            maxLines: order.isAuto ? 1 : null,
+                            overflow: order.isAuto
+                                ? TextOverflow.ellipsis
+                                : null,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              const Icon(
-                                Symbols.delivery_truck_speed,
-                                size: 20,
-                                color: AppColors.buttonBlueDark,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                "${order.orders} ${AppLocalizations.of(context)!.orders}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.buttonBlueDark,
+
+                          if (order.packages != 0 && order.orders != 0) ...[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Symbols.package_2,
+                                      size: 20,
+                                      color: AppColors.buttonBlueDark,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      "${order.packages} ${AppLocalizations.of(context)!.packages}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.buttonBlueDark,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Symbols.delivery_truck_speed,
+                                      size: 20,
+                                      color: AppColors.buttonBlueDark,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      "${order.orders} ${AppLocalizations.of(context)!.orders}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.buttonBlueDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),

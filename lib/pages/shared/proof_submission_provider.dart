@@ -227,10 +227,16 @@ class ProofSubmissionProvider extends ChangeNotifier {
         // Normal Order or Auto Order (confirm sub order)
         if (!canSubmit) throw Exception('missing_media');
         final p = _proofs.first;
-        
-        final frontImg = _useSameImages ? _globalMosqueFrontImage! : p.mosqueFrontImage!;
-        final insideImg = _useSameImages ? _globalMosqueInsideImage! : p.mosqueInsideImage!;
-        final packagesImg = _useSameImages ? _globalPackagesImage! : p.packagesImage!;
+
+        final frontImg = _useSameImages
+            ? _globalMosqueFrontImage!
+            : p.mosqueFrontImage!;
+        final insideImg = _useSameImages
+            ? _globalMosqueInsideImage!
+            : p.mosqueInsideImage!;
+        final packagesImg = _useSameImages
+            ? _globalPackagesImage!
+            : p.packagesImage!;
         final videoImg = _useSameImages ? _globalProofVideo! : p.proofVideo!;
 
         await _api.confirmSubOrder(

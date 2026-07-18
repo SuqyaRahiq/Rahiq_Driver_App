@@ -108,10 +108,13 @@ class CustomBottomNavBar extends StatelessWidget {
                             ]
                           : [],
                     ),
-                    child: Icon(
-                      item.icon,
-                      color: isSelected ? Colors.white : Colors.grey[400],
-                      size: 24,
+                    child: Transform.flip(
+                      flipX: Directionality.of(context) == TextDirection.rtl,
+                      child: Icon(
+                        item.icon,
+                        color: isSelected ? Colors.white : Colors.grey[400],
+                        size: 24,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),

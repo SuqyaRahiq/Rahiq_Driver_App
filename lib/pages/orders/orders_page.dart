@@ -1139,9 +1139,10 @@ class _OrdersPageState extends State<OrdersPage>
                   children: [
                     Text(
                       order.title,
+                      maxLines: order.isAuto ? 1 : null,
+                      overflow: order.isAuto ? TextOverflow.ellipsis : null,
                       style: const TextStyle(
                         fontSize: 15,
-
                         color: Colors.black87,
                       ),
                     ),

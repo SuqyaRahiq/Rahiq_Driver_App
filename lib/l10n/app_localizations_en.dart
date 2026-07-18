@@ -103,10 +103,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mosqueFront => 'Mosque Front';
 
   @override
+  String get orphanageFront => 'Orphanage Front';
+
+  @override
+  String get graveyardFront => 'Graveyard Front';
+
+  @override
   String get mosqueInsideImage => 'Mosque Inside Image';
 
   @override
+  String get orphanageInsideImage => 'Orphanage Inside Image';
+
+  @override
+  String get graveyardInsideImage => 'Graveyard Inside Image';
+
+  @override
   String get productInsideMosque => 'Product Inside Mosque';
+
+  @override
+  String get productInsideOrphanage => 'Product Inside Orphanage';
+
+  @override
+  String get productInsideGraveyard => 'Product Inside Graveyard';
 
   @override
   String get mosqueName => 'Mosque Name';
@@ -507,7 +525,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get list_of_meqat_mosques => 'List of Meqat Mosques';
 
   @override
+  String get contact_customer => 'Contact Customer';
+
+  @override
   String get continue_text => 'Continue';
+
+  @override
+  String get order_photos_and_video => 'Order Photos and Video';
+
+  @override
+  String get mosque_photos => 'Mosque Photos';
+
+  @override
+  String get orphanage_photos => 'Orphanage Photos';
+
+  @override
+  String get graveyard_photos => 'Graveyard Photos';
 
   @override
   String get choose_specific_mosque => 'Choose Specific Mosque';

@@ -103,10 +103,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mosqueFront => 'واجهة المسجد';
 
   @override
+  String get orphanageFront => 'واجهة دار الأيتام';
+
+  @override
+  String get graveyardFront => 'واجهة المقبرة';
+
+  @override
   String get mosqueInsideImage => 'صورة داخل المسجد';
 
   @override
+  String get orphanageInsideImage => 'صورة داخل دار الأيتام';
+
+  @override
+  String get graveyardInsideImage => 'صورة داخل المقبرة';
+
+  @override
   String get productInsideMosque => 'المنتج داخل المسجد';
+
+  @override
+  String get productInsideOrphanage => 'المنتج داخل دار الأيتام';
+
+  @override
+  String get productInsideGraveyard => 'المنتج داخل المقبرة';
 
   @override
   String get mosqueName => 'اسم المسجد';
@@ -505,7 +523,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get list_of_meqat_mosques => 'قائمة المواقيت';
 
   @override
+  String get contact_customer => 'تواصل مع العميل';
+
+  @override
   String get continue_text => 'متابعة';
+
+  @override
+  String get order_photos_and_video => 'صور وفيديو الطلب';
+
+  @override
+  String get mosque_photos => 'صور المسجد';
+
+  @override
+  String get orphanage_photos => 'صور دار الأيتام';
+
+  @override
+  String get graveyard_photos => 'صور المقبرة';
 
   @override
   String get choose_specific_mosque => 'اختر مسجد محدد';

@@ -3,7 +3,6 @@ import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
-import 'package:rahiq_driver/data/models/driver/driver_order.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
@@ -12,15 +11,29 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class OrderDetailsPage extends StatefulWidget {
-  final DriverOrder item;
+  final String orderId;
+  final String name;
+  final String nameAr;
+  final String? orderType;
+  final bool isAutoOrder;
+  final double? latitude;
+  final double? longitude;
 
-  const OrderDetailsPage({super.key, required this.item});
+  const OrderDetailsPage({
+    super.key,
+    required this.orderId,
+    required this.name,
+    required this.nameAr,
+    this.orderType,
+    this.isAutoOrder = true,
+    this.latitude,
+    this.longitude,
+  });
 
   @override
   State<OrderDetailsPage> createState() => _OrderDetailsPageState();
@@ -108,7 +121,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Future<void> _fetchDetails({bool checkCompletion = false}) async {
     try {
-      final details = await _api.getNormalOrderSubOrders(widget.item.id);
+      final details = widget.isAutoOrder
+          ? await _api.getAutoOrderDetails(
+              widget.orderId,
+              widget.orderType ?? '',
+            )
+          : await _api.getNormalOrderSubOrders(widget.orderId);
+
       if (mounted) {
         setState(() {
           _subOrders = details.map((s) => s.toJson()).toList();
@@ -173,9 +192,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             final subId = _selectedSubOrders.first;
                             final subOrder = _subOrders.firstWhere(
                               (s) => s['id']?.toString() == subId,
-                              orElse: () => {},
+                              orElse: () => <String, dynamic>{},
                             );
-                            final customer = subOrder['customerDetails'] ?? {};
+                            final customer =
+                                subOrder['customerDetails'] ??
+                                <String, dynamic>{};
                             final address =
                                 subOrder['deliveryAddress'] ??
                                 customer['address'];
@@ -184,8 +205,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ProofSubmissionPage(
-                                  isAutoOrder: true,
-                                  orderId: widget.item.id,
+                                  isAutoOrder: widget.isAutoOrder,
+                                  orderId: widget.orderId,
+                                  orderType: widget.orderType,
                                   product: Product(
                                     id:
                                         (subOrder['product'] ?? {})['id']
@@ -210,11 +232,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                     'lastName': customer['lastName'],
                                     'phoneNumber': customer['phoneNumber'],
                                     'address': address,
+                                    'subOrderNumber':
+                                        subOrder['subOrderNumber']
+                                            ?.toString() ??
+                                        (subId),
+                                    'quantity': subOrder['quantity'],
+                                    'countryCode':
+                                        subOrder['customerDetails']?['countryCode'] ??
+                                        customer['countryCode'] ??
+                                        '',
                                   },
                                   initialMosqueFrontImage:
                                       subOrder['mosqueFrontImage'],
                                   initialMosqueInsideImage:
                                       subOrder['mosqueInsideImage'],
+                                  latitude: widget.latitude,
+                                  longitude: widget.longitude,
                                 ),
                               ),
                             ).then((submitted) {
@@ -231,7 +264,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 12,
-                            vertical: 8,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -290,9 +323,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         child: Text(
                           (Localizations.localeOf(context).languageCode ==
                                       'ar' &&
-                                  widget.item.nameAr!.isNotEmpty)
-                              ? widget.item.nameAr ?? ""
-                              : widget.item.name ?? "",
+                                  widget.nameAr.isNotEmpty)
+                              ? widget.nameAr
+                              : widget.name,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 20,
@@ -360,7 +393,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Widget _buildSubOrdersSection() {
     final sortedSubOrders = _getSortedSubOrders();
     final visibleUncompleted = sortedSubOrders
-        .where((s) => s['status'] != 'DELIVERED' && s['status'] != 'COMPLETED')
+        .where(
+          (s) =>
+              s['status'] != 'DELIVERED' &&
+              s['status'] != 'COMPLETED' &&
+              s['status'] != 'CONFIRMED',
+        )
         .toList();
 
     final bool isAllSelected =
@@ -378,7 +416,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.subOrdersLabel,
+                AppLocalizations.of(context)!.orders,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -388,308 +426,304 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ],
           ),
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              FilterChip(
-                showCheckmark: false,
-                backgroundColor: Colors.white,
-                side: BorderSide(
-                  color: isAllSelected
-                      ? AppColors.buttonBlueDark.withValues(alpha: 0.7)
-                      : Colors.grey.shade300,
-                  width: 1,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                labelStyle: const TextStyle(color: Colors.black87),
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FilterChip(
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: isAllSelected
+                    ? AppColors.buttonBlueDark.withValues(alpha: 0.7)
+                    : Colors.grey.shade300,
+                width: 1,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              labelStyle: const TextStyle(color: Colors.black87),
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: isAllSelected
+                          ? AppColors.buttonBlueDark
+                          : Colors.white,
+                      border: Border.all(
                         color: isAllSelected
                             ? AppColors.buttonBlueDark
-                            : Colors.white,
-                        border: Border.all(
-                          color: isAllSelected
-                              ? AppColors.buttonBlueDark
-                              : Colors.black87,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
+                            : Colors.black87,
+                        width: 1.5,
                       ),
-                      child: isAllSelected
-                          ? const Center(
-                              child: Icon(
-                                Icons.check,
-                                size: 14,
-                                color: AppColors.white,
-                              ),
-                            )
-                          : null,
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.select_all),
-                  ],
-                ),
-                selected: isAllSelected,
-                onSelected: (val) {
-                  setState(() {
-                    if (val == true) {
-                      _isMultiSelectMode = true;
-                      _selectedSubOrders.addAll(
-                        visibleUncompleted.map((s) => s['id'].toString()),
-                      );
-                    } else {
-                      _selectedSubOrders.removeAll(
-                        visibleUncompleted.map((s) => s['id'].toString()),
-                      );
-                      if (_selectedSubOrders.isEmpty) {
-                        _isMultiSelectMode = false;
-                      }
-                    }
-                  });
-                },
-                selectedColor: AppColors.white,
+                    child: isAllSelected
+                        ? const Center(
+                            child: Icon(
+                              Icons.check,
+                              size: 14,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppLocalizations.of(context)!.select_all,
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
+              selected: isAllSelected,
+              onSelected: (val) {
+                setState(() {
+                  if (val == true) {
+                    _isMultiSelectMode = true;
+                    _selectedSubOrders.addAll(
+                      visibleUncompleted.map((s) => s['id'].toString()),
+                    );
+                  } else {
+                    _selectedSubOrders.removeAll(
+                      visibleUncompleted.map((s) => s['id'].toString()),
+                    );
+                    if (_selectedSubOrders.isEmpty) {
+                      _isMultiSelectMode = false;
+                    }
+                  }
+                });
+              },
+              selectedColor: AppColors.white,
+            ),
+            const SizedBox(width: 8),
 
-              FilterChip(
-                showCheckmark: false,
-                backgroundColor: Colors.white,
-                labelStyle: TextStyle(
-                  color: _showOnlyWithNotes ? Colors.white : Colors.black87,
-                ),
-                labelPadding: EdgeInsets.symmetric(horizontal: 2),
-                label: Text(AppLocalizations.of(context)!.notes_text),
-                selected: _showOnlyWithNotes,
-                onSelected: (val) {
-                  setState(() {
-                    _showOnlyWithNotes = val;
-                    if (val) {
-                      _dateSortDirection = null;
-                      _quantitySortDirection = null;
-                    }
-                  });
-                },
-                selectedColor: AppColors.buttonBlueDark,
+            FilterChip(
+              showCheckmark: false,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: _showOnlyWithNotes ? Colors.white : Colors.black87,
               ),
-              const SizedBox(width: 8),
-              PopupMenuButton<String>(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                position: PopupMenuPosition.under,
-                onOpened: () => setState(() => _isDateMenuOpen = true),
-                onCanceled: () => setState(() => _isDateMenuOpen = false),
-                onSelected: (val) {
-                  setState(() {
-                    _isDateMenuOpen = false;
-                    _showOnlyWithNotes = false;
-                    if (val == 'clear') {
-                      _dateSortDirection = null;
-                    } else {
-                      _dateSortDirection = val;
-                    }
-                  });
-                },
-                itemBuilder: (context) {
-                  final isAr =
-                      Localizations.localeOf(context).languageCode == 'ar';
-                  return [
-                    PopupMenuItem(
-                      value: 'asc',
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isAr ? 'من الأقدم للأحدث' : 'Oldest to Newest',
-                            ),
+              labelPadding: EdgeInsets.symmetric(horizontal: 2),
+              label: Text(AppLocalizations.of(context)!.notes_text),
+              selected: _showOnlyWithNotes,
+              onSelected: (val) {
+                setState(() {
+                  _showOnlyWithNotes = val;
+                  if (val) {
+                    _dateSortDirection = null;
+                    _quantitySortDirection = null;
+                  }
+                });
+              },
+              selectedColor: AppColors.buttonBlueDark,
+            ),
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              position: PopupMenuPosition.under,
+              onOpened: () => setState(() => _isDateMenuOpen = true),
+              onCanceled: () => setState(() => _isDateMenuOpen = false),
+              onSelected: (val) {
+                setState(() {
+                  _isDateMenuOpen = false;
+                  _showOnlyWithNotes = false;
+                  if (val == 'clear') {
+                    _dateSortDirection = null;
+                  } else {
+                    _dateSortDirection = val;
+                  }
+                });
+              },
+              itemBuilder: (context) {
+                final isAr =
+                    Localizations.localeOf(context).languageCode == 'ar';
+                return [
+                  PopupMenuItem(
+                    value: 'asc',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isAr ? 'من الأقدم للأحدث' : 'Oldest to Newest',
                           ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            _dateSortDirection == 'asc'
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: _dateSortDirection == 'asc'
-                                ? AppColors.buttonBlueDark
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'desc',
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isAr ? 'من الأحدث للأقدم' : 'Newest to Oldest',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            _dateSortDirection == 'desc'
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: _dateSortDirection == 'desc'
-                                ? AppColors.buttonBlueDark
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (_dateSortDirection != null)
-                      PopupMenuItem(
-                        value: 'clear',
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                isAr ? 'مسح الفرز' : 'Clear Sort',
-                                style: TextStyle(
-                                  color: AppColors.buttonBlueDark,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                  ];
-                },
-                child: IgnorePointer(
-                  child: FilterChip(
-                    label: Text('↑↓ ${AppLocalizations.of(context)!.date}'),
-                    selected: _dateSortDirection != null || _isDateMenuOpen,
-                    onSelected: (_) {}, // Handled by PopupMenuButton
-                    selectedColor: AppColors.buttonBlueDark,
-                    labelPadding: EdgeInsets.symmetric(horizontal: 2),
-                    showCheckmark: false,
-                    backgroundColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: (_dateSortDirection != null || _isDateMenuOpen)
-                          ? Colors.white
-                          : Colors.black87,
+                        const SizedBox(width: 12),
+                        Icon(
+                          _dateSortDirection == 'asc'
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: _dateSortDirection == 'asc'
+                              ? AppColors.buttonBlueDark
+                              : Colors.grey,
+                          size: 20,
+                        ),
+                      ],
                     ),
+                  ),
+                  PopupMenuItem(
+                    value: 'desc',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isAr ? 'من الأحدث للأقدم' : 'Newest to Oldest',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          _dateSortDirection == 'desc'
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: _dateSortDirection == 'desc'
+                              ? AppColors.buttonBlueDark
+                              : Colors.grey,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_dateSortDirection != null)
+                    PopupMenuItem(
+                      value: 'clear',
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isAr ? 'مسح الفرز' : 'Clear Sort',
+                              style: TextStyle(color: AppColors.buttonBlueDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ];
+              },
+              child: IgnorePointer(
+                child: FilterChip(
+                  label: Text('↑↓ ${AppLocalizations.of(context)!.date}'),
+                  selected: _dateSortDirection != null || _isDateMenuOpen,
+                  onSelected: (_) {}, // Handled by PopupMenuButton
+                  selectedColor: AppColors.buttonBlueDark,
+                  labelPadding: EdgeInsets.symmetric(horizontal: 2),
+                  showCheckmark: false,
+                  backgroundColor: Colors.white,
+                  labelStyle: TextStyle(
+                    color: (_dateSortDirection != null || _isDateMenuOpen)
+                        ? Colors.white
+                        : Colors.black87,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              PopupMenuButton<String>(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                position: PopupMenuPosition.under,
-                onOpened: () => setState(() => _isQuantityMenuOpen = true),
-                onCanceled: () => setState(() => _isQuantityMenuOpen = false),
-                onSelected: (val) {
-                  setState(() {
-                    _isQuantityMenuOpen = false;
-                    _showOnlyWithNotes = false;
-                    if (val == 'clear') {
-                      _quantitySortDirection = null;
-                    } else {
-                      _quantitySortDirection = val;
-                    }
-                  });
-                },
-                itemBuilder: (context) {
-                  final isAr =
-                      Localizations.localeOf(context).languageCode == 'ar';
-                  return [
-                    PopupMenuItem(
-                      value: 'asc',
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isAr ? 'من الأقل للأكثر' : 'Lowest to Highest',
-                            ),
+            ),
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              position: PopupMenuPosition.under,
+              onOpened: () => setState(() => _isQuantityMenuOpen = true),
+              onCanceled: () => setState(() => _isQuantityMenuOpen = false),
+              onSelected: (val) {
+                setState(() {
+                  _isQuantityMenuOpen = false;
+                  _showOnlyWithNotes = false;
+                  if (val == 'clear') {
+                    _quantitySortDirection = null;
+                  } else {
+                    _quantitySortDirection = val;
+                  }
+                });
+              },
+              itemBuilder: (context) {
+                final isAr =
+                    Localizations.localeOf(context).languageCode == 'ar';
+                return [
+                  PopupMenuItem(
+                    value: 'asc',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isAr ? 'من الأقل للأكثر' : 'Lowest to Highest',
                           ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            _quantitySortDirection == 'asc'
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: _quantitySortDirection == 'asc'
-                                ? AppColors.buttonBlueDark
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'desc',
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isAr ? 'من الأكثر للأقل' : 'Highest to Lowest',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            _quantitySortDirection == 'desc'
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: _quantitySortDirection == 'desc'
-                                ? AppColors.buttonBlueDark
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (_quantitySortDirection != null)
-                      PopupMenuItem(
-                        value: 'clear',
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                isAr ? 'مسح الفرز' : 'Clear Sort',
-                                style: TextStyle(
-                                  color: AppColors.buttonBlueDark,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                  ];
-                },
-                child: IgnorePointer(
-                  child: FilterChip(
-                    label: Text('↑↓ ${AppLocalizations.of(context)!.quantity}'),
-                    selected:
-                        _quantitySortDirection != null || _isQuantityMenuOpen,
-                    onSelected: (_) {}, // Handled by PopupMenuButton
-                    selectedColor: AppColors.buttonBlueDark,
-                    labelPadding: EdgeInsets.symmetric(horizontal: 2),
-                    showCheckmark: false,
-                    backgroundColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color:
-                          (_quantitySortDirection != null ||
-                              _isQuantityMenuOpen)
-                          ? Colors.white
-                          : Colors.black87,
+                        const SizedBox(width: 12),
+                        Icon(
+                          _quantitySortDirection == 'asc'
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: _quantitySortDirection == 'asc'
+                              ? AppColors.buttonBlueDark
+                              : Colors.grey,
+                          size: 20,
+                        ),
+                      ],
                     ),
+                  ),
+                  PopupMenuItem(
+                    value: 'desc',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isAr ? 'من الأكثر للأقل' : 'Highest to Lowest',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          _quantitySortDirection == 'desc'
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: _quantitySortDirection == 'desc'
+                              ? AppColors.buttonBlueDark
+                              : Colors.grey,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_quantitySortDirection != null)
+                    PopupMenuItem(
+                      value: 'clear',
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isAr ? 'مسح الفرز' : 'Clear Sort',
+                              style: TextStyle(color: AppColors.buttonBlueDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ];
+              },
+              child: IgnorePointer(
+                child: FilterChip(
+                  label: Text('↑↓ ${AppLocalizations.of(context)!.quantity}'),
+                  selected:
+                      _quantitySortDirection != null || _isQuantityMenuOpen,
+                  onSelected: (_) {}, // Handled by PopupMenuButton
+                  selectedColor: AppColors.buttonBlueDark,
+                  labelPadding: EdgeInsets.symmetric(horizontal: 2),
+                  showCheckmark: false,
+                  backgroundColor: Colors.white,
+                  labelStyle: TextStyle(
+                    color:
+                        (_quantitySortDirection != null || _isQuantityMenuOpen)
+                        ? Colors.white
+                        : Colors.black87,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Builder(
@@ -803,8 +837,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 customer['address'];
 
                             return ProofSubmissionPage(
-                              isAutoOrder: true,
-                              orderId: widget.item.id,
+                              isAutoOrder: widget.isAutoOrder,
+                              orderId: widget.orderId,
+                              orderType: widget.orderType,
                               product: Product(
                                 id:
                                     (subOrder['product'] ?? {})['id']
@@ -835,11 +870,17 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                         ? subId.substring(0, 8)
                                         : subId),
                                 'quantity': subOrder['quantity'],
+                                'countryCode':
+                                    subOrder['customerDetails']?['countryCode'] ??
+                                    customer['countryCode'] ??
+                                    '',
                               },
                               initialMosqueFrontImage:
                                   subOrder['mosqueFrontImage'],
                               initialMosqueInsideImage:
                                   subOrder['mosqueInsideImage'],
+                              latitude: widget.latitude,
+                              longitude: widget.longitude,
                             );
                           },
                         ),
@@ -877,46 +918,45 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             children: [
                               Row(
                                 children: [
-                                  if (_subOrders.length > 1)
-                                    Padding(
-                                      padding: const EdgeInsetsDirectional.only(
-                                        end: 8,
-                                      ),
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: Checkbox(
-                                          value: isSelected,
-                                          onChanged: isCompleted
-                                              ? null
-                                              : (bool? value) {
-                                                  setState(() {
-                                                    _isMultiSelectMode = true;
-                                                    if (value == true) {
-                                                      _selectedSubOrders.add(
-                                                        subId,
-                                                      );
-                                                    } else {
-                                                      _selectedSubOrders.remove(
-                                                        subId,
-                                                      );
-                                                      if (_selectedSubOrders
-                                                          .isEmpty) {
-                                                        _isMultiSelectMode =
-                                                            false;
-                                                      }
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      end: 8,
+                                    ),
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
+                                        value: isSelected,
+                                        onChanged: isCompleted
+                                            ? null
+                                            : (bool? value) {
+                                                setState(() {
+                                                  _isMultiSelectMode = true;
+                                                  if (value == true) {
+                                                    _selectedSubOrders.add(
+                                                      subId,
+                                                    );
+                                                  } else {
+                                                    _selectedSubOrders.remove(
+                                                      subId,
+                                                    );
+                                                    if (_selectedSubOrders
+                                                        .isEmpty) {
+                                                      _isMultiSelectMode =
+                                                          false;
                                                     }
-                                                  });
-                                                },
-                                          activeColor: AppColors.buttonBlueDark,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
+                                                  }
+                                                });
+                                              },
+                                        activeColor: AppColors.buttonBlueDark,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
                                           ),
                                         ),
                                       ),
                                     ),
+                                  ),
                                   Expanded(
                                     child: Text(
                                       (Localizations.localeOf(
@@ -1249,9 +1289,27 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   ),
                                                   const SizedBox(height: 8),
                                                   Text(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.mosqueFront,
+                                                    (widget.orderType
+                                                                    ?.toLowerCase() ==
+                                                                'orphanage' ||
+                                                            widget.orderType
+                                                                    ?.toLowerCase() ==
+                                                                'orphanages')
+                                                        ? AppLocalizations.of(
+                                                            context,
+                                                          )!.orphanageFront
+                                                        : (widget.orderType
+                                                                      ?.toLowerCase() ==
+                                                                  'graveyard' ||
+                                                              widget.orderType
+                                                                      ?.toLowerCase() ==
+                                                                  'graveyards')
+                                                        ? AppLocalizations.of(
+                                                            context,
+                                                          )!.graveyardFront
+                                                        : AppLocalizations.of(
+                                                            context,
+                                                          )!.mosqueFront,
                                                     style: const TextStyle(
                                                       fontSize: 12,
                                                       fontWeight:
@@ -1333,9 +1391,27 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   ),
                                                   const SizedBox(height: 8),
                                                   Text(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.mosqueInsideImage,
+                                                    (widget.orderType
+                                                                    ?.toLowerCase() ==
+                                                                'orphanage' ||
+                                                            widget.orderType
+                                                                    ?.toLowerCase() ==
+                                                                'orphanages')
+                                                        ? AppLocalizations.of(
+                                                            context,
+                                                          )!.orphanageInsideImage
+                                                        : (widget.orderType
+                                                                      ?.toLowerCase() ==
+                                                                  'graveyard' ||
+                                                              widget.orderType
+                                                                      ?.toLowerCase() ==
+                                                                  'graveyards')
+                                                        ? AppLocalizations.of(
+                                                            context,
+                                                          )!.graveyardInsideImage
+                                                        : AppLocalizations.of(
+                                                            context,
+                                                          )!.mosqueInsideImage,
                                                     style: const TextStyle(
                                                       fontSize: 12,
                                                       fontWeight:
@@ -1629,9 +1705,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             children: [
                               _buildDottedImagePicker(
                                 context,
-                                label: AppLocalizations.of(
-                                  context,
-                                )!.mosqueFront,
+                                label:
+                                    (widget.orderType?.toLowerCase() ==
+                                            'orphanage' ||
+                                        widget.orderType?.toLowerCase() ==
+                                            'orphanages')
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.orphanageFront
+                                    : (widget.orderType?.toLowerCase() ==
+                                              'graveyard' ||
+                                          widget.orderType?.toLowerCase() ==
+                                              'graveyards')
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.graveyardFront
+                                    : AppLocalizations.of(context)!.mosqueFront,
                                 path: _batchMosqueFrontImage,
                                 onPick: (source) async {
                                   debugPrint(
@@ -1657,9 +1746,24 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               const SizedBox(width: 12),
                               _buildDottedImagePicker(
                                 context,
-                                label: AppLocalizations.of(
-                                  context,
-                                )!.mosqueInsideImage,
+                                label:
+                                    (widget.orderType?.toLowerCase() ==
+                                            'orphanage' ||
+                                        widget.orderType?.toLowerCase() ==
+                                            'orphanages')
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.orphanageInsideImage
+                                    : (widget.orderType?.toLowerCase() ==
+                                              'graveyard' ||
+                                          widget.orderType?.toLowerCase() ==
+                                              'graveyards')
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.graveyardInsideImage
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.mosqueInsideImage,
                                 path: _batchMosqueInsideImage,
                                 onPick: (source) async {
                                   debugPrint(
@@ -1701,7 +1805,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       setState(() => _isBatchUploading = true);
                                       try {
                                         debugPrint(
-                                          'Bulk Image Upload: Request started for Order ID: ${widget.item.id}',
+                                          'Bulk Image Upload: Request started for Order ID: ${widget.orderId}',
                                         );
                                         debugPrint(
                                           'Bulk Image Upload: Request SubOrder IDs: ${_selectedSubOrders.toList()}',
@@ -1714,7 +1818,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                         );
 
                                         await _api.bulkUploadMosqueImages(
-                                          orderId: widget.item.id,
+                                          orderId: widget.orderId,
                                           subOrderIds: _selectedSubOrders
                                               .toList(),
                                           mosqueFrontImagePath:
@@ -1842,16 +1946,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     ? ClipRRect(
                         borderRadius: BorderRadiusGeometry.circular(12),
                         child: path.startsWith('http')
-                            ? CachedNetworkImage(
-                                imageUrl: path,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    Shimmer.fromColors(
-                                      baseColor: Colors.grey[300]!,
-                                      highlightColor: Colors.grey[100]!,
-                                      child: Container(color: Colors.white),
-                                    ),
-                              )
+                            ? Image.network(path, fit: BoxFit.cover)
                             : Image.file(File(path), fit: BoxFit.cover),
                       )
                     : const Center(
@@ -2046,15 +2141,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           fit: StackFit.expand,
           children: [
             InteractiveViewer(
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
+              child: Image.network(
+                imageUrl,
                 fit: BoxFit.contain,
-                placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(color: Colors.white),
-                ),
-                errorWidget: (context, url, error) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.white,
                   child: const Center(
                     child: Icon(

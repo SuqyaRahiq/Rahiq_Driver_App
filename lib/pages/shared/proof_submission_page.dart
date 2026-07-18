@@ -15,6 +15,7 @@ import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:geocoding/geocoding.dart';
 
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/data/models/driver/place.dart';
@@ -32,6 +33,8 @@ class ProofSubmissionPage extends StatelessWidget {
   final String? initialMosqueInsideImage;
   final String? orderType;
   final Product? product;
+  final double? latitude;
+  final double? longitude;
 
   const ProofSubmissionPage({
     super.key,
@@ -45,6 +48,8 @@ class ProofSubmissionPage extends StatelessWidget {
     this.product,
     this.initialMosqueInsideImage,
     this.orderType,
+    this.latitude,
+    this.longitude,
   });
 
   @override
@@ -185,50 +190,18 @@ class ProofSubmissionPage extends StatelessWidget {
                               const SizedBox(height: 12),
                             ],
 
-                            if (provider.useSameImages) ...[
-                              _buildSectionTitle(
-                                AppLocalizations.of(
-                                  context,
-                                )!.imagesInstructions,
-                              ),
-                              _buildGlobalImagesPicker(context, provider),
-                              const SizedBox(height: 12),
-                              _buildSectionTitle(
-                                AppLocalizations.of(context)!.video,
-                              ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildDottedImagePicker(
-                                    context,
-                                    label: AppLocalizations.of(
-                                      context,
-                                    )!.productInsideMosque,
-                                    path: provider.globalProofVideo,
-                                    isVideo: true,
-                                    onPick: (source) => provider
-                                        .pickGlobalVideo(context, source),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(child: SizedBox()),
-                                  const SizedBox(width: 12),
-                                  const Expanded(child: SizedBox()),
-                                ],
-                              ),
-                            ] else ...[
-                              ...provider.proofs.map((proof) {
-                                return _buildSubOrderSection(
-                                  context,
-                                  provider,
-                                  proof,
-                                );
-                              }),
-                            ],
-                            SizedBox(height: 24),
+                            ...provider.proofs.map((proof) {
+                              return _buildSubOrderSection(
+                                context,
+                                provider,
+                                proof,
+                              );
+                            }),
+
                             Container(
                               color: Colors.white,
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 45),
+                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 child: SizedBox(
                                   width: double.infinity,
                                   height: 55,
@@ -335,37 +308,6 @@ class ProofSubmissionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildGlobalImagesPicker(
-    BuildContext context,
-    ProofSubmissionProvider provider,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDottedImagePicker(
-          context,
-          label: AppLocalizations.of(context)!.mosqueFront,
-          path: provider.globalMosqueFrontImage,
-          onPick: (source) => provider.pickGlobalImage('front', source),
-        ),
-        const SizedBox(width: 12),
-        _buildDottedImagePicker(
-          context,
-          label: AppLocalizations.of(context)!.mosqueInsideImage,
-          path: provider.globalMosqueInsideImage,
-          onPick: (source) => provider.pickGlobalImage('inside', source),
-        ),
-        const SizedBox(width: 12),
-        _buildDottedImagePicker(
-          context,
-          label: AppLocalizations.of(context)!.productInsideMosque,
-          path: provider.globalPackagesImage,
-          onPick: (source) => provider.pickGlobalImage('package', source),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSubOrderSection(
     BuildContext context,
     ProofSubmissionProvider provider,
@@ -374,307 +316,538 @@ class ProofSubmissionPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!provider.useSameImages) ...[
-          _buildSectionTitle('Delivery Location'),
-          Material(
-            color: Colors.transparent,
-            child: RadioListTile<bool>(
-              title: const Text(
-                'Delivered to target location',
-                style: TextStyle(fontSize: 14),
-              ),
-              value: false,
-              groupValue: proof.deliveredToDifferentMosque,
-              activeColor: AppColors.buttonBlueDark,
-              contentPadding: EdgeInsets.zero,
-              onChanged: (val) {
-                if (val != null) {
-                  proof.deliveredToDifferentMosque = val;
-                  provider.updateUI();
-                }
-              },
-            ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: RadioListTile<bool>(
-              title: const Text(
-                'Delivered to a different location',
-                style: TextStyle(fontSize: 14),
-              ),
-              value: true,
-              groupValue: proof.deliveredToDifferentMosque,
-              activeColor: AppColors.buttonBlueDark,
-              contentPadding: EdgeInsets.zero,
-              onChanged: (val) {
-                if (val != null) {
-                  proof.deliveredToDifferentMosque = val;
-                  provider.updateUI();
-                }
-              },
-            ),
-          ),
-          if (proof.deliveredToDifferentMosque) ...[
+        _buildProofImagesSection(provider, context, proof),
+        const SizedBox(height: 16),
+        _buildNotDeliveredSection(context, provider, proof),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildNotDeliveredSection(
+    BuildContext context,
+    ProofSubmissionProvider provider,
+    SubOrderProof proof,
+  ) {
+    return Card(
+      elevation: 3,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('Delivery Location'),
+
             const SizedBox(height: 12),
-            TextField(
-              onChanged: (val) {
-                proof.differentMosqueReason = val;
+            _buildRadioOption(
+              title: 'Delivered to target location',
+              isSelected: !proof.deliveredToDifferentMosque,
+              onTap: () {
+                proof.deliveredToDifferentMosque = false;
+                proof.differentMosqueReason = null;
                 provider.updateUI();
               },
-              maxLines: 2,
-              cursorColor: Colors.black,
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(
-                  context,
-                )!.reasonForChangingLocation,
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.buttonBlueDark),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: proof.deliveredLocationName != null
-                      ? AppColors.buttonBlueDark
-                      : Colors.white,
-                ),
-                onPressed: () async {
-                  final String? category = await showModalBottomSheet<String>(
-                    backgroundColor: Colors.white,
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(20),
-                      ),
-                    ),
-                    builder: (context) {
-                      return SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                color: AppColors.buttonBlueDark,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(20),
-                                  topRight: Radius.circular(20),
-                                ),
-                              ),
-                              padding: const EdgeInsets.only(
-                                top: 24,
-                                left: 16,
-                                right: 16,
-                                bottom: 24,
-                              ),
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => Navigator.pop(context),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Icons.arrow_back_ios_new_rounded,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.select_category,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 48),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 4),
-
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Material(
-                                elevation: 2,
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                child: ListTile(
-                                  title: Text(
-                                    AppLocalizations.of(context)!.orphanage,
-                                  ),
-                                  onTap: () =>
-                                      Navigator.pop(context, 'orphanages'),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Material(
-                                elevation: 2,
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                child: ListTile(
-                                  title: Text(
-                                    AppLocalizations.of(context)!.mosque,
-                                  ),
-                                  onTap: () =>
-                                      Navigator.pop(context, 'mosques'),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Material(
-                                elevation: 2,
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                child: ListTile(
-                                  title: Text(
-                                    AppLocalizations.of(context)!.meqat_mosque,
-                                  ),
-                                  onTap: () =>
-                                      Navigator.pop(context, 'meqat_mosques'),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-
-                  if (category == null) return;
-
-                  if (!context.mounted) return;
-
-                  final Place? selected = await Navigator.push<Place>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => import_page.SpecificMosquePage(
-                        slug: category,
-                        title: AppLocalizations.of(context)!.locationLabel,
-                      ),
-                    ),
-                  );
-                  if (selected != null) {
-                    proof.deliveredLocationId = selected.id;
-                    proof.deliveredLocationName = selected.localizedName(
-                      Localizations.localeOf(context).languageCode == 'ar',
-                    );
-                    provider.updateUI();
-                  }
-                },
-                child: Text(
-                  proof.deliveredLocationName ??
-                      AppLocalizations.of(context)!.selectNewLocation,
-                  style: TextStyle(
-                    color: proof.deliveredLocationName != null
-                        ? Colors.white
-                        : AppColors.buttonBlueDark,
-                  ),
-                ),
-              ),
+            _buildRadioOption(
+              title: 'Not Delivered',
+              isSelected: proof.deliveredToDifferentMosque,
+              onTap: () {
+                _showReasonBottomSheet(context, provider, proof);
+              },
             ),
-          ],
-          const SizedBox(height: 16),
-          _buildSectionTitle(AppLocalizations.of(context)!.imagesInstructions),
-          SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildDottedImagePicker(
-                context,
-                label: AppLocalizations.of(context)!.mosqueName,
-                path: proof.mosqueFrontImage,
-                onPick: (source) => provider.pickSubOrderImage(
-                  proof.subOrderId,
-                  'front',
-                  source,
+            if (proof.deliveredToDifferentMosque) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 4, left: 4),
+                child: Text(
+                  'Reason for not delivered : ${proof.differentMosqueReason ?? 'no reason selected'}.',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.buttonBlueDark,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              _buildDottedImagePicker(
-                context,
-                label: AppLocalizations.of(context)!.mosqueInsideImage,
-                path: proof.mosqueInsideImage,
-                onPick: (source) => provider.pickSubOrderImage(
-                  proof.subOrderId,
-                  'inside',
-                  source,
+              const SizedBox(height: 12),
+              Divider(color: Colors.grey, thickness: 1),
+              const SizedBox(height: 12),
+              Text(
+                "Select the location you delivered to (Optional)",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.buttonBlueDark,
                 ),
               ),
-              const SizedBox(width: 12),
-              _buildDottedImagePicker(
-                context,
-                label: AppLocalizations.of(context)!.productPlaced,
-                path: proof.packagesImage,
-                onPick: (source) => provider.pickSubOrderImage(
-                  proof.subOrderId,
-                  'package',
-                  source,
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.buttonBlueDark),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: proof.deliveredLocationName != null
+                        ? AppColors.buttonBlueDark
+                        : Colors.white,
+                  ),
+                  onPressed: () async {
+                    final String? category = await showModalBottomSheet<String>(
+                      backgroundColor: Colors.white,
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (context) {
+                        return SafeArea(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.buttonBlueDark,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.only(
+                                  top: 24,
+                                  left: 16,
+                                  right: 16,
+                                  bottom: 24,
+                                ),
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.arrow_back_ios_new_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.select_category,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 48),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Material(
+                                  elevation: 2,
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(context)!.orphanage,
+                                    ),
+                                    onTap: () =>
+                                        Navigator.pop(context, 'orphanages'),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Material(
+                                  elevation: 2,
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(context)!.mosque,
+                                    ),
+                                    onTap: () =>
+                                        Navigator.pop(context, 'mosques'),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Material(
+                                  elevation: 2,
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.meqat_mosque,
+                                    ),
+                                    onTap: () =>
+                                        Navigator.pop(context, 'meqat_mosques'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+
+                    if (category == null) return;
+
+                    if (!context.mounted) return;
+
+                    final Place? selected = await Navigator.push<Place>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => import_page.SpecificMosquePage(
+                          slug: category,
+                          title: AppLocalizations.of(context)!.locationLabel,
+                        ),
+                      ),
+                    );
+                    if (selected != null) {
+                      proof.deliveredLocationId = selected.id;
+                      proof.deliveredLocationName = selected.localizedName(
+                        Localizations.localeOf(context).languageCode == 'ar',
+                      );
+                      provider.updateUI();
+                    }
+                  },
+                  child: Text(
+                    proof.deliveredLocationName ??
+                        AppLocalizations.of(context)!.selectNewLocation,
+                    style: TextStyle(
+                      color: proof.deliveredLocationName != null
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                    ),
+                  ),
                 ),
               ),
             ],
-          ),
-        ],
-        _buildSectionTitle(AppLocalizations.of(context)!.video),
-        SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDottedImagePicker(
-              context,
-              label: AppLocalizations.of(context)!.productInsideMosque,
-              path: proof.proofVideo,
-              isVideo: true,
-              onPick: (source) =>
-                  provider.pickSubOrderVideo(context, proof.subOrderId, source),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(child: SizedBox()),
-            const SizedBox(width: 12),
-            const Expanded(child: SizedBox()),
           ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Future<void> _showReasonBottomSheet(
+    BuildContext context,
+    ProofSubmissionProvider provider,
+    SubOrderProof proof,
+  ) async {
+    final reasons = [
+      "Mosque is under construction",
+      "Mosque has been removed",
+      "Mosque refused to accept water",
+      "Mosque did not need the water",
+      "Mosque was in a secuirity facility",
+    ];
+
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: AppColors.buttonBlueDark,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                padding: const EdgeInsets.only(
+                  top: 24,
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                ),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Reason for not delivered',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 42),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...reasons.map(
+                (reason) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context, reason),
+                    child: Card(
+                      margin: EdgeInsets.all(0),
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                reason,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Colors.black54,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selected != null) {
+      proof.deliveredToDifferentMosque = true;
+      proof.differentMosqueReason = selected;
+      provider.updateUI();
+    } else {
+      if (proof.differentMosqueReason == null) {
+        proof.deliveredToDifferentMosque = true;
+        provider.updateUI();
+      }
+    }
+  }
+
+  Widget _buildRadioOption({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.buttonBlueDark : Colors.grey,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? AppColors.buttonBlueDark : Colors.black87,
+              ),
+            ),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.buttonBlueDark,
+                size: 20,
+              )
+            else
+              const Icon(
+                Icons.radio_button_unchecked,
+                color: Color(0xFFEAEFF2),
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProofImagesSection(
+    ProofSubmissionProvider provider,
+    BuildContext context,
+    SubOrderProof proof,
+  ) {
+    return Card(
+      elevation: 3,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSectionTitle(
+              (orderType?.toLowerCase() == 'orphanage' ||
+                      orderType?.toLowerCase() == 'orphanages')
+                  ? AppLocalizations.of(context)!.orphanage_photos
+                  : (orderType?.toLowerCase() == 'graveyard' ||
+                        orderType?.toLowerCase() == 'graveyards')
+                  ? AppLocalizations.of(context)!.graveyard_photos
+                  : AppLocalizations.of(context)!.mosque_photos,
+            ),
+            SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDottedImagePicker(
+                  context,
+                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                          orderType?.toLowerCase() == 'orphanages')
+                      ? AppLocalizations.of(context)!.orphanageFront
+                      : (orderType?.toLowerCase() == 'graveyard' ||
+                              orderType?.toLowerCase() == 'graveyards')
+                          ? AppLocalizations.of(context)!.graveyardFront
+                          : AppLocalizations.of(context)!.mosqueFront,
+                  path: proof.mosqueFrontImage,
+                  onPick: (source) => provider.pickSubOrderImage(
+                    proof.subOrderId,
+                    'front',
+                    source,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildDottedImagePicker(
+                  context,
+                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                          orderType?.toLowerCase() == 'orphanages')
+                      ? AppLocalizations.of(context)!.orphanageInsideImage
+                      : (orderType?.toLowerCase() == 'graveyard' ||
+                              orderType?.toLowerCase() == 'graveyards')
+                          ? AppLocalizations.of(context)!.graveyardInsideImage
+                          : AppLocalizations.of(context)!.mosqueInsideImage,
+                  path: proof.mosqueInsideImage,
+                  onPick: (source) => provider.pickSubOrderImage(
+                    proof.subOrderId,
+                    'inside',
+                    source,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.order_photos_and_video,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDottedImagePicker(
+                  context,
+                  label: AppLocalizations.of(context)!.productPlaced,
+                  path: proof.packagesImage,
+                  onPick: (source) => provider.pickSubOrderImage(
+                    proof.subOrderId,
+                    'package',
+                    source,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildDottedImagePicker(
+                  context,
+                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                          orderType?.toLowerCase() == 'orphanages')
+                      ? AppLocalizations.of(context)!.productInsideOrphanage
+                      : (orderType?.toLowerCase() == 'graveyard' ||
+                              orderType?.toLowerCase() == 'graveyards')
+                          ? AppLocalizations.of(context)!.productInsideGraveyard
+                          : AppLocalizations.of(context)!.productInsideMosque,
+                  path: proof.proofVideo,
+                  isVideo: true,
+                  onPick: (source) => provider.pickSubOrderVideo(
+                    context,
+                    proof.subOrderId,
+                    source,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -699,7 +872,7 @@ class ProofSubmissionPage extends StatelessWidget {
               ),
               child: Container(
                 padding: EdgeInsets.all(10),
-                height: 100,
+                height: 140,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -717,13 +890,14 @@ class ProofSubmissionPage extends StatelessWidget {
                                   ? CachedNetworkImage(
                                       imageUrl: path,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => Shimmer.fromColors(
-                                        baseColor: Colors.grey[300]!,
-                                        highlightColor: Colors.grey[100]!,
-                                        child: Container(
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      placeholder: (context, url) =>
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                     )
                                   : Image.file(File(path), fit: BoxFit.cover),
                             ))
@@ -973,7 +1147,7 @@ class ProofSubmissionPage extends StatelessWidget {
     Map<String, dynamic> customer,
   ) {
     final normalSub = normalSubOrder;
-    final address = normalSub?.customerDetails?.address ?? customer['address'];
+
     final firstName =
         normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';
     final lastName =
@@ -1064,45 +1238,62 @@ class ProofSubmissionPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
-                if (phoneNumber != null &&
-                    phoneNumber.toString().isNotEmpty) ...[
-                  Text(
-                    AppLocalizations.of(context)!.phoneNumber,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    '$countryCode$phoneNumber',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-                if (quantity != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    AppLocalizations.of(context)!.quantity,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    Directionality.of(context) == TextDirection.ltr
-                        ? "$quantity ${product?.name ?? ''}"
-                        : "$quantity ${product?.nameAr ?? ''}",
 
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (phoneNumber != null &&
+                            phoneNumber.toString().isNotEmpty) ...[
+                          Text(
+                            AppLocalizations.of(context)!.phoneNumber,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            '$countryCode$phoneNumber',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                ],
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (quantity != null) ...[
+                          Text(
+                            AppLocalizations.of(context)!.quantity,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            Directionality.of(context) == TextDirection.ltr
+                                ? "$quantity ${product?.name ?? ''}"
+                                : "$quantity ${product?.nameAr ?? ''}",
+
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
 
                 if (orderedDate != null) ...[
                   const SizedBox(height: 12),
@@ -1125,9 +1316,9 @@ class ProofSubmissionPage extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (address != null && address.toString().isNotEmpty) ...[
+                if (latitude != null && longitude != null) ...[
                   const SizedBox(height: 12),
-                  Row(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -1138,20 +1329,26 @@ class ProofSubmissionPage extends StatelessWidget {
                           color: Colors.grey,
                         ),
                       ),
-                      Expanded(
-                        child: Text(
-                          address.toString(),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                      const SizedBox(height: 4),
+                      _LocationLinkWidget(
+                        latitude: latitude!,
+                        longitude: longitude!,
                       ),
                     ],
                   ),
                 ],
                 const SizedBox(height: 12),
-                if (phoneNumber != null && phoneNumber.toString().isNotEmpty)
+                if (phoneNumber != null &&
+                    phoneNumber.toString().isNotEmpty) ...{
+                  Text(
+                    AppLocalizations.of(context)!.contact_customer,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Material(
@@ -1235,6 +1432,7 @@ class ProofSubmissionPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                },
               ],
             ),
           ),
@@ -1326,6 +1524,92 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LocationLinkWidget extends StatefulWidget {
+  final double latitude;
+  final double longitude;
+
+  const _LocationLinkWidget({required this.latitude, required this.longitude});
+
+  @override
+  State<_LocationLinkWidget> createState() => _LocationLinkWidgetState();
+}
+
+class _LocationLinkWidgetState extends State<_LocationLinkWidget> {
+  Future<String>? _addressFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAddress();
+  }
+
+  @override
+  void didUpdateWidget(_LocationLinkWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.latitude != widget.latitude ||
+        oldWidget.longitude != widget.longitude) {
+      _fetchAddress();
+    }
+  }
+
+  void _fetchAddress() {
+    _addressFuture = Geocoding()
+        .placemarkFromCoordinates(widget.latitude, widget.longitude)
+        .then((placemarks) {
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+            return [
+              place.street,
+              place.subLocality,
+              place.locality,
+              place.administrativeArea,
+              place.country,
+            ].where((e) => e != null && e.isNotEmpty).join(', ');
+          }
+          return "${widget.latitude}, ${widget.longitude}";
+        })
+        .catchError((_) => "${widget.latitude}, ${widget.longitude}");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _addressFuture,
+      builder: (context, snapshot) {
+        String displayText = "${widget.latitude}, ${widget.longitude}";
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          displayText = "...";
+        } else if (snapshot.hasData) {
+          displayText = snapshot.data!;
+        }
+
+        return GestureDetector(
+          onTap: () async {
+            final url =
+                'https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}';
+            if (await canLaunchUrl(Uri.parse(url))) {
+              await launchUrl(
+                Uri.parse(url),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          },
+          child: Text(
+            displayText,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.buttonBlueDark,
+              decoration: TextDecoration.underline,
+              decorationColor: AppColors.buttonBlueDark,
+            ),
+          ),
+        );
+      },
     );
   }
 }

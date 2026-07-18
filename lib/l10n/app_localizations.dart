@@ -278,17 +278,53 @@ abstract class AppLocalizations {
   /// **'Mosque Front'**
   String get mosqueFront;
 
+  /// No description provided for @orphanageFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Orphanage Front'**
+  String get orphanageFront;
+
+  /// No description provided for @graveyardFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Graveyard Front'**
+  String get graveyardFront;
+
   /// No description provided for @mosqueInsideImage.
   ///
   /// In en, this message translates to:
   /// **'Mosque Inside Image'**
   String get mosqueInsideImage;
 
+  /// No description provided for @orphanageInsideImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Orphanage Inside Image'**
+  String get orphanageInsideImage;
+
+  /// No description provided for @graveyardInsideImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Graveyard Inside Image'**
+  String get graveyardInsideImage;
+
   /// No description provided for @productInsideMosque.
   ///
   /// In en, this message translates to:
   /// **'Product Inside Mosque'**
   String get productInsideMosque;
+
+  /// No description provided for @productInsideOrphanage.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Inside Orphanage'**
+  String get productInsideOrphanage;
+
+  /// No description provided for @productInsideGraveyard.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Inside Graveyard'**
+  String get productInsideGraveyard;
 
   /// No description provided for @mosqueName.
   ///
@@ -1046,11 +1082,41 @@ abstract class AppLocalizations {
   /// **'List of Meqat Mosques'**
   String get list_of_meqat_mosques;
 
+  /// No description provided for @contact_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Customer'**
+  String get contact_customer;
+
   /// No description provided for @continue_text.
   ///
   /// In en, this message translates to:
   /// **'Continue'**
   String get continue_text;
+
+  /// No description provided for @order_photos_and_video.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Photos and Video'**
+  String get order_photos_and_video;
+
+  /// No description provided for @mosque_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Mosque Photos'**
+  String get mosque_photos;
+
+  /// No description provided for @orphanage_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Orphanage Photos'**
+  String get orphanage_photos;
+
+  /// No description provided for @graveyard_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Graveyard Photos'**
+  String get graveyard_photos;
 
   /// No description provided for @choose_specific_mosque.
   ///

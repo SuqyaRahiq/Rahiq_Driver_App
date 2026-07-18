@@ -7,7 +7,7 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
-import 'package:rahiq_driver/pages/orders/auto_order_details_page.dart';
+import 'package:rahiq_driver/pages/orders/order_details_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
@@ -94,8 +94,15 @@ class _OrdersPageState extends State<OrdersPage>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      AutoOrderDetailsPage(item: order.originalModel),
+                  builder: (_) => OrderDetailsPage(
+                    orderId: order.id,
+                    name: order.originalModel.name ?? '',
+                    nameAr: order.originalModel.nameAr ?? '',
+                    orderType: order.originalModel.type,
+                    isAutoOrder: order.isAuto,
+                    latitude: order.latitude,
+                    longitude: order.longitude,
+                  ),
                 ),
               ).then((_) => _fetchOrders());
             },
@@ -1048,21 +1055,20 @@ class _OrdersPageState extends State<OrdersPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          if (order.isAuto) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AutoOrderDetailsPage(item: order.originalModel),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OrderDetailsPage(
+                orderId: order.id,
+                name: order.originalModel.name ?? '',
+                nameAr: order.originalModel.nameAr ?? '',
+                orderType: order.originalModel.type,
+                isAutoOrder: order.isAuto,
+                latitude: order.latitude,
+                longitude: order.longitude,
               ),
-            ).then((_) => _fetchOrders());
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AutoOrderDetailsPage(item: order.originalModel),
-              ),
-            ).then((_) => _fetchOrders());
-          }
+            ),
+          ).then((_) => _fetchOrders());
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -59,6 +59,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   device_info_plus: ^13.1.0
   google_fonts: ^8.1.0
+  material_symbols_icons: ^4.2928.1
   geolocator: ^14.0.3
 
 dev_dependencies:
@@ -115,6 +116,13 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   fonts:
+    - family: SF Pro
+      fonts:
+        - asset: assets/fonts/SF-Pro-Text-Regular.otf
+        - asset: assets/fonts/SF-Pro-Text-Medium.otf
+          weight: 500
+        - asset: assets/fonts/SF-Pro-Text-Bold.otf
+          weight: 700
     - family: SaudiRiyal
       fonts:
         - asset: assets/fonts/saudi_riyal.ttf

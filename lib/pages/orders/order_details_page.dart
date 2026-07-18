@@ -14,7 +14,6 @@ import 'package:dio/dio.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
-import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -209,13 +208,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if ((widget.order.latitude ?? 0.0) != 0.0 &&
-                              (widget.order.longitude ?? 0.0) != 0.0)
-                            _buildMapArea(
-                              context,
-                              widget.order.latitude ?? 0.0,
-                              widget.order.longitude ?? 0.0,
-                            ),
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -230,8 +222,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       style: const TextStyle(color: Colors.red),
                                     ),
                                   ),
-                                _buildInfoCard(context),
-                                const SizedBox(height: 16),
+
                                 if (_subOrders.isNotEmpty)
                                   _buildSubOrdersSection(),
                                 const SizedBox(height: 24),

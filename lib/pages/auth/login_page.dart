@@ -92,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.driver != null) {
-        await AuthStorage.saveUserData(response.driver!.toJson());
+        await AuthStorage.saveUserData(response.driver!);
       }
 
       if (mounted) {

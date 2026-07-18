@@ -1004,6 +1004,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcome;
+
   /// No description provided for @choose_specific_orphanage.
   ///
   /// In en, this message translates to:
@@ -1040,6 +1046,12 @@ abstract class AppLocalizations {
   /// **'List of Meqat Mosques'**
   String get list_of_meqat_mosques;
 
+  /// No description provided for @continue_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continue_text;
+
   /// No description provided for @choose_specific_mosque.
   ///
   /// In en, this message translates to:
@@ -1051,6 +1063,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'List of Mosques'**
   String get list_of_mosques;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get selected;
+
+  /// No description provided for @ordersSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders selected'**
+  String get ordersSelected;
 
   /// No description provided for @search_orphanages.
   ///
@@ -1159,6 +1183,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer Name'**
   String get customer_name;
+
+  /// No description provided for @showMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Menu'**
+  String get showMenu;
 }
 
 class _AppLocalizationsDelegate

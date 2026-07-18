@@ -6,6 +6,7 @@ class AutoOrderItem {
   final String nameAr;
   final String? image;
   final int totalQuantity;
+  final int totalSubOrders;
 
   AutoOrderItem({
     required this.serialNumber,
@@ -15,6 +16,7 @@ class AutoOrderItem {
     required this.nameAr,
     this.image,
     required this.totalQuantity,
+    required this.totalSubOrders,
   });
 
   factory AutoOrderItem.fromJson(Map<String, dynamic> json) {
@@ -26,16 +28,18 @@ class AutoOrderItem {
       nameAr: json['nameAr'] ?? '',
       image: json['image'],
       totalQuantity: (json['totalQuantity'] as num?)?.toInt() ?? 0,
+      totalSubOrders: (json['totalSubOrders'] as num?)?.toInt() ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'serialNumber': serialNumber,
-        'id': id,
-        'type': type,
-        'name': name,
-        'nameAr': nameAr,
-        'image': image,
-        'totalQuantity': totalQuantity,
-      };
+    'serialNumber': serialNumber,
+    'id': id,
+    'type': type,
+    'name': name,
+    'nameAr': nameAr,
+    'image': image,
+    'totalQuantity': totalQuantity,
+    'totalSubOrders': totalSubOrders,
+  };
 }

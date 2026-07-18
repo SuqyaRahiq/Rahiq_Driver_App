@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
-import '../../models/driver/auto_order_item.dart';
 import '../../models/driver/driver_order.dart';
+import '../../models/driver/driver_order_response.dart';
 import '../../models/driver/driver_dashboard_stats.dart';
 import '../../models/driver/normal_sub_order.dart';
+import '../../models/driver/auto_order_response.dart';
 import '../api_client.dart';
 
 class DriverOrdersApi {
@@ -10,19 +11,25 @@ class DriverOrdersApi {
 
   DriverOrdersApi(this._apiClient);
 
-  Future<List<DriverOrder>> getNormalOrders() async {
+  Future<DriverOrderResponse> getNormalOrders({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      final response = await _apiClient.dio.get('/driver/orders/normal');
+      final response = await _apiClient.dio.get(
+        '/driver/orders/normal',
+        queryParameters: {'page': page, 'limit': limit},
+      );
       return ApiClient.handleResponse(
         response,
-        (data) {
-          final List<dynamic> items = data['data']['items'] ?? [];
-          return items.map((json) => DriverOrder.fromJson(json)).toList();
-        },
+        (data) => DriverOrderResponse.fromJson(data['data']),
         fallbackError: 'Failed to get normal orders',
       );
     } on DioException catch (e) {
-      ApiClient.handleDioError(e, fallbackError: 'Failed to get normal orders');
+      return ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get normal orders',
+      );
     }
   }
 
@@ -69,38 +76,40 @@ class DriverOrdersApi {
       final response = await _apiClient.dio.get(
         '/driver/orders/normal/location/$orderId',
       );
-      return ApiClient.handleResponse(
-        response,
-        (data) {
-          var items = data['data'];
-          if (items is Map && items.containsKey('items')) {
-            items = items['items'];
-          }
-          if (items is List) {
-            return items.map((json) => NormalSubOrder.fromJson(json)).toList();
-          }
-          return <NormalSubOrder>[];
-        },
-        fallbackError: 'Failed to get sub orders',
-      );
+      return ApiClient.handleResponse(response, (data) {
+        var items = data['data'];
+        if (items is Map && items.containsKey('items')) {
+          items = items['items'];
+        }
+        if (items is List) {
+          return items.map((json) => NormalSubOrder.fromJson(json)).toList();
+        }
+        return <NormalSubOrder>[];
+      }, fallbackError: 'Failed to get sub orders');
     } on DioException catch (e) {
       ApiClient.handleDioError(e, fallbackError: 'Failed to get sub orders');
     }
   }
 
-  Future<List<AutoOrderItem>> getAutoOrders() async {
+  Future<AutoOrderResponse> getAutoOrders({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      final response = await _apiClient.dio.get('/driver/orders/auto');
+      final response = await _apiClient.dio.get(
+        '/driver/orders/auto',
+        queryParameters: {'page': page, 'limit': limit},
+      );
       return ApiClient.handleResponse(
         response,
-        (data) {
-          final List<dynamic> items = data['data']['items'] ?? [];
-          return items.map((json) => AutoOrderItem.fromJson(json)).toList();
-        },
+        (data) => AutoOrderResponse.fromJson(data['data']),
         fallbackError: 'Failed to get auto orders',
       );
     } on DioException catch (e) {
-      ApiClient.handleDioError(e, fallbackError: 'Failed to get auto orders');
+      return ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get auto orders',
+      );
     }
   }
 
@@ -113,14 +122,10 @@ class DriverOrdersApi {
         '/driver/orders/auto/$orderId',
         queryParameters: {'type': type},
       );
-      return ApiClient.handleResponse(
-        response,
-        (data) {
-          final List<dynamic> items = data['data']['items'] ?? [];
-          return items.map((json) => NormalSubOrder.fromJson(json)).toList();
-        },
-        fallbackError: 'Failed to get auto order details',
-      );
+      return ApiClient.handleResponse(response, (data) {
+        final List<dynamic> items = data['data']['items'] ?? [];
+        return items.map((json) => NormalSubOrder.fromJson(json)).toList();
+      }, fallbackError: 'Failed to get auto order details');
     } on DioException catch (e) {
       ApiClient.handleDioError(
         e,
@@ -181,8 +186,7 @@ class DriverOrdersApi {
         ),
       );
       if (deliveredToDifferentMosque) {
-        if (differentMosqueReason != null &&
-            differentMosqueReason.isNotEmpty) {
+        if (differentMosqueReason != null && differentMosqueReason.isNotEmpty) {
           formData.fields.add(
             MapEntry('differentMosqueReason', differentMosqueReason),
           );
@@ -203,10 +207,7 @@ class DriverOrdersApi {
         fallbackError: 'Failed to confirm sub order',
       );
     } on DioException catch (e) {
-      ApiClient.handleDioError(
-        e,
-        fallbackError: 'Failed to confirm sub order',
-      );
+      ApiClient.handleDioError(e, fallbackError: 'Failed to confirm sub order');
     }
   }
 

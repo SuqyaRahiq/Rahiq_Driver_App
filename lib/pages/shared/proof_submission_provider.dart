@@ -73,6 +73,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
       _proofs.first.mosqueFrontImage = initialMosqueFrontImage;
       _proofs.first.mosqueInsideImage = initialMosqueInsideImage;
     }
+    if (_useSameImages) {
+      _globalMosqueFrontImage = initialMosqueFrontImage;
+      _globalMosqueInsideImage = initialMosqueInsideImage;
+    }
   }
 
   void toggleUseSameImages(bool? value) {

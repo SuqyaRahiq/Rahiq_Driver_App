@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 
 class AuthStorage {
   static const String _boxName = 'authBox';
@@ -15,7 +16,10 @@ class AuthStorage {
 
   static Box get _box => Hive.box(_boxName);
 
-  static Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  static Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     await _box.put(_accessTokenKey, accessToken);
     await _box.put(_refreshTokenKey, refreshToken);
   }
@@ -44,11 +48,19 @@ class AuthStorage {
     return _box.get(_languageKey, defaultValue: 'en');
   }
 
-  static Future<void> saveUserData(Map<String, dynamic> userData) async {
-    await _box.put(_userDataKey, userData);
+  static Future<void> saveUserData(DriverProfile userData) async {
+    await _box.put(_userDataKey, userData.toJson());
   }
 
-  static Map<dynamic, dynamic>? getUserData() {
-    return _box.get(_userDataKey);
+  static DriverProfile? getUserData() {
+    final data = _box.get(_userDataKey);
+    if (data != null) {
+      try {
+        return DriverProfile.fromJson(Map<String, dynamic>.from(data));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 }

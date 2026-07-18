@@ -484,6 +484,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get welcome => 'Welcome';
+
+  @override
   String get choose_specific_orphanage => 'Choose Specific Orphanage';
 
   @override
@@ -504,10 +507,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get list_of_meqat_mosques => 'List of Meqat Mosques';
 
   @override
+  String get continue_text => 'Continue';
+
+  @override
   String get choose_specific_mosque => 'Choose Specific Mosque';
 
   @override
   String get list_of_mosques => 'List of Mosques';
+
+  @override
+  String get selected => 'Selected';
+
+  @override
+  String get ordersSelected => 'Orders selected';
 
   @override
   String get search_orphanages => 'Search Orphanages';
@@ -562,4 +574,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customer_name => 'Customer Name';
+
+  @override
+  String get showMenu => 'Show Menu';
 }

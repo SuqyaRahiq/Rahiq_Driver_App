@@ -207,14 +207,18 @@
   "save": "Save",
   "edit": "Edit",
   "add": "Add",
+  "welcome": "Welcome",
   "choose_specific_orphanage": "Choose Specific Orphanage",
   "select_an_orphanage_to_deliver_water_to": "Select an orphanage to deliver water to",
   "list_of_orphanages": "List of Orphanages",
   "choose_specific_meqat_mosque": "Choose Specific Meqat Mosque",
   "select_a_mosque_to_deliver_water_to": "Select a mosque to deliver water to",
   "list_of_meqat_mosques": "List of Meqat Mosques",
+  "continue_text": "Continue",
   "choose_specific_mosque": "Choose Specific Mosque",
   "list_of_mosques": "List of Mosques",
+  "selected": "Selected",
+  "ordersSelected": "Orders selected",
   "search_orphanages": "Search Orphanages",
   "search_meqat_mosques": "Search Meqat Mosques",
   "search_mosques": "Search Mosques",
@@ -232,5 +236,6 @@
   "quantity": "Quantity",
   "notes_text": "Notes",
   "select_all": "Select All",
-  "customer_name": "Customer Name"
+  "customer_name": "Customer Name",
+  "showMenu": "Show Menu"
 }

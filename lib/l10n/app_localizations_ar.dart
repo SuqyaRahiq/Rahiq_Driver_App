@@ -482,6 +482,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get add => 'إضافة';
 
   @override
+  String get welcome => 'أهلًا بك';
+
+  @override
   String get choose_specific_orphanage => 'اختر دار أيتام محدد';
 
   @override
@@ -502,10 +505,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get list_of_meqat_mosques => 'قائمة المواقيت';
 
   @override
+  String get continue_text => 'متابعة';
+
+  @override
   String get choose_specific_mosque => 'اختر مسجد محدد';
 
   @override
   String get list_of_mosques => 'قائمة المساجد';
+
+  @override
+  String get selected => 'محدد';
+
+  @override
+  String get ordersSelected => 'الطلبات المحددة';
 
   @override
   String get search_orphanages => 'ابحث عن دار أيتام';
@@ -560,4 +572,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customer_name => 'اسم العميل';
+
+  @override
+  String get showMenu => 'عرض القائمة';
 }

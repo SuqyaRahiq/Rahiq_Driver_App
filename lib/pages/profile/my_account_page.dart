@@ -52,9 +52,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
       final cachedData = AuthStorage.getUserData();
       if (cachedData != null) {
         setState(() {
-          _profile = DriverProfile.fromJson(
-            Map<String, dynamic>.from(cachedData),
-          );
+          _profile = (cachedData);
           _isLoading = false;
           _error = null;
         });
@@ -66,9 +64,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
       }
       final api = DriverAuthApi(ApiClient());
       final profile = await api.getProfile();
-
-      await AuthStorage.saveUserData(profile.toJson());
-
+      await AuthStorage.saveUserData(profile);
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -877,7 +873,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                             "bankIbanNumber": _bankIbanNumberController.text
                                 .trim(),
                           });
-                          await AuthStorage.saveUserData(profile.toJson());
+                          await AuthStorage.saveUserData(profile);
                           if (mounted) {
                             setState(() {
                               _profile = profile;
@@ -888,8 +884,12 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         } catch (e) {
                           if (mounted) {
                             setState(() => _isSavingBankDetails = false);
-                            String errorMessage = AppLocalizations.of(context)!.somethingWentWrong;
-                            if (e is DioException && e.response?.data is Map && e.response?.data['message'] != null) {
+                            String errorMessage = AppLocalizations.of(
+                              context,
+                            )!.somethingWentWrong;
+                            if (e is DioException &&
+                                e.response?.data is Map &&
+                                e.response?.data['message'] != null) {
                               errorMessage = e.response!.data['message'];
                             }
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -930,7 +930,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         : Text(
                             _isEditingBankDetails
                                 ? AppLocalizations.of(context)!.save
-                                : (hasBankDetails ? AppLocalizations.of(context)!.edit : AppLocalizations.of(context)!.add),
+                                : (hasBankDetails
+                                      ? AppLocalizations.of(context)!.edit
+                                      : AppLocalizations.of(context)!.add),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,

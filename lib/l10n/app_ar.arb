@@ -224,13 +224,18 @@
   "mosque": "مسجد",
   "meqat_mosque": "ميقات",
   "orphanage": "دار أيتام",
+  "welcome": "أهلًا بك",
   "reasonForChangingLocation": "سبب تغيير الموقع...",
   "selectNewLocation": "اختر موقع جديد",
   "selectLocation": "اختر الموقع",
   "date": "تاريخ",
   "quantity": "الكمية",
+  "selected": "محدد",
+  "continue_text": "متابعة",
+  "ordersSelected": "الطلبات المحددة",
   "notes_text": "ملاحظات",
   "select_all": "اختر الكل",
   "customer_name": "اسم العميل",
-  "privacy_policy": "سياسة الخصوصية"
+  "privacy_policy": "سياسة الخصوصية",
+  "showMenu": "عرض القائمة"
 }

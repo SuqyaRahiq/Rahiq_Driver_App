@@ -11,7 +11,8 @@ class DriverOrder {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? type; // 'NORMAL' or 'AUTO'
-  
+  final int? totalSubOrders;
+
   // New fields
   final String? name;
   final String? nameAr;
@@ -41,6 +42,7 @@ class DriverOrder {
     this.zone,
     this.totalQuantity,
     this.serialNumber,
+    this.totalSubOrders,
   });
 
   factory DriverOrder.fromJson(Map<String, dynamic> json) {
@@ -54,8 +56,12 @@ class DriverOrder {
       deliveryAddress: json['deliveryAddress'],
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'])
+          : null,
       type: json['type'],
       name: json['name'],
       nameAr: json['nameAr'],
@@ -64,6 +70,7 @@ class DriverOrder {
       zone: json['zone'],
       totalQuantity: json['totalQuantity'],
       serialNumber: json['serialNumber'],
+      totalSubOrders: json['totalSubOrders'],
     );
   }
 
@@ -88,6 +95,7 @@ class DriverOrder {
       'zone': zone,
       'totalQuantity': totalQuantity,
       'serialNumber': serialNumber,
+      'totalSubOrders': totalSubOrders,
     };
   }
 }

@@ -516,6 +516,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get list_of_mosques => 'List of Mosques';
 
   @override
+  String get products => 'Products';
+
+  @override
   String get selected => 'Selected';
 
   @override

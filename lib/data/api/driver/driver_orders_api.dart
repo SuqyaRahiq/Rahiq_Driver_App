@@ -33,16 +33,30 @@ class DriverOrdersApi {
     }
   }
 
-  Future<DriverDashboardStats> getDashboardStats() async {
+  Future<DriverDashboardStats?> getDashboardStats({String? eTag}) async {
     try {
-      final response = await _apiClient.dio.get('/driver/orders/dashboard');
-      return ApiClient.handleResponse(
+      final response = await _apiClient.dio.get(
+        '/driver/orders/dashboard',
+        options: Options(
+          headers: eTag != null ? {'If-None-Match': eTag} : null,
+          validateStatus: (status) => status != null && (status == 200 || status == 304),
+        ),
+      );
+
+      if (response.statusCode == 304) {
+        return null;
+      }
+
+      final stats = ApiClient.handleResponse(
         response,
         (data) => DriverDashboardStats.fromJson(data['data']['stats']),
         fallbackError: 'Failed to get dashboard stats',
       );
+      
+      stats.eTag = response.headers.value('etag');
+      return stats;
     } on DioException catch (e) {
-      ApiClient.handleDioError(
+      return ApiClient.handleDioError(
         e,
         fallbackError: 'Failed to get dashboard stats',
       );
@@ -93,7 +107,7 @@ class DriverOrdersApi {
 
   Future<AutoOrderResponse> getAutoOrders({
     int page = 1,
-    int limit = 10,
+    int limit = 30,
   }) async {
     try {
       final response = await _apiClient.dio.get(

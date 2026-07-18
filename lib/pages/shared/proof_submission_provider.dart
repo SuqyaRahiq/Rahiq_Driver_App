@@ -132,7 +132,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(maxDurationSeconds: 10),
+          builder: (context) =>
+              const CustomCameraScreen(maxDurationSeconds: 10),
         ),
       );
     } else {
@@ -154,14 +155,18 @@ class ProofSubmissionProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<String?> pickGlobalVideo(BuildContext context, ImageSource source) async {
+  Future<String?> pickGlobalVideo(
+    BuildContext context,
+    ImageSource source,
+  ) async {
     String? filePath;
 
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(maxDurationSeconds: 10),
+          builder: (context) =>
+              const CustomCameraScreen(maxDurationSeconds: 10),
         ),
       );
     } else {
@@ -218,25 +223,22 @@ class ProofSubmissionProvider extends ChangeNotifier {
           packagesImage: _globalPackagesImage!,
           deliveryVideo: _globalProofVideo!,
         );
-      } else if (isMultiSelect || _useSameImages) {
-        if (!canSubmit) throw Exception('missing_media');
-
-        await _api.bulkUploadMosqueImages(
-          orderId: orderId,
-          subOrderIds: _proofs.map((p) => p.subOrderId).toList(),
-          mosqueFrontImagePath: _globalMosqueFrontImage!,
-          mosqueInsideImagePath: _globalMosqueInsideImage!,
-        );
       } else {
-        // Single submission
+        // Normal Order or Auto Order (confirm sub order)
         if (!canSubmit) throw Exception('missing_media');
         final p = _proofs.first;
+        
+        final frontImg = _useSameImages ? _globalMosqueFrontImage! : p.mosqueFrontImage!;
+        final insideImg = _useSameImages ? _globalMosqueInsideImage! : p.mosqueInsideImage!;
+        final packagesImg = _useSameImages ? _globalPackagesImage! : p.packagesImage!;
+        final videoImg = _useSameImages ? _globalProofVideo! : p.proofVideo!;
+
         await _api.confirmSubOrder(
           subOrderId: p.subOrderId,
-          mosqueFrontImagePath: p.mosqueFrontImage!,
-          mosqueInsideImagePath: p.mosqueInsideImage!,
-          packagesImagePath: p.packagesImage!,
-          proofVideoPath: p.proofVideo!,
+          mosqueFrontImagePath: frontImg,
+          mosqueInsideImagePath: insideImg,
+          packagesImagePath: packagesImg,
+          proofVideoPath: videoImg,
           deliveredToDifferentMosque: p.deliveredToDifferentMosque,
           differentMosqueReason: p.differentMosqueReason,
           deliveredLocationId: p.deliveredLocationId,

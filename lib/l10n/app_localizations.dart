@@ -1064,6 +1064,12 @@ abstract class AppLocalizations {
   /// **'List of Mosques'**
   String get list_of_mosques;
 
+  /// No description provided for @products.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get products;
+
   /// No description provided for @selected.
   ///
   /// In en, this message translates to:

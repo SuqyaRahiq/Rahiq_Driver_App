@@ -514,6 +514,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get list_of_mosques => 'قائمة المساجد';
 
   @override
+  String get products => 'المنتجات';
+
+  @override
   String get selected => 'محدد';
 
   @override

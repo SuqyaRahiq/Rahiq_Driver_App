@@ -7,18 +7,18 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
-import 'package:rahiq_driver/pages/orders/order_details_page.dart';
 import 'package:rahiq_driver/pages/orders/auto_order_details_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/data/models/driver/driver_dashboard_stats.dart';
 
 class OrderListItem {
   final String id;
   final String title;
-  final String subtitle;
-  final String? address;
-  final String status;
+  final String? category;
+  final int packages;
+  final int orders;
   final DateTime? createdAt;
   final bool isAuto;
   final dynamic originalModel;
@@ -29,9 +29,9 @@ class OrderListItem {
   OrderListItem({
     required this.id,
     required this.title,
-    required this.subtitle,
-    this.address,
-    required this.status,
+    this.category,
+    required this.packages,
+    required this.orders,
     this.createdAt,
     required this.isAuto,
     required this.originalModel,
@@ -58,7 +58,10 @@ class _OrdersPageState extends State<OrdersPage>
   final GlobalKey _placeholderKey = GlobalKey();
   double _cardsTop = 165.0;
 
-  List<OrderListItem> _allOrders = [];
+  List<OrderListItem> _normalOrders = [];
+  List<OrderListItem> _autoOrders = [];
+  DriverDashboardStats? _dashboardStats;
+  String? _dashboardETag;
   bool _isLoading = true;
   String? _error;
 
@@ -82,14 +85,17 @@ class _OrdersPageState extends State<OrdersPage>
         Marker(
           markerId: MarkerId(order.id),
           position: LatLng(lat, lng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(198.0),
           infoWindow: InfoWindow(
             title: order.title,
-            snippet: order.address,
+            snippet:
+                '${order.packages} ${AppLocalizations.of(context)!.products} | ${order.orders} ${AppLocalizations.of(context)!.orders}',
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => OrderDetailsPage(order: order.originalModel),
+                  builder: (_) =>
+                      AutoOrderDetailsPage(item: order.originalModel),
                 ),
               ).then((_) => _fetchOrders());
             },
@@ -136,33 +142,20 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  void _fitAllMarkers() {
-    final markers = _buildMarkers();
-    if (markers.isEmpty || _mapController == null) return;
-    if (markers.length == 1) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(markers.first.position, 14.0),
-      );
-      return;
+  void _focusMap() {
+    if (_mapController == null) return;
+    final normalOrders = _ordersForTab(0);
+    for (final order in normalOrders) {
+      final lat = order.latitude;
+      final lng = order.longitude;
+      if (lat != null && lng != null && lat != 0.0 && lng != 0.0) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(LatLng(lat, lng), 10),
+        );
+        return;
+      }
     }
-
-    double minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
-    for (final m in markers) {
-      if (m.position.latitude < minLat) minLat = m.position.latitude;
-      if (m.position.latitude > maxLat) maxLat = m.position.latitude;
-      if (m.position.longitude < minLng) minLng = m.position.longitude;
-      if (m.position.longitude > maxLng) maxLng = m.position.longitude;
-    }
-
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
-        ),
-        60,
-      ),
-    );
+    _goToMyLocation();
   }
 
   @override
@@ -176,10 +169,18 @@ class _OrdersPageState extends State<OrdersPage>
     }
   }
 
+  int _currentTabIndex = 0;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.index != _currentTabIndex) {
+        _currentTabIndex = _tabController.index;
+        _fetchOrders();
+      }
+    });
     _ordersApi = DriverOrdersApi(ApiClient());
     _getPhoneNumber();
   }
@@ -191,6 +192,13 @@ class _OrdersPageState extends State<OrdersPage>
   }
 
   String _phoneNumber = '';
+  int _autoOrdersPage = 1;
+  bool _hasMoreAutoOrders = true;
+  bool _isFetchingMoreAutoOrders = false;
+
+  int _normalOrdersPage = 1;
+  bool _hasMoreNormalOrders = true;
+  bool _isFetchingMoreNormalOrders = false;
 
   Future<void> _getPhoneNumber() async {
     final driverProfile = AuthStorage.getUserData();
@@ -204,96 +212,119 @@ class _OrdersPageState extends State<OrdersPage>
 
   Future<void> _fetchOrders() async {
     try {
-      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _isLoading = true;
         _error = null;
-      });
-      final normalOrdersResponse = await _ordersApi.getNormalOrders();
-      final normalOrders = normalOrdersResponse.items;
-      final autoOrdersResponse = await _ordersApi.getAutoOrders();
-      final autoOrders = autoOrdersResponse.items;
-
-      final List<OrderListItem> combined = [];
-
-      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-      for (var order in normalOrders) {
-        final title =
-            (isArabic ? (order.nameAr ?? order.name) : order.name) ??
-            order.customerName ??
-            AppLocalizations.of(context)!.unknownCustomer;
-
-        String address = '';
-        if (order.city != null) {
-          final cityName = isArabic
-              ? (order.city!['nameAr'] ?? order.city!['name'])
-              : order.city!['name'];
-          address = cityName ?? '';
-        }
-        if (order.deliveryAddress != null && address.isEmpty) {
-          address = order.deliveryAddress!;
-        }
-
-        if (order.totalQuantity != null) {
-          if (address.isNotEmpty) {
-            address =
-                '${order.totalQuantity} ${AppLocalizations.of(context)!.packages} • $address';
-          } else {
-            address =
-                '${order.totalQuantity} ${AppLocalizations.of(context)!.packages}';
-          }
-        }
-
-        combined.add(
-          OrderListItem(
-            id: order.id,
-            title: title,
-            subtitle: l10n.orderNumber(order.id.split('-').first.toUpperCase()),
-            address: address.isEmpty ? null : address,
-            status: order.status ?? 'PENDING',
-            createdAt: order.createdAt,
-            isAuto: false,
-            originalModel: order,
-            imageUrl: order.image,
-            latitude: order.latitude,
-            longitude: order.longitude,
-          ),
-        );
-      }
-
-      for (var auto in autoOrders) {
-        final autoTitle = (isArabic && auto.nameAr.isNotEmpty)
-            ? auto.nameAr
-            : auto.name;
-        combined.add(
-          OrderListItem(
-            id: auto.id,
-            title: autoTitle,
-            subtitle: l10n.autoOrderNumber(auto.id),
-            address:
-                '${auto.totalQuantity} ${AppLocalizations.of(context)!.packages}',
-            status:
-                'PENDING', // Default to pending so it appears in the Assigned tab
-            createdAt: null, // Auto orders don't have createdAt
-            isAuto: true,
-            originalModel: auto,
-            imageUrl: auto.image,
-          ),
-        );
-      }
-
-      combined.sort((a, b) {
-        if (a.createdAt == null && b.createdAt == null) return 0;
-        if (a.createdAt == null) return 1;
-        if (b.createdAt == null) return -1;
-        return b.createdAt!.compareTo(a.createdAt!);
+        _autoOrdersPage = 1;
+        _hasMoreAutoOrders = true;
+        _isFetchingMoreAutoOrders = false;
+        _normalOrdersPage = 1;
+        _hasMoreNormalOrders = true;
+        _isFetchingMoreNormalOrders = false;
       });
 
-      if (mounted) {
-        setState(() {
-          _allOrders = combined;
-          _isLoading = false;
+      final newDashboardStats = await _ordersApi.getDashboardStats(
+        eTag: _dashboardETag,
+      );
+
+      if (_tabController.index == 0) {
+        final normalOrdersResponse = await _ordersApi.getNormalOrders(
+          page: 1,
+          limit: 30,
+        );
+        final normalOrders = normalOrdersResponse.items;
+        final List<OrderListItem> combined = [];
+
+        for (var order in normalOrders) {
+          final title =
+              (Directionality.of(context) == TextDirection.rtl
+                  ? (order.nameAr ?? order.name)
+                  : order.name) ??
+              order.customerName ??
+              AppLocalizations.of(context)!.unknownCustomer;
+
+          combined.add(
+            OrderListItem(
+              id: order.id,
+              title: title,
+              category: order.type,
+              packages: order.totalQuantity ?? 0,
+              orders: order.totalSubOrders ?? 0,
+              createdAt: order.createdAt,
+              isAuto: false,
+              originalModel: order,
+              imageUrl: order.image,
+              latitude: order.latitude,
+              longitude: order.longitude,
+            ),
+          );
+        }
+
+        combined.sort((a, b) {
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
         });
+
+        if (mounted) {
+          setState(() {
+            if (newDashboardStats != null) {
+              _dashboardStats = newDashboardStats;
+              _dashboardETag = newDashboardStats.eTag;
+            }
+            _normalOrders = combined;
+            _hasMoreNormalOrders = normalOrdersResponse.items.length == 30;
+            _isLoading = false;
+          });
+        }
+      } else {
+        final autoOrdersResponse = await _ordersApi.getAutoOrders(
+          page: _autoOrdersPage,
+        );
+        final autoOrders = autoOrdersResponse.items;
+
+        if (autoOrdersResponse.meta != null) {
+          _hasMoreAutoOrders =
+              autoOrdersResponse.meta!.page <
+              autoOrdersResponse.meta!.totalPages;
+        } else {
+          _hasMoreAutoOrders = false;
+        }
+
+        final List<OrderListItem> combined = [];
+
+        for (var auto in autoOrders) {
+          final autoTitle =
+              (Directionality.of(context) == TextDirection.rtl &&
+                  auto.nameAr.isNotEmpty)
+              ? auto.nameAr
+              : auto.name;
+          combined.add(
+            OrderListItem(
+              id: auto.id,
+              title: autoTitle,
+              category: auto.type,
+              orders: auto.totalSubOrders,
+              packages: auto.totalQuantity,
+              createdAt: null,
+              isAuto: true,
+              originalModel: auto,
+              imageUrl: auto.image,
+            ),
+          );
+        }
+
+        if (mounted) {
+          setState(() {
+            if (newDashboardStats != null) {
+              _dashboardStats = newDashboardStats;
+              _dashboardETag = newDashboardStats.eTag;
+            }
+            _autoOrders = combined;
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -305,11 +336,122 @@ class _OrdersPageState extends State<OrdersPage>
     }
   }
 
+  Future<void> _fetchMoreAutoOrders() async {
+    if (_isFetchingMoreAutoOrders || !_hasMoreAutoOrders) return;
+
+    setState(() {
+      _isFetchingMoreAutoOrders = true;
+    });
+
+    try {
+      final nextPage = _autoOrdersPage + 1;
+      final autoOrdersResponse = await _ordersApi.getAutoOrders(page: nextPage);
+      final newAutoOrders = autoOrdersResponse.items;
+
+      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+      final List<OrderListItem> newItems = [];
+
+      for (var auto in newAutoOrders) {
+        final autoTitle = (isArabic && auto.nameAr.isNotEmpty)
+            ? auto.nameAr
+            : auto.name;
+        newItems.add(
+          OrderListItem(
+            id: auto.id,
+            title: autoTitle,
+            category: auto.type,
+            orders: auto.totalSubOrders,
+            packages: auto.totalQuantity,
+            createdAt: null,
+            isAuto: true,
+            originalModel: auto,
+            imageUrl: auto.image,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _autoOrdersPage = nextPage;
+          _autoOrders.addAll(newItems);
+          if (newItems.isEmpty || newItems.length < 30) {
+            _hasMoreAutoOrders = false;
+          }
+          _isFetchingMoreAutoOrders = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isFetchingMoreAutoOrders = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchMoreNormalOrders() async {
+    if (_isFetchingMoreNormalOrders || !_hasMoreNormalOrders) return;
+
+    setState(() {
+      _isFetchingMoreNormalOrders = true;
+    });
+
+    try {
+      final nextPage = _normalOrdersPage + 1;
+      final normalOrdersResponse = await _ordersApi.getNormalOrders(
+        page: nextPage,
+        limit: 30,
+      );
+      final newNormalOrders = normalOrdersResponse.items;
+
+      final List<OrderListItem> newItems = [];
+
+      for (var order in newNormalOrders) {
+        final title =
+            (Directionality.of(context) == TextDirection.rtl
+                ? (order.nameAr ?? order.name)
+                : order.name) ??
+            order.customerName ??
+            AppLocalizations.of(context)!.unknownCustomer;
+
+        newItems.add(
+          OrderListItem(
+            id: order.id,
+            title: title,
+            category: order.type,
+            packages: order.totalQuantity ?? 0,
+            orders: order.totalSubOrders ?? 0,
+            createdAt: order.createdAt,
+            isAuto: false,
+            originalModel: order,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _normalOrdersPage = nextPage;
+          _normalOrders.addAll(newItems);
+          if (newItems.isEmpty || newItems.length < 30) {
+            _hasMoreNormalOrders = false;
+          }
+          _isFetchingMoreNormalOrders = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isFetchingMoreNormalOrders = false;
+        });
+      }
+    }
+  }
+
   List<OrderListItem> _ordersForTab(int tabIndex) {
     if (tabIndex == 0) {
-      return _allOrders.where((o) => !o.isAuto).toList();
+      return _normalOrders;
     } else {
-      return _allOrders.where((o) => o.isAuto).toList();
+      return _autoOrders;
     }
   }
 
@@ -349,6 +491,7 @@ class _OrdersPageState extends State<OrdersPage>
             _isMapMode = false;
           });
           widget.onMapModeChanged?.call(false);
+          _fetchOrders();
         }
       },
       child: Scaffold(
@@ -367,10 +510,6 @@ class _OrdersPageState extends State<OrdersPage>
 
                 onMapCreated: (controller) {
                   _mapController = controller;
-                  Future.delayed(
-                    const Duration(milliseconds: 500),
-                    _fitAllMarkers,
-                  );
                 },
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
@@ -607,6 +746,7 @@ class _OrdersPageState extends State<OrdersPage>
                           : () {
                               setState(() => _isMapMode = true);
                               widget.onMapModeChanged?.call(true);
+                              _focusMap();
                             },
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
@@ -638,9 +778,10 @@ class _OrdersPageState extends State<OrdersPage>
                   onPressed: () {
                     setState(() => _isMapMode = false);
                     widget.onMapModeChanged?.call(false);
+                    _fetchOrders();
                   },
-                  icon: const Icon(Icons.menu_rounded),
-                  label: Text(l10n.showMenu),
+                  icon: const Icon(Icons.list_alt),
+                  label: Text(l10n.orders),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.buttonBlueDark,
                     foregroundColor: Colors.white,
@@ -658,106 +799,198 @@ class _OrdersPageState extends State<OrdersPage>
             // we use a neat trick: we align them based on the screen, but when not in map mode,
             // they sit exactly where the placeholder is.
             // Since we want them to stay in view when animating, we will make them sticky at the top always.
-            SafeArea(
-              bottom: false,
-              child: IgnorePointer(
-                ignoring: false,
-                child: Stack(
+            _tabController.index == 0
+                ? _statCardSection(
+                    _dashboardStats?.normalAssignedPackagesCount ?? 0,
+                    _dashboardStats?.normalAssignedCount ?? 0,
+                    _isLoading,
+                    _isMapMode,
+                  )
+                : _statCardSection(
+                    _dashboardStats?.autoAssignedPackagesCount ?? 0,
+                    _dashboardStats?.autoAssignedCount ?? 0,
+                    _isLoading,
+                    _isMapMode,
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statCardSection(
+    int count1,
+    int count2,
+    bool isLoading,
+    bool isMapMode,
+  ) {
+    Widget content = Row(
+      spacing: 16,
+      children: [
+        Expanded(
+          child: Card(
+            surfaceTintColor: AppColors.buttonBlueDark.withValues(alpha: 0.5),
+            margin: const EdgeInsets.all(0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: isMapMode ? AppColors.buttonBlueDark : Colors.white,
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                spacing: 6,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Symbols.package_2,
+                    size: 40,
+                    color: isMapMode ? Colors.white : AppColors.buttonBlueDark,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.quantity,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    "$count1 ${AppLocalizations.of(context)!.quantity}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Card(
+            surfaceTintColor: AppColors.buttonBlueDark.withValues(alpha: 0.5),
+            margin: const EdgeInsets.all(0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: isMapMode ? AppColors.buttonBlueDark : Colors.white,
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                spacing: 6,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Symbols.delivery_truck_speed,
+                    size: 40,
+                    color: isMapMode ? Colors.white : AppColors.buttonBlueDark,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.orders,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    "$count2 ${AppLocalizations.of(context)!.orders}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isMapMode
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (isLoading) {
+      Widget buildShimmerCard() {
+        return Expanded(
+          child: Card(
+            margin: const EdgeInsets.all(0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: Colors.white,
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Column(
+                  spacing: 10,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Order Count Cards
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeInOut,
-                      top: _isMapMode
-                          ? 20
-                          : _cardsTop, // 20 in Map, dynamic measured top in List
-                      left: 16,
-                      right: 16,
-                      child: Row(
-                        spacing: 16,
-                        children: [
-                          Expanded(
-                            child: Card(
-                              margin: const EdgeInsets.all(0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              color: Colors.white,
-                              elevation: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  spacing: 6,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Icon(
-                                      Symbols.package_2,
-                                      size: 40,
-                                      color: AppColors.buttonBlueDark,
-                                    ),
-                                    Text(
-                                      l10n.orders,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    Text(
-                                      "20 ${l10n.packages}",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Card(
-                              margin: const EdgeInsets.all(0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              color: Colors.white,
-                              elevation: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  spacing: 6,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Icon(
-                                      Symbols.package_2,
-                                      size: 40,
-                                      color: AppColors.buttonBlueDark,
-                                    ),
-                                    Text(
-                                      l10n.orders,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    Text(
-                                      "20 ${l10n.packages}",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    Container(
+                      width: 70,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    Container(
+                      width: 90,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
+        );
+      }
+
+      content = Row(
+        spacing: 16,
+        children: [buildShimmerCard(), buildShimmerCard()],
+      );
+    }
+
+    return SafeArea(
+      bottom: false,
+      child: IgnorePointer(
+        ignoring: false,
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOut,
+              top: _isMapMode ? 20 : _cardsTop,
+              left: 16,
+              right: 16,
+              child: content,
             ),
           ],
         ),
@@ -769,17 +1002,44 @@ class _OrdersPageState extends State<OrdersPage>
     final orders = _ordersForTab(tabIndex);
     if (orders.isEmpty) return _buildEmptyState(_tabs[tabIndex].label);
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
-      itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _buildOrderCard(orders[index]),
+    final isAutoTab = tabIndex == 1;
+    final isFetchingMore = isAutoTab
+        ? _isFetchingMoreAutoOrders
+        : _isFetchingMoreNormalOrders;
+    final hasMore = isAutoTab ? _hasMoreAutoOrders : _hasMoreNormalOrders;
+
+    final itemCount = orders.length + (isFetchingMore ? 1 : 0);
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (!_isLoading &&
+            !isFetchingMore &&
+            hasMore &&
+            scrollInfo.metrics.pixels >=
+                scrollInfo.metrics.maxScrollExtent - 200) {
+          if (isAutoTab) {
+            _fetchMoreAutoOrders();
+          } else {
+            _fetchMoreNormalOrders();
+          }
+        }
+        return false;
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
+        itemCount: itemCount,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          if (isFetchingMore && index == orders.length) {
+            return const ListShimmerLoader(itemCount: 4);
+          }
+          return _buildOrderCard(orders[index]);
+        },
+      ),
     );
   }
 
   Widget _buildOrderCard(OrderListItem order) {
-    // final statusColor = _getStatusColor(order.status);
-
     return Material(
       color: Colors.white,
       elevation: 1,
@@ -799,7 +1059,7 @@ class _OrdersPageState extends State<OrdersPage>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => OrderDetailsPage(order: order.originalModel),
+                builder: (_) => AutoOrderDetailsPage(item: order.originalModel),
               ),
             ).then((_) => _fetchOrders());
           }
@@ -836,8 +1096,11 @@ class _OrdersPageState extends State<OrdersPage>
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
-                          Icons.local_shipping_rounded,
+                        child: Icon(
+                          order.category?.toLowerCase() == "orphanage" ||
+                                  order.category?.toLowerCase() == "orphanages"
+                              ? Icons.home
+                              : Icons.mosque,
                           color: AppColors.buttonBlueDark,
                           size: 32,
                         ),
@@ -854,8 +1117,11 @@ class _OrdersPageState extends State<OrdersPage>
                     color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.local_shipping_rounded,
+                  child: Icon(
+                    order.category?.toLowerCase() == "orphanage" ||
+                            order.category?.toLowerCase() == "orphanages"
+                        ? Icons.home
+                        : Icons.mosque,
                     color: AppColors.buttonBlueDark,
                     size: 32,
                   ),
@@ -869,32 +1135,55 @@ class _OrdersPageState extends State<OrdersPage>
                       order.title,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+
                         color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 3),
 
-                    if (order.address != null && order.address!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Row(
+                    if (order.packages != 0 && order.orders != 0) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            size: 12,
-                            color: Colors.black38,
-                          ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              order.address!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black38,
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(
+                                Symbols.package_2,
+                                size: 20,
+                                color: AppColors.buttonBlueDark,
                               ),
-                            ),
+                              const SizedBox(width: 3),
+                              Text(
+                                "${order.packages} ${AppLocalizations.of(context)!.packages}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(
+                                Symbols.delivery_truck_speed,
+                                size: 20,
+                                color: AppColors.buttonBlueDark,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                "${order.orders} ${AppLocalizations.of(context)!.orders}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -940,6 +1229,23 @@ class _OrdersPageState extends State<OrdersPage>
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _fetchOrders,
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+              label: Text(AppLocalizations.of(context)!.tryAgain),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.buttonBlueDark,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],

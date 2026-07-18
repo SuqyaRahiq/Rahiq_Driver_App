@@ -14,44 +14,18 @@ class AutoDeliveryPage extends StatefulWidget {
   State<AutoDeliveryPage> createState() => _AutoDeliveryPageState();
 }
 
-class _AutoDeliveryPageState extends State<AutoDeliveryPage>
-    with SingleTickerProviderStateMixin {
+class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
   late DriverAutoDeliveriesApi _deliveriesApi;
-  late TabController _tabController;
 
   List<DriverAutoDelivery> _allItems = [];
   bool _isLoading = true;
   String? _error;
 
-  late List<_TabDef> _tabs;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final l10n = AppLocalizations.of(context)!;
-    _tabs = [
-      _TabDef(l10n.assignedStat, [
-        'PENDING',
-        'ASSIGNED',
-        'IN_TRANSIT',
-        'ACCEPTED',
-      ]),
-      _TabDef(l10n.delivered, ['DELIVERED', 'COMPLETED', 'CONFIRMED']),
-    ];
-  }
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _deliveriesApi = DriverAutoDeliveriesApi(ApiClient());
     _fetchItems();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchItems() async {
@@ -75,13 +49,6 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
         });
       }
     }
-  }
-
-  List<DriverAutoDelivery> _deliveriesForTab(int tabIndex) {
-    final statuses = _tabs[tabIndex].statuses;
-    return _allItems
-        .where((d) => statuses.contains((d.status ?? '').toUpperCase()))
-        .toList();
   }
 
   @override
@@ -159,52 +126,11 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
                     child: Column(
                       children: [
                         const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Container(
-                            height: 55,
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: TabBar(
-                              splashBorderRadius: BorderRadius.circular(25),
-                              controller: _tabController,
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              dividerColor: Colors.transparent,
-                              indicator: BoxDecoration(
-                                color: AppColors.buttonBlueDark,
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              labelColor: Colors.white,
-                              unselectedLabelColor: Colors.grey[600],
-                              labelStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              unselectedLabelStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              tabs: _tabs
-                                  .map((t) => Tab(text: t.label))
-                                  .toList(),
-                              onTap: (_) => setState(() {}),
-                            ),
-                          ),
-                        ),
-
                         _isLoading
                             ? const ListShimmerLoader(itemCount: 10)
                             : _error != null
                             ? _buildErrorState()
-                            : AnimatedBuilder(
-                                animation: _tabController,
-                                builder: (context, _) {
-                                  return _buildTabContent(_tabController.index);
-                                },
-                              ),
+                            : _buildContent(),
                       ],
                     ),
                   ),
@@ -217,17 +143,18 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
     );
   }
 
-  Widget _buildTabContent(int tabIndex) {
-    final items = _deliveriesForTab(tabIndex);
-    if (items.isEmpty) return _buildEmptyState(_tabs[tabIndex].label);
+  Widget _buildContent() {
+    if (_allItems.isEmpty) {
+      return _buildEmptyState(AppLocalizations.of(context)!.autodelivery);
+    }
 
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
-      itemCount: items.length,
+      itemCount: _allItems.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _buildItemCard(items[index]),
+      itemBuilder: (context, index) => _buildItemCard(_allItems[index]),
     );
   }
 
@@ -510,10 +437,4 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
         return Colors.blueGrey;
     }
   }
-}
-
-class _TabDef {
-  final String label;
-  final List<String> statuses;
-  const _TabDef(this.label, this.statuses);
 }

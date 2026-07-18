@@ -11,7 +11,7 @@ class ListShimmerLoader extends StatelessWidget {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: itemCount,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -34,7 +34,7 @@ class ListShimmerLoader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,9 +47,9 @@ class ListShimmerLoader extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 3),
                       Container(
-                        width: 100,
+                        width: 120,
                         height: 14,
                         decoration: BoxDecoration(
                           color: Colors.white,

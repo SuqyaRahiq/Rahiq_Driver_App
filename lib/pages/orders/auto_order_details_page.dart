@@ -12,7 +12,6 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:shimmer/shimmer.dart';
-
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 

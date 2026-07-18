@@ -6,6 +6,11 @@ class DriverDashboardStats {
   final int todayDeliveriesCount;
   final int todayPackagesCount;
   final int totalPackagesCount;
+  final int normalAssignedCount;
+  final int normalAssignedPackagesCount;
+  final int autoAssignedCount;
+  final int autoAssignedPackagesCount;
+  String? eTag;
 
   DriverDashboardStats({
     required this.assignedCount,
@@ -15,6 +20,10 @@ class DriverDashboardStats {
     required this.todayDeliveriesCount,
     required this.todayPackagesCount,
     required this.totalPackagesCount,
+    required this.normalAssignedCount,
+    required this.normalAssignedPackagesCount,
+    required this.autoAssignedCount,
+    required this.autoAssignedPackagesCount,
   });
 
   factory DriverDashboardStats.fromJson(Map<String, dynamic> json) {
@@ -26,6 +35,10 @@ class DriverDashboardStats {
       todayDeliveriesCount: json['todayDeliveriesCount'] ?? 0,
       todayPackagesCount: json['todayPackagesCount'] ?? 0,
       totalPackagesCount: json['totalPackagesCount'] ?? 0,
+      normalAssignedCount: json['normalAssignedCount'] ?? 0,
+      normalAssignedPackagesCount: json['normalAssignedPackagesCount'] ?? 0,
+      autoAssignedCount: json['autoAssignedCount'] ?? 0,
+      autoAssignedPackagesCount: json['autoAssignedPackagesCount'] ?? 0,
     );
   }
 
@@ -38,6 +51,10 @@ class DriverDashboardStats {
       'todayDeliveriesCount': todayDeliveriesCount,
       'todayPackagesCount': todayPackagesCount,
       'totalPackagesCount': totalPackagesCount,
+      'normalAssignedCount': normalAssignedCount,
+      'normalAssignedPackagesCount': normalAssignedPackagesCount,
+      'autoAssignedCount': autoAssignedCount,
+      'autoAssignedPackagesCount': autoAssignedPackagesCount,
     };
   }
 }

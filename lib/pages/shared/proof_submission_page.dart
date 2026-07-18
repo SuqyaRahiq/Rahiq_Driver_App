@@ -13,6 +13,9 @@ import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/data/models/driver/place.dart';
 import 'package:rahiq_driver/pages/shared/driver_specific_mosque_page.dart'
@@ -241,7 +244,7 @@ class ProofSubmissionPage extends StatelessWidget {
                                                     context,
                                                   )!.proofsUploaded,
                                                 );
-                                                Navigator.pop(context);
+                                                Navigator.pop(context, true);
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
@@ -711,7 +714,17 @@ class ProofSubmissionPage extends StatelessWidget {
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: path.startsWith('http')
-                                  ? Image.network(path, fit: BoxFit.cover)
+                                  ? CachedNetworkImage(
+                                      imageUrl: path,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )
                                   : Image.file(File(path), fit: BoxFit.cover),
                             ))
                     : Center(

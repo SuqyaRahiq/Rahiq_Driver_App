@@ -21,7 +21,7 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _navigateAfterSplash() async {
     // Show splash for at least 2 seconds
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 3500));
 
     if (!mounted) return;
 
@@ -43,9 +43,9 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void _goTo(Widget page) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => page));
   }
 
   @override

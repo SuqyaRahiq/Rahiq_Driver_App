@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 
 class CustomCameraScreen extends StatefulWidget {
   final int maxDurationSeconds;
 
-  const CustomCameraScreen({
-    super.key,
-    this.maxDurationSeconds = 10,
-  });
+  const CustomCameraScreen({super.key, this.maxDurationSeconds = 10});
 
   @override
   State<CustomCameraScreen> createState() => _CustomCameraScreenState();
@@ -41,7 +39,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
 
         await _controller!.initialize();
         await _controller!.setFlashMode(_flashMode);
-        
+
         if (mounted) {
           setState(() {
             _isInitialized = true;
@@ -110,7 +108,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       setState(() {
         _isRecording = false;
       });
-      
+
       if (mounted) {
         Navigator.pop(context, videoFile.path);
       }
@@ -146,9 +144,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     if (!_isInitialized || _controller == null) {
       return const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
+        body: Center(child: WaterLoadingIndicator(waveColor1: Colors.white)),
       );
     }
 
@@ -158,12 +154,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
         child: Stack(
           children: [
             // Camera Preview
-            Positioned.fill(
-              child: Center(
-                child: CameraPreview(_controller!),
-              ),
-            ),
-            
+            Positioned.fill(child: Center(child: CameraPreview(_controller!))),
+
             // Top Controls
             Positioned(
               top: 16,
@@ -174,7 +166,11 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                 children: [
                   // Back Button
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                     onPressed: () {
                       if (_isRecording) {
                         _stopRecording();
@@ -183,18 +179,25 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                       }
                     },
                   ),
-                  
+
                   // Recording Timer
                   if (_isRecording)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.fiber_manual_record, color: Colors.white, size: 16),
+                          const Icon(
+                            Icons.fiber_manual_record,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             _formatDuration(_recordingSeconds),
@@ -206,7 +209,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                         ],
                       ),
                     ),
-                    
+
                   // Flash Toggle
                   IconButton(
                     icon: Icon(_getFlashIcon(), color: Colors.white, size: 30),
@@ -231,10 +234,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                       width: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 4,
-                        ),
+                        border: Border.all(color: Colors.white, width: 4),
                       ),
                       child: Center(
                         child: Container(
@@ -242,8 +242,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                           width: _isRecording ? 30 : 60,
                           decoration: BoxDecoration(
                             color: Colors.red,
-                            borderRadius: _isRecording 
-                                ? BorderRadius.circular(8) 
+                            borderRadius: _isRecording
+                                ? BorderRadius.circular(8)
                                 : BorderRadius.circular(30),
                           ),
                         ),
@@ -253,7 +253,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                 ],
               ),
             ),
-            
+
             // Helper Text
             if (!_isRecording)
               Positioned(
@@ -266,12 +266,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black,
-                        blurRadius: 4,
-                      )
-                    ],
+                    shadows: [Shadow(color: Colors.black, blurRadius: 4)],
                   ),
                 ),
               ),

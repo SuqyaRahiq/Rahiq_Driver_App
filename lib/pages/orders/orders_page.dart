@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -64,7 +67,8 @@ class _OrdersPageState extends State<OrdersPage>
   String? _dashboardETag;
   bool _isLoading = true;
   String? _error;
-
+  StreamSubscription<RemoteMessage>? _fcmSubscription;
+  Timer? _refreshDebounceTimer;
   late List<_TabDef> _tabs;
 
   bool _isInit = true;
@@ -190,11 +194,141 @@ class _OrdersPageState extends State<OrdersPage>
     });
     _ordersApi = DriverOrdersApi(ApiClient());
     _getPhoneNumber();
+
+    _fcmSubscription = FirebaseMessaging.onMessage.listen((
+      RemoteMessage message,
+    ) {
+      if (!mounted || message.data['type'] != 'order_assigned') return;
+
+      _refreshDebounceTimer?.cancel();
+      _refreshDebounceTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          _fetchOrdersSilently();
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchOrdersSilently() async {
+    try {
+      final newDashboardStats = await _ordersApi.getDashboardStats(
+        eTag: _dashboardETag,
+      );
+
+      if (_tabController.index == 0) {
+        final normalOrdersResponse = await _ordersApi.getNormalOrders(
+          page: 1,
+          limit: 30,
+        );
+        final normalOrders = normalOrdersResponse.items;
+        final List<OrderListItem> combined = [];
+
+        for (var order in normalOrders) {
+          final title =
+              (Directionality.of(context) == TextDirection.rtl
+                  ? (order.nameAr ?? order.name)
+                  : order.name) ??
+              order.customerName ??
+              AppLocalizations.of(context)!.unknownCustomer;
+
+          combined.add(
+            OrderListItem(
+              id: order.id,
+              title: title,
+              category: order.type,
+              packages: order.totalQuantity ?? 0,
+              orders: order.totalSubOrders ?? 0,
+              createdAt: order.createdAt,
+              isAuto: false,
+              originalModel: order,
+              imageUrl: order.image,
+              latitude: order.latitude,
+              longitude: order.longitude,
+            ),
+          );
+        }
+
+        combined.sort((a, b) {
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
+        });
+
+        if (mounted) {
+          setState(() {
+            if (newDashboardStats != null) {
+              _dashboardStats = newDashboardStats;
+              _dashboardETag = newDashboardStats.eTag;
+            }
+            _normalOrders = combined;
+            _normalOrdersPage = 1;
+            _hasMoreNormalOrders = normalOrdersResponse.items.length == 30;
+            _error = null;
+          });
+        }
+      } else {
+        final autoOrdersResponse = await _ordersApi.getAutoOrders(page: 1);
+        final autoOrders = autoOrdersResponse.items;
+
+        bool hasMore;
+        if (autoOrdersResponse.meta != null) {
+          hasMore =
+              autoOrdersResponse.meta!.page <
+              autoOrdersResponse.meta!.totalPages;
+        } else {
+          hasMore = false;
+        }
+
+        final List<OrderListItem> combined = [];
+
+        for (var auto in autoOrders) {
+          final autoTitle =
+              (Directionality.of(context) == TextDirection.rtl &&
+                  auto.nameAr.isNotEmpty)
+              ? auto.nameAr
+              : auto.name;
+          combined.add(
+            OrderListItem(
+              id: auto.id,
+              title: autoTitle,
+              category: auto.type,
+              orders: auto.totalSubOrders,
+              packages: auto.totalQuantity,
+              createdAt: null,
+              isAuto: true,
+              originalModel: auto,
+              imageUrl: auto.image,
+            ),
+          );
+        }
+
+        if (mounted) {
+          setState(() {
+            if (newDashboardStats != null) {
+              _dashboardStats = newDashboardStats;
+              _dashboardETag = newDashboardStats.eTag;
+            }
+            _autoOrders = combined;
+            _autoOrdersPage = 1;
+            _hasMoreAutoOrders = hasMore;
+            _error = null;
+          });
+        }
+      }
+    } catch (e) {
+      // Swallow errors silently — this is a background refresh triggered by a
+      // push notification, so we don't want to surface an error banner or
+      // disrupt whatever the user is currently looking at.
+      debugPrint('Silent order refresh failed: $e');
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _fcmSubscription?.cancel();
+    _refreshDebounceTimer?.cancel();
     super.dispose();
   }
 

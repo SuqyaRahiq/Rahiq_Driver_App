@@ -11,6 +11,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyAccountPage extends StatefulWidget {
@@ -932,9 +933,8 @@ class _MyAccountPageState extends State<MyAccountPage> {
                         ? const SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+                            child: WaterLoadingIndicator(
+                              waveColor1: Colors.white,
                             ),
                           )
                         : Text(

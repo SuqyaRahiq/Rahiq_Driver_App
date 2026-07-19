@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Supplier'**
   String get supplier;
 
+  /// No description provided for @selectDeliveredLocationOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the location you delivered to (Optional)'**
+  String get selectDeliveredLocationOptional;
+
   /// No description provided for @logoutConfirmation.
   ///
   /// In en, this message translates to:
@@ -170,6 +176,30 @@ abstract class AppLocalizations {
   /// **'Terms & Conditions'**
   String get termsConditions;
 
+  /// No description provided for @failed_to_load_locations.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load locations'**
+  String get failed_to_load_locations;
+
+  /// No description provided for @select_delivered_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the location you delivered to (optional)'**
+  String get select_delivered_location;
+
+  /// No description provided for @no_locations_available.
+  ///
+  /// In en, this message translates to:
+  /// **'No Locations Available'**
+  String get no_locations_available;
+
+  /// No description provided for @no_reason_selected.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason selected'**
+  String get no_reason_selected;
+
   /// No description provided for @accountSection.
   ///
   /// In en, this message translates to:
@@ -182,17 +212,41 @@ abstract class AppLocalizations {
   /// **'Welcome to the Driver Dashboard'**
   String get welcomeToTheDriverDashboard;
 
+  /// No description provided for @delivery_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Location'**
+  String get delivery_location;
+
   /// No description provided for @manageAccountSettings.
   ///
   /// In en, this message translates to:
   /// **'Manage account settings'**
   String get manageAccountSettings;
 
+  /// No description provided for @reason_for_not_delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for not delivered'**
+  String get reason_for_not_delivered;
+
+  /// No description provided for @not_delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Delivered'**
+  String get not_delivered;
+
   /// No description provided for @appSettings.
   ///
   /// In en, this message translates to:
   /// **'App Settings'**
   String get appSettings;
+
+  /// No description provided for @delivered_to_target_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered to target location'**
+  String get delivered_to_target_location;
 
   /// No description provided for @buildNumber.
   ///
@@ -325,6 +379,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Product Inside Graveyard'**
   String get productInsideGraveyard;
+
+  /// No description provided for @batch_Number.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch Number'**
+  String get batch_Number;
+
+  /// No description provided for @uploadingVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading Video'**
+  String get uploadingVideo;
+
+  /// No description provided for @uploadingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading Images'**
+  String get uploadingImages;
+
+  /// No description provided for @almostThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost There'**
+  String get almostThere;
 
   /// No description provided for @mosqueName.
   ///

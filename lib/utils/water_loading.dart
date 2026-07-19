@@ -43,64 +43,75 @@ class _WaterLoadingIndicatorState extends State<WaterLoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    // Proportional dimensions using the full widget size
-    final innerSize = widget.size;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Proportional dimensions using the full widget size, but respect parent constraints
+        double innerSize = widget.size;
+        if (constraints.maxWidth < innerSize) {
+          innerSize = constraints.maxWidth;
+        }
+        if (constraints.maxHeight < innerSize) {
+          innerSize = constraints.maxHeight;
+        }
 
-    final barWidth = innerSize * 0.12;
-    final spacing = innerSize * 0.08;
+        final barWidth = innerSize * 0.12;
+        final spacing = innerSize * 0.08;
 
-    final Widget animationWidget = AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        // Build the list of animated bars
-        final List<Widget> bars = List.generate(5, (index) {
-          // Calculate individual bar motion using sine wave and specific speed/phase offsets
-          final double angle =
-              (_controller.value * 2 * math.pi * _speedMultipliers[index]) +
-              (index * 0.65);
-          final double sineValue =
-              (math.sin(angle) + 1.0) / 2.0; // Map from [-1, 1] to [0, 1]
+        final Widget animationWidget = AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            // Build the list of animated bars
+            final List<Widget> bars = List.generate(5, (index) {
+              // Calculate individual bar motion using sine wave and specific speed/phase offsets
+              final double angle =
+                  (_controller.value * 2 * math.pi * _speedMultipliers[index]) +
+                  (index * 0.65);
+              final double sineValue =
+                  (math.sin(angle) + 1.0) / 2.0; // Map from [-1, 1] to [0, 1]
 
-          // Final animated height for this specific bar
-          final double heightFactor =
-              _minHeights[index] +
-              (_maxHeights[index] - _minHeights[index]) * sineValue;
-          final double barHeight = innerSize * heightFactor;
+              // Final animated height for this specific bar
+              final double heightFactor =
+                  _minHeights[index] +
+                  (_maxHeights[index] - _minHeights[index]) * sineValue;
+              final double barHeight = innerSize * heightFactor;
 
-          return Container(
-            width: barWidth,
-            height: barHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(barWidth / 2),
-              color: widget.waveColor1 ?? AppColors.buttonBlueDark,
-            ),
-          );
-        });
+              return Container(
+                width: barWidth,
+                height: barHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(barWidth / 2),
+                  color: widget.waveColor1 ?? AppColors.buttonBlueDark,
+                ),
+              );
+            });
 
-        final Widget soundwave = SizedBox(
-          width: innerSize,
-          height: innerSize,
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: List.generate(bars.length * 2 - 1, (index) {
-                // Alternate between bar widgets and spacing gaps
-                if (index.isEven) {
-                  return bars[index ~/ 2];
-                } else {
-                  return SizedBox(width: spacing);
-                }
-              }),
-            ),
-          ),
+            final Widget soundwave = SizedBox(
+              width: innerSize,
+              height: innerSize,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: List.generate(bars.length * 2 - 1, (index) {
+                  // Alternate between bar widgets and spacing gaps
+                  if (index.isEven) {
+                    return bars[index ~/ 2];
+                  } else {
+                    return SizedBox(width: spacing);
+                  }
+                }),
+              ),
+            );
+
+            return soundwave;
+          },
         );
 
-        return soundwave;
+        return SizedBox(
+          width: innerSize,
+          height: innerSize,
+          child: Center(child: animationWidget),
+        );
       },
     );
-
-    return SizedBox(height: widget.size, child: animationWidget);
   }
 }

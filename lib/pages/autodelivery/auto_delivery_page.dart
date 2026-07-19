@@ -1,11 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
+import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/pages/autodelivery/auto_delivery_details_page.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AutoDeliveryPage extends StatefulWidget {
   const AutoDeliveryPage({super.key});
@@ -154,156 +158,200 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
       itemCount: _allItems.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _buildItemCard(_allItems[index]),
+      itemBuilder: (context, index) => _buildOrderCard(_allItems[index]),
     );
   }
 
-  Widget _buildItemCard(DriverAutoDelivery item) {
-    final statusColor = _getStatusColor(item.status);
-    final isLtr = Directionality.of(context) == TextDirection.ltr;
-    final productName = item.product != null
-        ? (isLtr
-              ? item.product!.name
-              : (item.product!.nameAr ?? item.product!.name))
-        : AppLocalizations.of(context)!.product;
-
+  Widget _buildOrderCard(DriverAutoDelivery order) {
+    final bool isAr = Directionality.of(context) == TextDirection.rtl;
     return Material(
       color: Colors.white,
-      elevation: 2,
+      elevation: 1,
+
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: item.status == 'DELIVERED'
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AutoDeliveryDetailsPage(item: item),
-                  ),
-                ).then((_) => _fetchItems());
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return ProofSubmissionPage(
+                  autoDelivery: order,
+                  orderId: order.id,
+                  isAutoOrder: false,
+                  isAutoDelivery: true,
+                  subOrders: [],
+                );
               },
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (item.product?.image != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.product!.image!,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 50,
-                      height: 50,
-                      color: Colors.grey.shade100,
-                      child: const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.water_drop_outlined,
-                    color: AppColors.buttonBlueDark,
-                    size: 24,
-                  ),
-                ),
-              const SizedBox(width: 16),
               Expanded(
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      productName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.batchNumber ?? "",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black38,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 14,
-                          color: AppColors.buttonBlueDark,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${item.quantity ?? 0}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                    // if (order.product?.image != null)
+                    //   ClipRRect(
+                    //     borderRadius: BorderRadius.circular(12),
+                    //     child: CachedNetworkImage(
+                    //       imageUrl: order.product!.image!,
+                    //       width: 64,
+                    //       height: 64,
+                    //       fit: BoxFit.cover,
+                    //       placeholder: (context, url) => Shimmer.fromColors(
+                    //         baseColor: Colors.grey[300]!,
+                    //         highlightColor: Colors.grey[100]!,
+                    //         child: Container(
+                    //           width: 64,
+                    //           height: 64,
+                    //           color: Colors.white,
+                    //         ),
+                    //       ),
+                    //       errorWidget: (context, url, error) {
+                    //         return Container(
+                    //           width: 64,
+                    //           height: 64,
+                    //           padding: const EdgeInsets.all(12),
+                    //           decoration: BoxDecoration(
+                    //             color: AppColors.buttonBlueDark.withValues(
+                    //               alpha: 0.08,
+                    //             ),
+                    //             borderRadius: BorderRadius.circular(12),
+                    //           ),
+                    //           child: Icon(
+                    //             Icons.mosque,
+                    //             color: AppColors.buttonBlueDark,
+                    //             size: 32,
+                    //           ),
+                    //         );
+                    //       },
+                    //     ),
+                    //   )
+                    // else
+                    //   Container(
+                    //     width: 64,
+                    //     height: 64,
+                    //     padding: const EdgeInsets.all(12),
+                    //     decoration: BoxDecoration(
+                    //       color: AppColors.buttonBlueDark.withValues(
+                    //         alpha: 0.08,
+                    //       ),
+                    //       borderRadius: BorderRadius.circular(12),
+                    //     ),
+                    //     child: Icon(
+                    //       Icons.mosque,
+                    //       color: AppColors.buttonBlueDark,
+                    //       size: 32,
+                    //     ),
+                    //   ),
+                    // const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            isAr
+                                ? order.deliveryLocation!.campaign!.titleAr ??
+                                      'No Name'
+                                : order.deliveryLocation!.campaign!.title ??
+                                      'No Name',
+
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 14,
-                          color: AppColors.buttonBlueDark,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${item.orderCount ?? 0}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _formatStatus(context, item.status),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
-                        ),
+                          const SizedBox(height: 3),
+                          if (order.deliveryLocation?.campaign != null) ...[
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 20,
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  isAr
+                                      ? order.product?.nameAr ?? 'No Name'
+                                      : order.product?.name ?? 'No Name',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.buttonBlueDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 3),
+                          if (order.quantity != 0 && order.orderCount != 0) ...[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Symbols.package_2,
+                                      size: 20,
+                                      color: AppColors.buttonBlueDark,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      "${order.quantity} ${AppLocalizations.of(context)!.packages}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.buttonBlueDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Symbols.delivery_truck_speed,
+                                      size: 20,
+                                      color: AppColors.buttonBlueDark,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      "${order.orderCount} ${AppLocalizations.of(context)!.orders}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.buttonBlueDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-              item.status == "PENDING"
-                  ? Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.grey[400],
-                      size: 14,
-                    )
-                  : const SizedBox.shrink(),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.grey[400],
+                size: 14,
+              ),
             ],
           ),
         ),
@@ -393,48 +441,5 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
         ),
       ),
     );
-  }
-
-  String _formatStatus(BuildContext context, String? status) {
-    final l10n = AppLocalizations.of(context)!;
-    if (status == null) return l10n.pending;
-    switch (status.toUpperCase()) {
-      case 'PENDING':
-        return l10n.pending;
-      case 'DELIVERED':
-        return l10n.delivered;
-      case 'COMPLETED':
-        return l10n.completed;
-      case 'CANCELLED':
-        return l10n.cancelled;
-      case 'REJECTED':
-        return l10n.rejected;
-      case 'IN_TRANSIT':
-        return l10n.inTransit;
-      case 'ASSIGNED':
-        return l10n.assignedStat;
-      case 'ACCEPTED':
-        return l10n.accepted;
-      default:
-        return status.replaceAll('_', ' ');
-    }
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toUpperCase()) {
-      case 'DELIVERED':
-      case 'COMPLETED':
-        return Colors.green;
-      case 'CANCELLED':
-      case 'REJECTED':
-        return Colors.red;
-      case 'IN_TRANSIT':
-        return Colors.orange;
-      case 'ASSIGNED':
-      case 'ACCEPTED':
-        return AppColors.buttonBlueDark;
-      default:
-        return Colors.blueGrey;
-    }
   }
 }

@@ -173,8 +173,6 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -334,11 +332,14 @@ class _ProfileTabState extends State<ProfileTab> {
                                   // Show error toast
                                   CustomSnackbar.show(
                                     context: context,
-                                    message: AppLocalizations.of(context)!.somethingWentWrong,
+                                    message: AppLocalizations.of(
+                                      context,
+                                    )!.somethingWentWrong,
                                   );
                                 }
                               },
                             ),
+                            const SizedBox(height: 12),
                             _buildStandaloneTile(
                               icon: Icons.policy_outlined,
                               title: AppLocalizations.of(
@@ -357,7 +358,9 @@ class _ProfileTabState extends State<ProfileTab> {
                                   // Show error toast
                                   CustomSnackbar.show(
                                     context: context,
-                                    message: AppLocalizations.of(context)!.somethingWentWrong,
+                                    message: AppLocalizations.of(
+                                      context,
+                                    )!.somethingWentWrong,
                                   );
                                 }
                               },

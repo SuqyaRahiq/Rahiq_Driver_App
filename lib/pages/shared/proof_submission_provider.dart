@@ -17,6 +17,7 @@ class SubOrderProof {
   String? differentMosqueReason;
   String? deliveredLocationId;
   String? deliveredLocationName;
+  bool isLoadingLocations = false;
 
   SubOrderProof(this.subOrderId);
 }
@@ -188,12 +189,31 @@ class ProofSubmissionProvider extends ChangeNotifier {
   }
 
   bool get canSubmit {
+    // For multi-select / shared mode: allow flexible mix of global + per-suborder images.
+    // Each of the 4 required images can come from either global or suborder-specific source.
+    // Scenarios:
+    //   1. Global mosque front + inside (bulk upload) + per-suborder package + video
+    //   2. All 4 images manually selected per suborder
+    //   3. Mix: some from global, some from suborder
     if (isMultiSelect || _useSameImages) {
-      if (_globalMosqueFrontImage == null ||
-          _globalMosqueInsideImage == null ||
-          _globalPackagesImage == null ||
-          _globalProofVideo == null) {
-        return false;
+      for (final p in _proofs) {
+        final mosqueFront = _globalMosqueFrontImage ?? p.mosqueFrontImage;
+        final mosqueInside = _globalMosqueInsideImage ?? p.mosqueInsideImage;
+        final packages = p.packagesImage;
+        final video = p.proofVideo;
+
+        if (mosqueFront == null ||
+            mosqueInside == null ||
+            packages == null ||
+            video == null) {
+          return false;
+        }
+
+        if (p.deliveredToDifferentMosque &&
+            (p.differentMosqueReason == null ||
+                p.differentMosqueReason!.isEmpty)) {
+          return false;
+        }
       }
       return true;
     } else {
@@ -209,35 +229,97 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
+  /// Returns a short code describing why submission is not allowed, or `null`
+  /// when `canSubmit` is true. Useful for debugging UI state when the button
+  /// stays disabled.
+  String? get missingSubmitReason {
+    if (isMultiSelect || _useSameImages) {
+      for (final p in _proofs) {
+        final mosqueFront = _globalMosqueFrontImage ?? p.mosqueFrontImage;
+        final mosqueInside = _globalMosqueInsideImage ?? p.mosqueInsideImage;
+        final packages = _globalPackagesImage ?? p.packagesImage;
+        final video = _globalProofVideo ?? p.proofVideo;
+
+        if (mosqueFront == null)
+          return 'missing_mosque_front_for_${p.subOrderId}';
+        if (mosqueInside == null)
+          return 'missing_mosque_inside_for_${p.subOrderId}';
+        if (packages == null) return 'missing_packages_for_${p.subOrderId}';
+        if (video == null) return 'missing_video_for_${p.subOrderId}';
+
+        if (p.deliveredToDifferentMosque &&
+            (p.differentMosqueReason == null ||
+                p.differentMosqueReason!.isEmpty)) {
+          return 'missing_different_mosque_reason_for_${p.subOrderId}';
+        }
+      }
+      return null;
+    } else {
+      if (_proofs.isEmpty) return 'no_proofs_available';
+      final p = _proofs.first;
+      if (p.mosqueFrontImage == null) return 'missing_mosque_front';
+      if (p.mosqueInsideImage == null) return 'missing_mosque_inside';
+      if (p.packagesImage == null) return 'missing_packages_image';
+      if (p.proofVideo == null) return 'missing_proof_video';
+      if (p.deliveredToDifferentMosque &&
+          (p.differentMosqueReason == null ||
+              p.differentMosqueReason!.isEmpty)) {
+        return 'missing_different_mosque_reason';
+      }
+      return null;
+    }
+  }
+
   Future<bool> submitProofs() async {
     _isSubmitting = true;
     notifyListeners();
 
     try {
+      print("Checking Autodelivey or not");
       if (isAutoDelivery) {
-        if (!canSubmit) throw Exception('missing_media');
+        if (!canSubmit) throw Exception(missingSubmitReason);
+        print('[ProofSubmission] Submitting auto-delivery: $orderId');
+        print('[ProofSubmission] Mosque front: $_globalMosqueFrontImage');
+        print('[ProofSubmission] Mosque inside: $_globalMosqueInsideImage');
+        print('[ProofSubmission] Packages: $_globalPackagesImage');
+        print('[ProofSubmission] Video: $_globalProofVideo');
+
+        // For auto-delivery, we need all 4 global images (or use fallback from first proof)
+        final mosqueFront =
+            _globalMosqueFrontImage ??
+            (_proofs.isNotEmpty ? _proofs.first.mosqueFrontImage : null);
+        final mosqueInside =
+            _globalMosqueInsideImage ??
+            (_proofs.isNotEmpty ? _proofs.first.mosqueInsideImage : null);
+        final packages =
+            _globalPackagesImage ??
+            (_proofs.isNotEmpty ? _proofs.first.packagesImage : null);
+        final video =
+            _globalProofVideo ??
+            (_proofs.isNotEmpty ? _proofs.first.proofVideo : null);
+
         await _autoDeliveriesApi.confirmAutoDelivery(
           deliveryId: orderId,
-          mosqueFrontImage: _globalMosqueFrontImage!,
-          mosqueInsideImage: _globalMosqueInsideImage!,
-          packagesImage: _globalPackagesImage!,
-          deliveryVideo: _globalProofVideo!,
+          mosqueFrontImage: mosqueFront!,
+          mosqueInsideImage: mosqueInside!,
+          packagesImage: packages!,
+          deliveryVideo: video!,
         );
       } else {
-        // Normal Order or Auto Order (confirm sub order)
-        if (!canSubmit) throw Exception('missing_media');
         final p = _proofs.first;
 
         final frontImg = _useSameImages
-            ? _globalMosqueFrontImage!
+            ? (_globalMosqueFrontImage ?? p.mosqueFrontImage!)
             : p.mosqueFrontImage!;
         final insideImg = _useSameImages
-            ? _globalMosqueInsideImage!
+            ? (_globalMosqueInsideImage ?? p.mosqueInsideImage!)
             : p.mosqueInsideImage!;
         final packagesImg = _useSameImages
-            ? _globalPackagesImage!
+            ? (_globalPackagesImage ?? p.packagesImage!)
             : p.packagesImage!;
-        final videoImg = _useSameImages ? _globalProofVideo! : p.proofVideo!;
+        final videoImg = _useSameImages
+            ? (_globalProofVideo ?? p.proofVideo!)
+            : p.proofVideo!;
 
         await _api.confirmSubOrder(
           subOrderId: p.subOrderId,
@@ -250,13 +332,25 @@ class ProofSubmissionProvider extends ChangeNotifier {
           deliveredLocationId: p.deliveredLocationId,
         );
       }
+
       _isSubmitting = false;
       notifyListeners();
       return true;
     } catch (e) {
+      print('[ProofSubmission] Error submitting proofs: $e');
       _isSubmitting = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  void setLoadingLocations(String subOrderId, bool loading) {
+    try {
+      final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
+      proof.isLoadingLocations = loading;
+      notifyListeners();
+    } catch (e) {
+      // SubOrder proof not found
     }
   }
 

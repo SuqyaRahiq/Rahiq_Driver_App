@@ -33,6 +33,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supplier => 'Supplier';
 
   @override
+  String get selectDeliveredLocationOptional =>
+      'Select the location you delivered to (Optional)';
+
+  @override
   String get logoutConfirmation => 'Are you sure you want to logout?';
 
   @override
@@ -45,16 +49,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsConditions => 'Terms & Conditions';
 
   @override
+  String get failed_to_load_locations => 'Failed to load locations';
+
+  @override
+  String get select_delivered_location =>
+      'Select the location you delivered to (optional)';
+
+  @override
+  String get no_locations_available => 'No Locations Available';
+
+  @override
+  String get no_reason_selected => 'No reason selected';
+
+  @override
   String get accountSection => 'Account';
 
   @override
   String get welcomeToTheDriverDashboard => 'Welcome to the Driver Dashboard';
 
   @override
+  String get delivery_location => 'Delivery Location';
+
+  @override
   String get manageAccountSettings => 'Manage account settings';
 
   @override
+  String get reason_for_not_delivered => 'Reason for not delivered';
+
+  @override
+  String get not_delivered => 'Not Delivered';
+
+  @override
   String get appSettings => 'App Settings';
+
+  @override
+  String get delivered_to_target_location => 'Delivered to target location';
 
   @override
   String get buildNumber => 'Build Number';
@@ -125,6 +154,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productInsideGraveyard => 'Product Inside Graveyard';
+
+  @override
+  String get batch_Number => 'Batch Number';
+
+  @override
+  String get uploadingVideo => 'Uploading Video';
+
+  @override
+  String get uploadingImages => 'Uploading Images';
+
+  @override
+  String get almostThere => 'Almost There';
 
   @override
   String get mosqueName => 'Mosque Name';

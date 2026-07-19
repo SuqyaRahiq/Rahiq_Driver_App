@@ -60,7 +60,7 @@ class CustomBottomNavBar extends StatelessWidget {
                               begin: AlignmentDirectional.topStart,
                               end: AlignmentDirectional.bottomEnd,
                               colors: [
-                                Color(0xFF1A6A8F),
+                                AppColors.buttonBlueDark,
                                 Color(0xFF1D6F94),
                                 Color(0xFF217498),
                                 Color(0xFF24799D),
@@ -71,10 +71,6 @@ class CustomBottomNavBar extends StatelessWidget {
                                 Color(0xFF3493B5),
                                 Color(0xFF3798BA),
                                 Color(0xFF3B9EBE),
-                                Color(0xFF3EA3C3),
-                                Color(0xFF41A8C8),
-                                Color(0xFF45AECD),
-                                Color(0xFF48B3D2),
                               ],
                               stops: [
                                 0.0,
@@ -87,10 +83,7 @@ class CustomBottomNavBar extends StatelessWidget {
                                 0.5,
                                 0.5714,
                                 0.6429,
-                                0.7143,
-                                0.7857,
-                                0.8571,
-                                0.9286,
+
                                 1.0,
                               ],
                             )

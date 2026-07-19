@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_notifications_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_notification.dart';
 import 'package:rahiq_driver/data/api/api_exception.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 
@@ -282,7 +282,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildContent() {
-    final minHeight = MediaQuery.of(context).size.height -
+    final minHeight =
+        MediaQuery.of(context).size.height -
         90 -
         MediaQuery.paddingOf(context).top;
 
@@ -386,11 +387,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _buildNotificationItem(DriverNotification notification) {
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final title = (isArabic && notification.titleAr != null) 
-        ? notification.titleAr! 
+    final title = (isArabic && notification.titleAr != null)
+        ? notification.titleAr!
         : (notification.title ?? '');
-    final body = (isArabic && notification.bodyAr != null) 
-        ? notification.bodyAr! 
+    final body = (isArabic && notification.bodyAr != null)
+        ? notification.bodyAr!
         : (notification.body ?? '');
 
     return GestureDetector(
@@ -479,7 +480,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   const SizedBox(height: 12),
                   if (notification.createdAt != null)
                     Text(
-                      _formatDate(notification.createdAt!),
+                      _formatDate(notification.createdAt!, context),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[500],
@@ -509,16 +510,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
     final difference = now.difference(date);
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final locale = isRtl ? 'ar' : Localizations.localeOf(context).toString();
 
     if (difference.inDays == 0) {
-      return DateFormat.jm().format(date); // e.g., 5:30 PM
+      return DateFormat.jm(locale).format(date); // e.g., ٥:٣٠ م
     } else if (difference.inDays < 7) {
-      return DateFormat.E().format(date); // e.g., Mon, Tue
+      return DateFormat.E(locale).format(date); // e.g., الإثنين
     } else {
-      return DateFormat.MMMd().format(date); // e.g., Jun 6
+      return DateFormat.MMMd(locale).format(date); // e.g., ٦ يونيو
     }
   }
 }

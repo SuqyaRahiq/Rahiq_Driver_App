@@ -33,6 +33,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supplier => 'المُوَرِّد';
 
   @override
+  String get selectDeliveredLocationOptional =>
+      'اختر الموقع الذي تم التوصيل إليه (اختياري)';
+
+  @override
   String get logoutConfirmation => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
 
   @override
@@ -45,16 +49,41 @@ class AppLocalizationsAr extends AppLocalizations {
   String get termsConditions => 'الشروط والأحكام';
 
   @override
+  String get failed_to_load_locations => 'تعذر تحميل المواقع';
+
+  @override
+  String get select_delivered_location =>
+      'اختر الموقع الذي تم التوصيل إليه (اختياري)';
+
+  @override
+  String get no_locations_available => 'لا توجد مواقع متاحة';
+
+  @override
+  String get no_reason_selected => 'لم يتم اختيار سبب';
+
+  @override
   String get accountSection => 'الحساب';
 
   @override
   String get welcomeToTheDriverDashboard => 'مرحبًا بك في لوحة تحكم السائق';
 
   @override
+  String get delivery_location => 'موقع التوصيل';
+
+  @override
   String get manageAccountSettings => 'إدارة إعدادات الحساب';
 
   @override
+  String get reason_for_not_delivered => 'سبب عدم التوصيل';
+
+  @override
+  String get not_delivered => 'لم يتم التوصيل';
+
+  @override
   String get appSettings => 'إعدادات التطبيق';
+
+  @override
+  String get delivered_to_target_location => 'تم التوصيل إلى الموقع المحدد';
 
   @override
   String get buildNumber => 'رقم البناء';
@@ -125,6 +154,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get productInsideGraveyard => 'المنتج داخل المقبرة';
+
+  @override
+  String get batch_Number => 'رقم الدفعة';
+
+  @override
+  String get uploadingVideo => 'جاري رفع الفيديو';
+
+  @override
+  String get uploadingImages => 'جاري رفع الصور';
+
+  @override
+  String get almostThere => 'أوشكنا على الانتهاء';
 
   @override
   String get mosqueName => 'اسم المسجد';

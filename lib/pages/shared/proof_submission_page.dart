@@ -1,12 +1,16 @@
+import 'dart:async' show Timer;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/rtl_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -15,17 +19,18 @@ import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
+import 'package:rahiq_driver/data/api/api_client.dart';
+import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
+import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
 
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
-import 'package:rahiq_driver/data/models/driver/place.dart';
-import 'package:rahiq_driver/pages/shared/driver_specific_mosque_page.dart'
-    as import_page;
 
 class ProofSubmissionPage extends StatelessWidget {
   final String orderId;
   final bool isAutoOrder;
   final bool isAutoDelivery;
+  final DriverAutoDelivery? autoDelivery;
   final List<String> subOrders;
   final Map<String, dynamic>? singleCustomerData;
   final NormalSubOrder? normalSubOrder;
@@ -40,6 +45,7 @@ class ProofSubmissionPage extends StatelessWidget {
     super.key,
     required this.orderId,
     required this.isAutoOrder,
+    this.autoDelivery,
     this.isAutoDelivery = false,
     required this.subOrders,
     this.singleCustomerData,
@@ -54,6 +60,7 @@ class ProofSubmissionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isAr = Directionality.of(context) == TextDirection.rtl;
     return ChangeNotifierProvider(
       create: (_) => ProofSubmissionProvider(
         orderId: orderId,
@@ -68,18 +75,67 @@ class ProofSubmissionPage extends StatelessWidget {
         body: Consumer<ProofSubmissionProvider>(
           builder: (context, provider, child) {
             if (provider.isSubmitting) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const WaterLoadingIndicator(size: 30),
-                    SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.completingOrder,
-                      style: const TextStyle(color: AppColors.buttonBlueDark),
+              return Stack(
+                children: [
+                  Positioned(
+                    top: -100,
+                    right: isAr ? null : -100,
+                    left: isAr ? -100 : null,
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppColors.buttonBlueDark.withValues(alpha: 0.15),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.2, 1.0],
+                        ),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    bottom: 100,
+                    right: isAr ? -100 : null,
+                    left: isAr ? null : -100,
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppColors.buttonBlueDark.withValues(alpha: 0.15),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.2, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const WaterLoadingIndicator(size: 32),
+                        const SizedBox(height: 16),
+                        _CyclingStatusText(
+                          messages: [
+                            AppLocalizations.of(context)!.completingOrder,
+                            AppLocalizations.of(context)!.uploadingImages,
+                            AppLocalizations.of(context)!.uploadingVideo,
+                            AppLocalizations.of(context)!.almostThere,
+                          ],
+                          style: const TextStyle(
+                            color: AppColors.buttonBlueDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               );
             }
 
@@ -185,8 +241,13 @@ class ProofSubmissionPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (!provider.isMultiSelect &&
-                                singleCustomerData != null) ...[
+                                singleCustomerData != null &&
+                                !isAutoDelivery) ...[
                               _buildCustomerCard(context, singleCustomerData!),
+                              const SizedBox(height: 12),
+                            ],
+                            if (isAutoDelivery) ...[
+                              _buildAutoDeliveryCard(context, autoDelivery!),
                               const SizedBox(height: 12),
                             ],
 
@@ -206,51 +267,45 @@ class ProofSubmissionPage extends StatelessWidget {
                                   width: double.infinity,
                                   height: 55,
                                   child: ElevatedButton(
-                                    onPressed: provider.canSubmit
-                                        ? () async {
-                                            try {
-                                              await provider.submitProofs();
-                                              if (context.mounted) {
-                                                CustomSnackbar.show(
-                                                  context: context,
-                                                  message: AppLocalizations.of(
-                                                    context,
-                                                  )!.proofsUploaded,
-                                                );
-                                                Navigator.pop(context, true);
-                                              }
-                                            } catch (e) {
-                                              if (context.mounted) {
-                                                String errorMessage =
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.somethingWentWrong;
-                                                if (e.toString().contains(
-                                                  'missing_media',
-                                                )) {
-                                                  errorMessage =
-                                                      AppLocalizations.of(
-                                                        context,
-                                                      )!.missingMediaError;
-                                                } else if (e is DioException &&
-                                                    e.response?.data is Map &&
-                                                    e
-                                                            .response
-                                                            ?.data['message'] !=
-                                                        null) {
-                                                  errorMessage = e
-                                                      .response!
-                                                      .data['message'];
-                                                }
-                                                CustomSnackbar.show(
-                                                  context: context,
-                                                  message: errorMessage,
-                                                  isError: true,
-                                                );
-                                              }
-                                            }
+                                    onPressed: () async {
+                                      try {
+                                        await provider.submitProofs();
+                                        if (context.mounted) {
+                                          CustomSnackbar.show(
+                                            context: context,
+                                            message: AppLocalizations.of(
+                                              context,
+                                            )!.proofsUploaded,
+                                          );
+                                          Navigator.pop(context, true);
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          String errorMessage =
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.somethingWentWrong;
+                                          if (e.toString().contains(
+                                            'missing_media',
+                                          )) {
+                                            errorMessage = AppLocalizations.of(
+                                              context,
+                                            )!.missingMediaError;
+                                          } else if (e is DioException &&
+                                              e.response?.data is Map &&
+                                              e.response?.data['message'] !=
+                                                  null) {
+                                            errorMessage =
+                                                e.response!.data['message'];
                                           }
-                                        : null,
+                                          CustomSnackbar.show(
+                                            context: context,
+                                            message: errorMessage,
+                                            isError: true,
+                                          );
+                                        }
+                                      }
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.buttonBlueDark,
                                       disabledBackgroundColor: Colors.grey[300],
@@ -264,13 +319,9 @@ class ProofSubmissionPage extends StatelessWidget {
                                       ),
                                     ),
                                     child: Text(
-                                      provider.isMultiSelect
-                                          ? AppLocalizations.of(
-                                              context,
-                                            )!.completeOrders
-                                          : AppLocalizations.of(
-                                              context,
-                                            )!.completeOrder,
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.completeOrder,
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -289,6 +340,88 @@ class ProofSubmissionPage extends StatelessWidget {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAutoDeliveryCard(
+    BuildContext context,
+    DriverAutoDelivery order,
+  ) {
+    return Card(
+      elevation: 3,
+      margin: EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadiusGeometry.circular(20),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: EdgeInsetsGeometry.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "${AppLocalizations.of(context)!.batch_Number}: ${order.batchNumber}",
+            ),
+            const SizedBox(height: 6),
+            Divider(),
+            SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.packages,
+                      style: TextStyle(color: AppColors.grey, fontSize: 13),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      "${autoDelivery!.quantity} ${isRtl(context) ? autoDelivery!.product!.nameAr : autoDelivery!.product!.name}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.orders,
+                      style: TextStyle(color: AppColors.grey, fontSize: 13),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      "${autoDelivery!.orderCount} ${AppLocalizations.of(context)!.orders}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 2),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.locationLabel,
+              style: TextStyle(color: AppColors.grey, fontSize: 13),
+            ),
+            SizedBox(height: 3),
+            Text(
+              "${isRtl(context) ? autoDelivery!.deliveryLocation!.campaign!.titleAr : autoDelivery!.deliveryLocation!.campaign!.title} ",
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -318,8 +451,10 @@ class ProofSubmissionPage extends StatelessWidget {
       children: [
         _buildProofImagesSection(provider, context, proof),
         const SizedBox(height: 16),
-        _buildNotDeliveredSection(context, provider, proof),
-        const SizedBox(height: 16),
+        if (!isAutoDelivery && !isAutoOrder) ...[
+          _buildNotDeliveredSection(context, provider, proof),
+          const SizedBox(height: 16),
+        ],
       ],
     );
   }
@@ -338,11 +473,11 @@ class ProofSubmissionPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle('Delivery Location'),
+            _buildSectionTitle(AppLocalizations.of(context)!.delivery_location),
 
             const SizedBox(height: 12),
             _buildRadioOption(
-              title: 'Delivered to target location',
+              title: AppLocalizations.of(context)!.delivered_to_target_location,
               isSelected: !proof.deliveredToDifferentMosque,
               onTap: () {
                 proof.deliveredToDifferentMosque = false;
@@ -352,7 +487,7 @@ class ProofSubmissionPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildRadioOption(
-              title: 'Not Delivered',
+              title: AppLocalizations.of(context)!.not_delivered,
               isSelected: proof.deliveredToDifferentMosque,
               onTap: () {
                 _showReasonBottomSheet(context, provider, proof);
@@ -362,7 +497,7 @@ class ProofSubmissionPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 4, left: 4),
                 child: Text(
-                  'Reason for not delivered : ${proof.differentMosqueReason ?? 'no reason selected'}.',
+                  '${AppLocalizations.of(context)!.reason_for_not_delivered} : ${proof.differentMosqueReason ?? AppLocalizations.of(context)!.no_reason_selected}.',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -374,7 +509,7 @@ class ProofSubmissionPage extends StatelessWidget {
               Divider(color: Colors.grey, thickness: 1),
               const SizedBox(height: 12),
               Text(
-                "Select the location you delivered to (Optional)",
+                AppLocalizations.of(context)!.select_delivered_location,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -396,164 +531,74 @@ class ProofSubmissionPage extends StatelessWidget {
                         : Colors.white,
                   ),
                   onPressed: () async {
-                    final String? category = await showModalBottomSheet<String>(
-                      backgroundColor: Colors.white,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (context) {
-                        return SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.buttonBlueDark,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20),
-                                    topRight: Radius.circular(20),
-                                  ),
-                                ),
-                                padding: const EdgeInsets.only(
-                                  top: 24,
-                                  left: 16,
-                                  right: 16,
-                                  bottom: 24,
-                                ),
-                                child: Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => Navigator.pop(context),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.arrow_back_ios_new_rounded,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.select_category,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 48),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
+                    try {
+                      provider.setLoadingLocations(proof.subOrderId, true);
+                      final locationsApi = DriverLocationsApi(ApiClient());
+                      final locationsResponse = await locationsApi
+                          .getSubOrderLocationsContext(
+                            subOrderId: proof.subOrderId,
+                            page: 1,
+                            limit: 30,
+                          );
 
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Material(
-                                  elevation: 2,
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: ListTile(
-                                    title: Text(
-                                      AppLocalizations.of(context)!.orphanage,
-                                    ),
-                                    onTap: () =>
-                                        Navigator.pop(context, 'orphanages'),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Material(
-                                  elevation: 2,
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: ListTile(
-                                    title: Text(
-                                      AppLocalizations.of(context)!.mosque,
-                                    ),
-                                    onTap: () =>
-                                        Navigator.pop(context, 'mosques'),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Material(
-                                  elevation: 2,
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: ListTile(
-                                    title: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.meqat_mosque,
-                                    ),
-                                    onTap: () =>
-                                        Navigator.pop(context, 'meqat_mosques'),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                      if (!context.mounted) {
+                        provider.setLoadingLocations(proof.subOrderId, false);
+                        return;
+                      }
+
+                      if (locationsResponse.data.items.isEmpty) {
+                        provider.setLoadingLocations(proof.subOrderId, false);
+                        CustomSnackbar.show(
+                          context: context,
+                          message: AppLocalizations.of(
+                            context,
+                          )!.no_locations_available,
+                          isError: true,
                         );
-                      },
-                    );
+                        return;
+                      }
 
-                    if (category == null) return;
-
-                    if (!context.mounted) return;
-
-                    final Place? selected = await Navigator.push<Place>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => import_page.SpecificMosquePage(
-                          slug: category,
-                          title: AppLocalizations.of(context)!.locationLabel,
-                        ),
-                      ),
-                    );
-                    if (selected != null) {
-                      proof.deliveredLocationId = selected.id;
-                      proof.deliveredLocationName = selected.localizedName(
-                        Localizations.localeOf(context).languageCode == 'ar',
+                      _showLocationsBottomSheet(
+                        context,
+                        provider,
+                        proof,
+                        locationsResponse,
                       );
-                      provider.updateUI();
+                      provider.setLoadingLocations(proof.subOrderId, false);
+                    } catch (e) {
+                      print('[LocationsContext] Error: $e');
+                      provider.setLoadingLocations(proof.subOrderId, false);
+                      if (context.mounted) {
+                        CustomSnackbar.show(
+                          context: context,
+                          message: AppLocalizations.of(
+                            context,
+                          )!.failed_to_load_locations,
+                          isError: true,
+                        );
+                      }
                     }
                   },
-                  child: Text(
-                    proof.deliveredLocationName ??
-                        AppLocalizations.of(context)!.selectNewLocation,
-                    style: TextStyle(
-                      color: proof.deliveredLocationName != null
-                          ? Colors.white
-                          : AppColors.buttonBlueDark,
-                    ),
-                  ),
+
+                  child: proof.isLoadingLocations
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: WaterLoadingIndicator(
+                            waveColor1: proof.deliveredLocationName != null
+                                ? Colors.white
+                                : AppColors.buttonBlueDark,
+                          ),
+                        )
+                      : Text(
+                          proof.deliveredLocationName ??
+                              AppLocalizations.of(context)!.selectNewLocation,
+                          style: TextStyle(
+                            color: proof.deliveredLocationName != null
+                                ? Colors.white
+                                : AppColors.buttonBlueDark,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -568,12 +613,19 @@ class ProofSubmissionPage extends StatelessWidget {
     ProofSubmissionProvider provider,
     SubOrderProof proof,
   ) async {
-    final reasons = [
+    final reasonsEn = [
       "Mosque is under construction",
       "Mosque has been removed",
       "Mosque refused to accept water",
       "Mosque did not need the water",
       "Mosque was in a secuirity facility",
+    ];
+    final reasonsAr = [
+      "المسجد تحت الإنشاء",
+      "تم إزالة المسجد",
+      "رفض المسجد استلام المياه",
+      "المسجد لا يحتاج إلى المياه",
+      "المسجد داخل منشأة أمنية",
     ];
 
     final selected = await showModalBottomSheet<String>(
@@ -603,6 +655,7 @@ class ProofSubmissionPage extends StatelessWidget {
                   bottom: 24,
                 ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
@@ -620,11 +673,11 @@ class ProofSubmissionPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Reason for not delivered',
+                        AppLocalizations.of(context)!.reason_for_not_delivered,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -636,50 +689,100 @@ class ProofSubmissionPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              ...reasons.map(
-                (reason) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context, reason),
-                    child: Card(
-                      margin: EdgeInsets.all(0),
-                      elevation: 2,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
+
+              if (Directionality.of(context) == TextDirection.ltr) ...{
+                ...reasonsEn.map(
+                  (reason) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context, reason),
+                      child: Card(
+                        margin: EdgeInsets.all(0),
+                        elevation: 2,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade300),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                reason,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  reason,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: Colors.black54,
-                            ),
-                          ],
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Colors.black54,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              },
+              if (Directionality.of(context) == TextDirection.rtl) ...{
+                ...reasonsAr.map(
+                  (reason) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context, reason),
+                      child: Card(
+                        margin: EdgeInsets.all(0),
+                        elevation: 2,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  reason,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Colors.black54,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              },
+
               const SizedBox(height: 16),
             ],
           ),
@@ -774,13 +877,14 @@ class ProofSubmissionPage extends StatelessWidget {
               children: [
                 _buildDottedImagePicker(
                   context,
-                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                  label:
+                      (orderType?.toLowerCase() == 'orphanage' ||
                           orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.orphanageFront
                       : (orderType?.toLowerCase() == 'graveyard' ||
-                              orderType?.toLowerCase() == 'graveyards')
-                          ? AppLocalizations.of(context)!.graveyardFront
-                          : AppLocalizations.of(context)!.mosqueFront,
+                            orderType?.toLowerCase() == 'graveyards')
+                      ? AppLocalizations.of(context)!.graveyardFront
+                      : AppLocalizations.of(context)!.mosqueFront,
                   path: proof.mosqueFrontImage,
                   onPick: (source) => provider.pickSubOrderImage(
                     proof.subOrderId,
@@ -788,16 +892,17 @@ class ProofSubmissionPage extends StatelessWidget {
                     source,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 _buildDottedImagePicker(
                   context,
-                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                  label:
+                      (orderType?.toLowerCase() == 'orphanage' ||
                           orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.orphanageInsideImage
                       : (orderType?.toLowerCase() == 'graveyard' ||
-                              orderType?.toLowerCase() == 'graveyards')
-                          ? AppLocalizations.of(context)!.graveyardInsideImage
-                          : AppLocalizations.of(context)!.mosqueInsideImage,
+                            orderType?.toLowerCase() == 'graveyards')
+                      ? AppLocalizations.of(context)!.graveyardInsideImage
+                      : AppLocalizations.of(context)!.mosqueInsideImage,
                   path: proof.mosqueInsideImage,
                   onPick: (source) => provider.pickSubOrderImage(
                     proof.subOrderId,
@@ -825,16 +930,17 @@ class ProofSubmissionPage extends StatelessWidget {
                     source,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 _buildDottedImagePicker(
                   context,
-                  label: (orderType?.toLowerCase() == 'orphanage' ||
+                  label:
+                      (orderType?.toLowerCase() == 'orphanage' ||
                           orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.productInsideOrphanage
                       : (orderType?.toLowerCase() == 'graveyard' ||
-                              orderType?.toLowerCase() == 'graveyards')
-                          ? AppLocalizations.of(context)!.productInsideGraveyard
-                          : AppLocalizations.of(context)!.productInsideMosque,
+                            orderType?.toLowerCase() == 'graveyards')
+                      ? AppLocalizations.of(context)!.productInsideGraveyard
+                      : AppLocalizations.of(context)!.productInsideMosque,
                   path: proof.proofVideo,
                   isVideo: true,
                   onPick: (source) => provider.pickSubOrderVideo(
@@ -926,6 +1032,25 @@ class ProofSubmissionPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLocationsBottomSheet(
+    BuildContext context,
+    ProofSubmissionProvider provider,
+    SubOrderProof proof,
+    LocationsContextResponse initialResponse,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => LocationsBottomSheetContent(
+        context: sheetContext,
+        provider: provider,
+        proof: proof,
+        initialResponse: initialResponse,
       ),
     );
   }
@@ -1255,11 +1380,14 @@ class ProofSubmissionPage extends StatelessWidget {
                               color: Colors.grey,
                             ),
                           ),
-                          Text(
-                            '$countryCode$phoneNumber',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              '$countryCode$phoneNumber',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
@@ -1442,6 +1570,405 @@ class ProofSubmissionPage extends StatelessWidget {
   }
 }
 
+class LocationsBottomSheetContent extends StatefulWidget {
+  final BuildContext context;
+  final ProofSubmissionProvider provider;
+  final SubOrderProof proof;
+  final LocationsContextResponse initialResponse;
+
+  const LocationsBottomSheetContent({
+    required this.context,
+    required this.provider,
+    required this.proof,
+    required this.initialResponse,
+    super.key,
+  });
+
+  @override
+  State<LocationsBottomSheetContent> createState() =>
+      _LocationsBottomSheetContentState();
+}
+
+class _LocationsBottomSheetContentState
+    extends State<LocationsBottomSheetContent> {
+  late LocationsContextResponse _currentResponse;
+  late ScrollController _scrollController;
+  bool _isLoadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentResponse = widget.initialResponse;
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _loadNextPage();
+    }
+  }
+
+  Future<void> _loadNextPage() async {
+    if (_isLoadingMore) return;
+    if (_currentResponse.data.meta.page >=
+        _currentResponse.data.meta.totalPages) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final locationsApi = DriverLocationsApi(ApiClient());
+      final nextPage = _currentResponse.data.meta.page + 1;
+      final response = await locationsApi.getSubOrderLocationsContext(
+        subOrderId: widget.proof.subOrderId,
+        page: nextPage,
+        limit: 30,
+      );
+
+      setState(() {
+        _currentResponse = LocationsContextResponse(
+          success: response.success,
+          message: response.message,
+          data: LocationsContextData(
+            items: [..._currentResponse.data.items, ...response.data.items],
+            meta: response.data.meta,
+          ),
+        );
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('Error loading next page: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: AppColors.buttonBlueDark,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            padding: const EdgeInsets.only(
+              top: 24,
+              left: 16,
+              right: 16,
+              bottom: 24,
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Select Delivery Location',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 42),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(color: AppColors.buttonBlueDark),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  itemCount:
+                      _currentResponse.data.items.length +
+                      (_isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _currentResponse.data.items.length) {
+                      return Column(
+                        children: List.generate(3, (itemIndex) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              elevation: 2,
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!,
+                                      highlightColor: Colors.grey[100]!,
+                                      child: Container(
+                                        width: 80,
+                                        height: 80,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 16,
+                                              width: double.infinity,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 12,
+                                              width: double.infinity,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 12,
+                                              width: 120,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!,
+                                      highlightColor: Colors.grey[100]!,
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      );
+                    }
+
+                    final location = _currentResponse.data.items[index];
+                    final isArabic =
+                        Localizations.localeOf(context).languageCode == 'ar';
+                    final displayName = isArabic
+                        ? location.nameAr
+                        : location.name;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: () {
+                          widget.proof.deliveredLocationId = location.id;
+                          widget.proof.deliveredLocationName = displayName;
+                          widget.provider.updateUI();
+                          Navigator.pop(context);
+                        },
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          elevation: 2,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        width: 80,
+                                        height: 80,
+                                        color: Colors.grey[200],
+                                        child:
+                                            location.image != null &&
+                                                location.image!.isNotEmpty
+                                            ? CachedNetworkImage(
+                                                imageUrl: location.image!,
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) =>
+                                                    Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[300]!,
+                                                      highlightColor:
+                                                          Colors.grey[100]!,
+                                                      child: Container(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                errorWidget:
+                                                    (
+                                                      context,
+                                                      url,
+                                                      error,
+                                                    ) => const Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .location_on_outlined,
+                                                        color: AppColors
+                                                            .buttonBlueDark,
+                                                        size: 32,
+                                                      ),
+                                                    ),
+                                              )
+                                            : const Center(
+                                                child: Icon(
+                                                  Icons.location_on_outlined,
+                                                  color:
+                                                      AppColors.buttonBlueDark,
+                                                  size: 32,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            displayName,
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            location.address,
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '${location.zone.name} - ${location.zone.city.name}',
+                                            style: const TextStyle(
+                                              color: AppColors.buttonBlueDark,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.chevron_right,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class VideoThumbnailWidget extends StatefulWidget {
   final String path;
 
@@ -1557,7 +2084,7 @@ class _LocationLinkWidgetState extends State<_LocationLinkWidget> {
   }
 
   void _fetchAddress() {
-    _addressFuture = Geocoding()
+    _addressFuture = geocoding.Geocoding()
         .placemarkFromCoordinates(widget.latitude, widget.longitude)
         .then((placemarks) {
           if (placemarks.isNotEmpty) {
@@ -1610,6 +2137,53 @@ class _LocationLinkWidgetState extends State<_LocationLinkWidget> {
           ),
         );
       },
+    );
+  }
+}
+
+class _CyclingStatusText extends StatefulWidget {
+  final List<String> messages;
+  final TextStyle? style;
+
+  const _CyclingStatusText({required this.messages, this.style});
+
+  @override
+  State<_CyclingStatusText> createState() => _CyclingStatusTextState();
+}
+
+class _CyclingStatusTextState extends State<_CyclingStatusText> {
+  int _index = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(milliseconds: 1800), (_) {
+      if (!mounted) return;
+      setState(() {
+        _index = (_index + 1) % widget.messages.length;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      child: Text(
+        widget.messages[_index],
+        key: ValueKey<int>(_index),
+        style: widget.style,
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

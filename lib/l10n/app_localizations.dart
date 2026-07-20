@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Logout'**
   String get logout;
 
+  /// No description provided for @pastOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Orders'**
+  String get pastOrders;
+
   /// No description provided for @supplier.
   ///
   /// In en, this message translates to:
@@ -199,6 +205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No reason selected'**
   String get no_reason_selected;
+
+  /// No description provided for @select_delivery_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Delivered Location'**
+  String get select_delivery_location;
 
   /// No description provided for @accountSection.
   ///

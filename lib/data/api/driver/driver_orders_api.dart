@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../../models/driver/driver_order.dart';
 import '../../models/driver/driver_order_response.dart';
 import '../../models/driver/driver_dashboard_stats.dart';
 import '../../models/driver/normal_sub_order.dart';
@@ -39,7 +38,8 @@ class DriverOrdersApi {
         '/driver/orders/dashboard',
         options: Options(
           headers: eTag != null ? {'If-None-Match': eTag} : null,
-          validateStatus: (status) => status != null && (status == 200 || status == 304),
+          validateStatus: (status) =>
+              status != null && (status == 200 || status == 304),
         ),
       );
 
@@ -52,7 +52,7 @@ class DriverOrdersApi {
         (data) => DriverDashboardStats.fromJson(data['data']['stats']),
         fallbackError: 'Failed to get dashboard stats',
       );
-      
+
       stats.eTag = response.headers.value('etag');
       return stats;
     } on DioException catch (e) {

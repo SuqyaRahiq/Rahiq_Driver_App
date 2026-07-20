@@ -30,6 +30,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logout => 'تسجيل الخروج';
 
   @override
+  String get pastOrders => 'الطلبات السابقة';
+
+  @override
   String get supplier => 'المُوَرِّد';
 
   @override
@@ -60,6 +63,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get no_reason_selected => 'لم يتم اختيار سبب';
+
+  @override
+  String get select_delivery_location => 'اختر الموقع الذي تم التوصيل إليه';
 
   @override
   String get accountSection => 'الحساب';

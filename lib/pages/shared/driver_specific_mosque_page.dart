@@ -12,6 +12,7 @@ import '../../data/models/driver/meqat_mosque.dart';
 import '../../data/models/driver/orphanage.dart';
 import '../../data/models/driver/place.dart';
 import '../../utils/colors.dart';
+import 'package:rahiq_driver/utils/map_marker_icon.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class SpecificMosquePage extends StatefulWidget {
@@ -64,6 +65,7 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
   ];
 
   GoogleMapController? _mapController;
+  BitmapDescriptor? _mapPinIcon;
   final List<Place> _selectedItemsList = [];
 
   @override
@@ -77,6 +79,14 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
     _searchController.addListener(_onSearchChanged);
     _scrollController.addListener(_scrollListener);
     _initData();
+    _loadMapPinIcon();
+  }
+
+  Future<void> _loadMapPinIcon() async {
+    final mapPinIcon = await MapMarkerIcon.load();
+    if (mounted && mapPinIcon != null) {
+      setState(() => _mapPinIcon = mapPinIcon);
+    }
   }
 
   void _scrollListener() {
@@ -673,11 +683,7 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
       return Marker(
         markerId: MarkerId(item.id),
         position: LatLng(item.latitude, item.longitude),
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          _selectedItemsList.any((m) => m.id == item.id)
-              ? BitmapDescriptor.hueGreen
-              : 207.0,
-        ),
+        icon: _mapPinIcon ?? BitmapDescriptor.defaultMarker,
         infoWindow: InfoWindow(
           title: item.localizedName(isAr),
           snippet: item.address,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
+import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
@@ -23,10 +24,12 @@ class ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<ProfileTab> {
   bool _isLoggingOut = false;
   int _unreadNotificationsCount = 0;
+  DriverProfile? driver;
 
   @override
   void initState() {
     super.initState();
+    driver = AuthStorage.getUserData();
     _fetchUnreadNotificationsCount();
   }
 
@@ -300,19 +303,23 @@ class _ProfileTabState extends State<ProfileTab> {
                                 _fetchUnreadNotificationsCount();
                               },
                             ),
-                            const SizedBox(height: 12),
-                            _buildStandaloneTile(
-                              icon: Icons.settings_outlined,
-                              title: l10n.appSettings,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AppSettingsPage(),
-                                  ),
-                                );
-                              },
-                            ),
+
+                            if (driver?.canViewPastOrders == true) ...{
+                              const SizedBox(height: 12),
+                              _buildStandaloneTile(
+                                icon: Icons.settings_outlined,
+                                title: l10n.appSettings,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const AppSettingsPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            },
+
                             const SizedBox(height: 12),
                             _buildStandaloneTile(
                               icon: Icons.file_copy_outlined,

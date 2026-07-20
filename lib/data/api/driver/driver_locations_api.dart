@@ -10,11 +10,17 @@ class DriverLocationsApi {
     required String subOrderId,
     int page = 1,
     int limit = 30,
+    String? search,
   }) async {
     try {
       final response = await _apiClient.dio.get(
         '/driver/orders/sub-orders/$subOrderId/locations-context',
-        queryParameters: {'page': page, 'limit': limit},
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
+        },
       );
 
       return LocationsContextResponse.fromJson(response.data);

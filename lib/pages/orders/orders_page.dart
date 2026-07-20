@@ -11,6 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/pages/orders/order_details_page.dart';
+import 'package:rahiq_driver/utils/map_marker_icon.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
@@ -76,6 +77,14 @@ class _OrdersPageState extends State<OrdersPage>
   // Map State
   bool _isMapMode = false;
   GoogleMapController? _mapController;
+  BitmapDescriptor? _mapPinIcon;
+
+  Future<void> _loadMapPinIcon() async {
+    final mapPinIcon = await MapMarkerIcon.load();
+    if (mounted && mapPinIcon != null) {
+      setState(() => _mapPinIcon = mapPinIcon);
+    }
+  }
 
   Set<Marker> _buildMarkers() {
     final Set<Marker> markers = {};
@@ -89,7 +98,8 @@ class _OrdersPageState extends State<OrdersPage>
         Marker(
           markerId: MarkerId(order.id),
           position: LatLng(lat, lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(198.0),
+          icon:
+              _mapPinIcon ?? BitmapDescriptor.defaultMarkerWithHue(198.0),
           infoWindow: InfoWindow(
             title: order.title,
             snippet:
@@ -194,6 +204,7 @@ class _OrdersPageState extends State<OrdersPage>
     });
     _ordersApi = DriverOrdersApi(ApiClient());
     _getPhoneNumber();
+    _loadMapPinIcon();
 
     _fcmSubscription = FirebaseMessaging.onMessage.listen((
       RemoteMessage message,

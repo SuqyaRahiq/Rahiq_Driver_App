@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Logout';
 
   @override
+  String get pastOrders => 'Past Orders';
+
+  @override
   String get supplier => 'Supplier';
 
   @override
@@ -60,6 +63,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get no_reason_selected => 'No reason selected';
+
+  @override
+  String get select_delivery_location => 'Select Delivered Location';
 
   @override
   String get accountSection => 'Account';

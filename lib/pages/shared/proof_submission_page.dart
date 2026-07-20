@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
+import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
+import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/rtl_helpers.dart';
@@ -23,10 +25,9 @@ import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
 import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
-
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 
-class ProofSubmissionPage extends StatelessWidget {
+class ProofSubmissionPage extends StatefulWidget {
   final String orderId;
   final bool isAutoOrder;
   final bool isAutoDelivery;
@@ -59,16 +60,77 @@ class ProofSubmissionPage extends StatelessWidget {
   });
 
   @override
+  State<ProofSubmissionPage> createState() => _ProofSubmissionPageState();
+}
+
+class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
+  DriverProfile? driver;
+  bool _isCustomerCardLoading = true;
+  String? _customerAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    driver = AuthStorage.getUserData();
+    _prepareCustomerCard();
+  }
+
+  Future<void> _prepareCustomerCard() async {
+    await Future.wait([
+      Future<void>.delayed(const Duration(seconds: 1)),
+
+      _resolveCustomerAddress(),
+    ]);
+
+    if (mounted) {
+      setState(() => _isCustomerCardLoading = false);
+    }
+  }
+
+  Future<void> _resolveCustomerAddress() async {
+    final latitude = widget.latitude;
+    final longitude = widget.longitude;
+    if (latitude == null || longitude == null) return;
+
+    var address = '$latitude, $longitude';
+    try {
+      final placemarks = await geocoding.Geocoding().placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final resolvedAddress = [
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.administrativeArea,
+          place.country,
+        ].where((value) => value != null && value.isNotEmpty).join(', ');
+        if (resolvedAddress.isNotEmpty) {
+          address = resolvedAddress;
+        }
+      }
+    } catch (_) {
+      // Coordinates remain a useful fallback when reverse geocoding fails.
+    }
+
+    if (mounted) {
+      setState(() => _customerAddress = address);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     bool isAr = Directionality.of(context) == TextDirection.rtl;
     return ChangeNotifierProvider(
       create: (_) => ProofSubmissionProvider(
-        orderId: orderId,
-        isAutoOrder: isAutoOrder,
-        isAutoDelivery: isAutoDelivery,
-        subOrderIds: subOrders,
-        initialMosqueFrontImage: initialMosqueFrontImage,
-        initialMosqueInsideImage: initialMosqueInsideImage,
+        orderId: widget.orderId,
+        isAutoOrder: widget.isAutoOrder,
+        isAutoDelivery: widget.isAutoDelivery,
+        subOrderIds: widget.subOrders,
+        initialMosqueFrontImage: widget.initialMosqueFrontImage,
+        initialMosqueInsideImage: widget.initialMosqueInsideImage,
       ),
       child: Scaffold(
         backgroundColor: AppColors.white,
@@ -240,14 +302,22 @@ class ProofSubmissionPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!provider.isMultiSelect &&
-                                singleCustomerData != null &&
-                                !isAutoDelivery) ...[
-                              _buildCustomerCard(context, singleCustomerData!),
+                            if (widget.singleCustomerData != null &&
+                                !widget.isAutoDelivery) ...[
+                              _isCustomerCardLoading
+                                  ? _buildCustomerCardLoader()
+                                  : _buildCustomerCard(
+                                      context,
+                                      widget.singleCustomerData!,
+                                      driver?.canViewContact == true,
+                                    ),
                               const SizedBox(height: 12),
                             ],
-                            if (isAutoDelivery) ...[
-                              _buildAutoDeliveryCard(context, autoDelivery!),
+                            if (widget.isAutoDelivery) ...[
+                              _buildAutoDeliveryCard(
+                                context,
+                                widget.autoDelivery!,
+                              ),
                               const SizedBox(height: 12),
                             ],
 
@@ -378,7 +448,7 @@ class ProofSubmissionPage extends StatelessWidget {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      "${autoDelivery!.quantity} ${isRtl(context) ? autoDelivery!.product!.nameAr : autoDelivery!.product!.name}",
+                      "${widget.autoDelivery!.quantity} ${isRtl(context) ? widget.autoDelivery!.product!.nameAr : widget.autoDelivery!.product!.name}",
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.black,
@@ -395,7 +465,7 @@ class ProofSubmissionPage extends StatelessWidget {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      "${autoDelivery!.orderCount} ${AppLocalizations.of(context)!.orders}",
+                      "${widget.autoDelivery!.orderCount} ${AppLocalizations.of(context)!.orders}",
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.black,
@@ -414,7 +484,7 @@ class ProofSubmissionPage extends StatelessWidget {
             ),
             SizedBox(height: 3),
             Text(
-              "${isRtl(context) ? autoDelivery!.deliveryLocation!.campaign!.titleAr : autoDelivery!.deliveryLocation!.campaign!.title} ",
+              "${isRtl(context) ? widget.autoDelivery!.deliveryLocation!.campaign!.titleAr : widget.autoDelivery!.deliveryLocation!.campaign!.title} ",
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.black,
@@ -451,7 +521,7 @@ class ProofSubmissionPage extends StatelessWidget {
       children: [
         _buildProofImagesSection(provider, context, proof),
         const SizedBox(height: 16),
-        if (!isAutoDelivery && !isAutoOrder) ...[
+        if (!widget.isAutoDelivery && !widget.isAutoOrder) ...[
           _buildNotDeliveredSection(context, provider, proof),
           const SizedBox(height: 16),
         ],
@@ -863,11 +933,11 @@ class ProofSubmissionPage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSectionTitle(
-              (orderType?.toLowerCase() == 'orphanage' ||
-                      orderType?.toLowerCase() == 'orphanages')
+              (widget.orderType?.toLowerCase() == 'orphanage' ||
+                      widget.orderType?.toLowerCase() == 'orphanages')
                   ? AppLocalizations.of(context)!.orphanage_photos
-                  : (orderType?.toLowerCase() == 'graveyard' ||
-                        orderType?.toLowerCase() == 'graveyards')
+                  : (widget.orderType?.toLowerCase() == 'graveyard' ||
+                        widget.orderType?.toLowerCase() == 'graveyards')
                   ? AppLocalizations.of(context)!.graveyard_photos
                   : AppLocalizations.of(context)!.mosque_photos,
             ),
@@ -878,11 +948,11 @@ class ProofSubmissionPage extends StatelessWidget {
                 _buildDottedImagePicker(
                   context,
                   label:
-                      (orderType?.toLowerCase() == 'orphanage' ||
-                          orderType?.toLowerCase() == 'orphanages')
+                      (widget.orderType?.toLowerCase() == 'orphanage' ||
+                          widget.orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.orphanageFront
-                      : (orderType?.toLowerCase() == 'graveyard' ||
-                            orderType?.toLowerCase() == 'graveyards')
+                      : (widget.orderType?.toLowerCase() == 'graveyard' ||
+                            widget.orderType?.toLowerCase() == 'graveyards')
                       ? AppLocalizations.of(context)!.graveyardFront
                       : AppLocalizations.of(context)!.mosqueFront,
                   path: proof.mosqueFrontImage,
@@ -896,11 +966,11 @@ class ProofSubmissionPage extends StatelessWidget {
                 _buildDottedImagePicker(
                   context,
                   label:
-                      (orderType?.toLowerCase() == 'orphanage' ||
-                          orderType?.toLowerCase() == 'orphanages')
+                      (widget.orderType?.toLowerCase() == 'orphanage' ||
+                          widget.orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.orphanageInsideImage
-                      : (orderType?.toLowerCase() == 'graveyard' ||
-                            orderType?.toLowerCase() == 'graveyards')
+                      : (widget.orderType?.toLowerCase() == 'graveyard' ||
+                            widget.orderType?.toLowerCase() == 'graveyards')
                       ? AppLocalizations.of(context)!.graveyardInsideImage
                       : AppLocalizations.of(context)!.mosqueInsideImage,
                   path: proof.mosqueInsideImage,
@@ -934,11 +1004,11 @@ class ProofSubmissionPage extends StatelessWidget {
                 _buildDottedImagePicker(
                   context,
                   label:
-                      (orderType?.toLowerCase() == 'orphanage' ||
-                          orderType?.toLowerCase() == 'orphanages')
+                      (widget.orderType?.toLowerCase() == 'orphanage' ||
+                          widget.orderType?.toLowerCase() == 'orphanages')
                       ? AppLocalizations.of(context)!.productInsideOrphanage
-                      : (orderType?.toLowerCase() == 'graveyard' ||
-                            orderType?.toLowerCase() == 'graveyards')
+                      : (widget.orderType?.toLowerCase() == 'graveyard' ||
+                            widget.orderType?.toLowerCase() == 'graveyards')
                       ? AppLocalizations.of(context)!.productInsideGraveyard
                       : AppLocalizations.of(context)!.productInsideMosque,
                   path: proof.proofVideo,
@@ -966,7 +1036,7 @@ class ProofSubmissionPage extends StatelessWidget {
   }) {
     return Expanded(
       child: GestureDetector(
-        onTap: () => _showSourceBottomSheet(context, onPick, isVideo: isVideo),
+        onTap: () => _selectSource(context, onPick, isVideo: isVideo),
         child: Column(
           children: [
             DottedBorder(
@@ -1034,6 +1104,36 @@ class ProofSubmissionPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _selectSource(
+    BuildContext context,
+    Function(ImageSource) onPick, {
+    required bool isVideo,
+  }) async {
+    final canUploadFromGallery =
+        AuthStorage.getUserData()?.canUploadFromGallery == true;
+
+    if (canUploadFromGallery) {
+      _showSourceBottomSheet(context, onPick, isVideo: isVideo);
+      return;
+    }
+
+    await _pickSource(context, onPick, ImageSource.camera);
+  }
+
+  Future<void> _pickSource(
+    BuildContext context,
+    Function(ImageSource) onPick,
+    ImageSource source,
+  ) async {
+    final error = await onPick(source);
+    if (error != null && error is String && context.mounted) {
+      final errorMsg = error == 'video_too_long'
+          ? AppLocalizations.of(context)!.videoDurationLimitError
+          : error;
+      CustomSnackbar.show(context: context, message: errorMsg, isError: true);
+    }
   }
 
   void _showLocationsBottomSheet(
@@ -1169,21 +1269,11 @@ class ProofSubmissionPage extends StatelessWidget {
                               : AppLocalizations.of(sheetContext)!.takeAPhoto,
                           onTap: () async {
                             Navigator.pop(sheetContext);
-                            final error = await onPick(ImageSource.camera);
-                            if (error != null &&
-                                error is String &&
-                                parentContext.mounted) {
-                              final errorMsg = error == 'video_too_long'
-                                  ? AppLocalizations.of(
-                                      parentContext,
-                                    )!.videoDurationLimitError
-                                  : error;
-                              CustomSnackbar.show(
-                                context: parentContext,
-                                message: errorMsg,
-                                isError: true,
-                              );
-                            }
+                            await _pickSource(
+                              parentContext,
+                              onPick,
+                              ImageSource.camera,
+                            );
                           },
                         ),
                         const Divider(height: 1, color: Color(0xFFEAEFF2)),
@@ -1194,21 +1284,11 @@ class ProofSubmissionPage extends StatelessWidget {
                           )!.chooseFromGallery,
                           onTap: () async {
                             Navigator.pop(sheetContext);
-                            final error = await onPick(ImageSource.gallery);
-                            if (error != null &&
-                                error is String &&
-                                parentContext.mounted) {
-                              final errorMsg = error == 'video_too_long'
-                                  ? AppLocalizations.of(
-                                      parentContext,
-                                    )!.videoDurationLimitError
-                                  : error;
-                              CustomSnackbar.show(
-                                context: parentContext,
-                                message: errorMsg,
-                                isError: true,
-                              );
-                            }
+                            await _pickSource(
+                              parentContext,
+                              onPick,
+                              ImageSource.gallery,
+                            );
                           },
                         ),
                       ],
@@ -1270,8 +1350,10 @@ class ProofSubmissionPage extends StatelessWidget {
   Widget _buildCustomerCard(
     BuildContext context,
     Map<String, dynamic> customer,
+    bool canShowContact,
   ) {
-    final normalSub = normalSubOrder;
+    final normalSub = widget.normalSubOrder;
+    final deliveryNote = normalSub?.deliveryNotes;
 
     final firstName =
         normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';
@@ -1324,17 +1406,7 @@ class ProofSubmissionPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               children: [
-                Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Text(
-                    subOrderNumber,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
+                Text(AppLocalizations.of(context)!.orderNumber(subOrderNumber)),
               ],
             ),
           ),
@@ -1367,11 +1439,12 @@ class ProofSubmissionPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (phoneNumber != null &&
-                            phoneNumber.toString().isNotEmpty) ...[
+                    if (phoneNumber != null &&
+                        phoneNumber.toString().isNotEmpty &&
+                        canShowContact) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
                             AppLocalizations.of(context)!.phoneNumber,
                             style: const TextStyle(
@@ -1391,8 +1464,8 @@ class ProofSubmissionPage extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ],
-                    ),
+                      ),
+                    ],
 
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1408,8 +1481,8 @@ class ProofSubmissionPage extends StatelessWidget {
                           ),
                           Text(
                             Directionality.of(context) == TextDirection.ltr
-                                ? "$quantity ${product?.name ?? ''}"
-                                : "$quantity ${product?.nameAr ?? ''}",
+                                ? "$quantity ${widget.product?.name ?? ''}"
+                                : "$quantity ${widget.product?.nameAr ?? ''}",
 
                             style: const TextStyle(
                               fontSize: 14,
@@ -1444,7 +1517,7 @@ class ProofSubmissionPage extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (latitude != null && longitude != null) ...[
+                if (widget.latitude != null && widget.longitude != null) ...[
                   const SizedBox(height: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1459,15 +1532,19 @@ class ProofSubmissionPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       _LocationLinkWidget(
-                        latitude: latitude!,
-                        longitude: longitude!,
+                        latitude: widget.latitude!,
+                        longitude: widget.longitude!,
+                        address:
+                            _customerAddress ??
+                            '${widget.latitude}, ${widget.longitude}',
                       ),
                     ],
                   ),
                 ],
                 const SizedBox(height: 12),
                 if (phoneNumber != null &&
-                    phoneNumber.toString().isNotEmpty) ...{
+                    phoneNumber.toString().isNotEmpty &&
+                    driver?.canViewContact == true) ...{
                   Text(
                     AppLocalizations.of(context)!.contact_customer,
                     style: TextStyle(
@@ -1561,10 +1638,135 @@ class ProofSubmissionPage extends StatelessWidget {
                     ],
                   ),
                 },
+                if (deliveryNote != "" && deliveryNote != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    AppLocalizations.of(context)!.notes_text,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    deliveryNote,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerCardLoader() {
+    return Container(
+      width: double.infinity,
+      height: 385,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.buttonBlueDark.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCustomerCardSkeletonLine(width: 140, height: 16),
+            const SizedBox(height: 20),
+            const Divider(height: 1, color: Colors.white),
+            const SizedBox(height: 16),
+            _buildCustomerCardSkeletonLine(width: 90, height: 12),
+            const SizedBox(height: 6),
+            _buildCustomerCardSkeletonLine(width: 170, height: 16),
+            const SizedBox(height: 26),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCustomerCardSkeletonLine(width: 90, height: 12),
+                    const SizedBox(height: 6),
+                    _buildCustomerCardSkeletonLine(width: 170, height: 16),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCustomerCardSkeletonLine(width: 90, height: 12),
+                    const SizedBox(height: 6),
+                    _buildCustomerCardSkeletonLine(width: 170, height: 16),
+                  ],
+                ),
+                const SizedBox(height: 26),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildCustomerCardSkeletonLine(width: 60, height: 12),
+            const SizedBox(height: 10),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCustomerCardSkeletonLine(
+                  width: double.infinity,
+                  height: 14,
+                ),
+                SizedBox(height: 10),
+                _buildCustomerCardSkeletonLine(
+                  width: double.infinity,
+                  height: 14,
+                ),
+                SizedBox(height: 10),
+
+                _buildCustomerCardSkeletonLine(
+                  width: double.infinity,
+                  height: 14,
+                ),
+              ],
+            ),
+            SizedBox(height: 26),
+            _buildCustomerCardSkeletonLine(width: 80, height: 12),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildCustomerCardSkeletonLine(width: 50, height: 50),
+                SizedBox(width: 6),
+                _buildCustomerCardSkeletonLine(width: 50, height: 50),
+                SizedBox(width: 6),
+                _buildCustomerCardSkeletonLine(width: 50, height: 50),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerCardSkeletonLine({
+    double? width,
+    required double height,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
       ),
     );
   }
@@ -1593,7 +1795,11 @@ class _LocationsBottomSheetContentState
     extends State<LocationsBottomSheetContent> {
   late LocationsContextResponse _currentResponse;
   late ScrollController _scrollController;
+  late TextEditingController _searchController;
+  Timer? _searchDebounce;
   bool _isLoadingMore = false;
+  bool _isSearching = false;
+  int _searchRequestId = 0;
 
   @override
   void initState() {
@@ -1601,6 +1807,7 @@ class _LocationsBottomSheetContentState
     _currentResponse = widget.initialResponse;
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+    _searchController = TextEditingController();
   }
 
   void _onScroll() {
@@ -1622,13 +1829,18 @@ class _LocationsBottomSheetContentState
     });
 
     try {
+      final requestId = _searchRequestId;
+      final search = _searchController.text;
       final locationsApi = DriverLocationsApi(ApiClient());
       final nextPage = _currentResponse.data.meta.page + 1;
       final response = await locationsApi.getSubOrderLocationsContext(
         subOrderId: widget.proof.subOrderId,
         page: nextPage,
         limit: 30,
+        search: search,
       );
+
+      if (!mounted || requestId != _searchRequestId) return;
 
       setState(() {
         _currentResponse = LocationsContextResponse(
@@ -1649,8 +1861,69 @@ class _LocationsBottomSheetContentState
     }
   }
 
+  void _onSearchChanged(String _) {
+    _searchDebounce?.cancel();
+    ++_searchRequestId;
+    setState(() {});
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 400),
+      _searchLocations,
+    );
+  }
+
+  Future<void> _searchLocations() async {
+    final requestId = _searchRequestId;
+    final search = _searchController.text.trim();
+
+    setState(() {
+      _isSearching = true;
+      _isLoadingMore = false;
+    });
+
+    try {
+      final response = await DriverLocationsApi(ApiClient())
+          .getSubOrderLocationsContext(
+            subOrderId: widget.proof.subOrderId,
+            page: 1,
+            limit: 30,
+            search: search,
+          );
+
+      if (!mounted || requestId != _searchRequestId) return;
+
+      setState(() {
+        _currentResponse = response;
+        _isSearching = false;
+      });
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    } catch (e) {
+      if (!mounted || requestId != _searchRequestId) return;
+
+      setState(() {
+        _currentResponse = LocationsContextResponse(
+          success: false,
+          message: '',
+          data: LocationsContextData(
+            items: [],
+            meta: _currentResponse.data.meta,
+          ),
+        );
+        _isSearching = false;
+      });
+      CustomSnackbar.show(
+        context: context,
+        message: AppLocalizations.of(context)!.failed_to_load_locations,
+        isError: true,
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -1695,9 +1968,9 @@ class _LocationsBottomSheetContentState
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Select Delivery Location',
+                    AppLocalizations.of(context)!.select_delivery_location,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 20,
@@ -1722,243 +1995,362 @@ class _LocationsBottomSheetContentState
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  itemCount:
-                      _currentResponse.data.items.length +
-                      (_isLoadingMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == _currentResponse.data.items.length) {
-                      return Column(
-                        children: List.generate(3, (itemIndex) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              elevation: 2,
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Shimmer.fromColors(
-                                      baseColor: Colors.grey[300]!,
-                                      highlightColor: Colors.grey[100]!,
-                                      child: Container(
-                                        width: 80,
-                                        height: 80,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              height: 16,
-                                              width: double.infinity,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              height: 12,
-                                              width: double.infinity,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              height: 12,
-                                              width: 120,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Shimmer.fromColors(
-                                      baseColor: Colors.grey[300]!,
-                                      highlightColor: Colors.grey[100]!,
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      );
-                    }
-
-                    final location = _currentResponse.data.items[index];
-                    final isArabic =
-                        Localizations.localeOf(context).languageCode == 'ar';
-                    final displayName = isArabic
-                        ? location.nameAr
-                        : location.name;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: InkWell(
-                        onTap: () {
-                          widget.proof.deliveredLocationId = location.id;
-                          widget.proof.deliveredLocationName = displayName;
-                          widget.provider.updateUI();
-                          Navigator.pop(context);
-                        },
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 2,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: TextField(
+                        style: TextStyle(color: AppColors.black, fontSize: 14),
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        cursorColor: AppColors.buttonBlueDark,
+                        decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
+                            borderSide: BorderSide(
+                              color: AppColors.buttonBlueDark,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Container(
-                                        width: 80,
-                                        height: 80,
-                                        color: Colors.grey[200],
-                                        child:
-                                            location.image != null &&
-                                                location.image!.isNotEmpty
-                                            ? CachedNetworkImage(
-                                                imageUrl: location.image!,
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) =>
-                                                    Shimmer.fromColors(
-                                                      baseColor:
-                                                          Colors.grey[300]!,
-                                                      highlightColor:
-                                                          Colors.grey[100]!,
-                                                      child: Container(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                errorWidget:
-                                                    (
-                                                      context,
-                                                      url,
-                                                      error,
-                                                    ) => const Center(
-                                                      child: Icon(
-                                                        Icons
-                                                            .location_on_outlined,
-                                                        color: AppColors
-                                                            .buttonBlueDark,
-                                                        size: 32,
-                                                      ),
-                                                    ),
-                                              )
-                                            : const Center(
-                                                child: Icon(
-                                                  Icons.location_on_outlined,
-                                                  color:
-                                                      AppColors.buttonBlueDark,
-                                                  size: 32,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            displayName,
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            location.address,
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            '${location.zone.name} - ${location.zone.city.name}',
-                                            style: const TextStyle(
-                                              color: AppColors.buttonBlueDark,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.chevron_right,
-                                      color: Colors.black54,
-                                    ),
-                                  ],
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.buttonBlueDark,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.buttonBlueDark,
+                              width: 1.5,
+                            ),
+                          ),
+                          hintText: AppLocalizations.of(context)!.search,
+                          hintStyle: TextStyle(
+                            color: AppColors.black.withValues(alpha: 0.8),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchController.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                  },
                                 ),
-                              ],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.buttonBlueDark,
                             ),
                           ),
                         ),
                       ),
-                    );
-                  },
+                    ),
+                    Expanded(
+                      child: _isSearching
+                          ? Center(
+                              child: WaterLoadingIndicator(
+                                waveColor1: AppColors.buttonBlueDark,
+                              ),
+                            )
+                          : _currentResponse.data.items.isEmpty
+                          ? Center(
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.no_locations_available,
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              itemCount:
+                                  _currentResponse.data.items.length +
+                                  (_isLoadingMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index ==
+                                    _currentResponse.data.items.length) {
+                                  return Column(
+                                    children: List.generate(3, (itemIndex) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: Card(
+                                          margin: EdgeInsets.zero,
+                                          elevation: 2,
+                                          color: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            side: BorderSide(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300]!,
+                                                  highlightColor:
+                                                      Colors.grey[100]!,
+                                                  child: Container(
+                                                    width: 80,
+                                                    height: 80,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Shimmer.fromColors(
+                                                        baseColor:
+                                                            Colors.grey[300]!,
+                                                        highlightColor:
+                                                            Colors.grey[100]!,
+                                                        child: Container(
+                                                          height: 16,
+                                                          width:
+                                                              double.infinity,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Shimmer.fromColors(
+                                                        baseColor:
+                                                            Colors.grey[300]!,
+                                                        highlightColor:
+                                                            Colors.grey[100]!,
+                                                        child: Container(
+                                                          height: 12,
+                                                          width:
+                                                              double.infinity,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Shimmer.fromColors(
+                                                        baseColor:
+                                                            Colors.grey[300]!,
+                                                        highlightColor:
+                                                            Colors.grey[100]!,
+                                                        child: Container(
+                                                          height: 12,
+                                                          width: 120,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300]!,
+                                                  highlightColor:
+                                                      Colors.grey[100]!,
+                                                  child: Container(
+                                                    width: 24,
+                                                    height: 24,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          color: Colors.white,
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                }
+
+                                final location =
+                                    _currentResponse.data.items[index];
+                                final isArabic =
+                                    Localizations.localeOf(
+                                      context,
+                                    ).languageCode ==
+                                    'ar';
+                                final displayName = isArabic
+                                    ? location.nameAr
+                                    : location.name;
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: InkWell(
+                                    onTap: () {
+                                      widget.proof.deliveredLocationId =
+                                          location.id;
+                                      widget.proof.deliveredLocationName =
+                                          displayName;
+                                      widget.provider.updateUI();
+                                      Navigator.pop(context);
+                                    },
+                                    child: Card(
+                                      margin: EdgeInsets.zero,
+                                      elevation: 2,
+                                      color: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 16,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Container(
+                                                    width: 80,
+                                                    height: 80,
+                                                    color: Colors.grey[200],
+                                                    child:
+                                                        location.image !=
+                                                                null &&
+                                                            location
+                                                                .image!
+                                                                .isNotEmpty
+                                                        ? CachedNetworkImage(
+                                                            imageUrl:
+                                                                location.image!,
+                                                            fit: BoxFit.cover,
+                                                            placeholder:
+                                                                (
+                                                                  context,
+                                                                  url,
+                                                                ) => Shimmer.fromColors(
+                                                                  baseColor: Colors
+                                                                      .grey[300]!,
+                                                                  highlightColor:
+                                                                      Colors
+                                                                          .grey[100]!,
+                                                                  child: Container(
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                            errorWidget:
+                                                                (
+                                                                  context,
+                                                                  url,
+                                                                  error,
+                                                                ) => const Center(
+                                                                  child: Icon(
+                                                                    Icons
+                                                                        .location_on_outlined,
+                                                                    color: AppColors
+                                                                        .buttonBlueDark,
+                                                                    size: 32,
+                                                                  ),
+                                                                ),
+                                                          )
+                                                        : const Center(
+                                                            child: Icon(
+                                                              Icons
+                                                                  .location_on_outlined,
+                                                              color: AppColors
+                                                                  .buttonBlueDark,
+                                                              size: 32,
+                                                            ),
+                                                          ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        displayName,
+                                                        style: const TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 6),
+                                                      Text(
+                                                        location.address,
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                          fontSize: 12,
+                                                        ),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 6),
+                                                      Text(
+                                                        '${location.zone.name} - ${location.zone.city.name}',
+                                                        style: const TextStyle(
+                                                          color: AppColors
+                                                              .buttonBlueDark,
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Icon(
+                                                  Icons.chevron_right,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -2055,88 +2447,37 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
   }
 }
 
-class _LocationLinkWidget extends StatefulWidget {
+class _LocationLinkWidget extends StatelessWidget {
   final double latitude;
   final double longitude;
+  final String address;
 
-  const _LocationLinkWidget({required this.latitude, required this.longitude});
-
-  @override
-  State<_LocationLinkWidget> createState() => _LocationLinkWidgetState();
-}
-
-class _LocationLinkWidgetState extends State<_LocationLinkWidget> {
-  Future<String>? _addressFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchAddress();
-  }
-
-  @override
-  void didUpdateWidget(_LocationLinkWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.latitude != widget.latitude ||
-        oldWidget.longitude != widget.longitude) {
-      _fetchAddress();
-    }
-  }
-
-  void _fetchAddress() {
-    _addressFuture = geocoding.Geocoding()
-        .placemarkFromCoordinates(widget.latitude, widget.longitude)
-        .then((placemarks) {
-          if (placemarks.isNotEmpty) {
-            final place = placemarks.first;
-            return [
-              place.street,
-              place.subLocality,
-              place.locality,
-              place.administrativeArea,
-              place.country,
-            ].where((e) => e != null && e.isNotEmpty).join(', ');
-          }
-          return "${widget.latitude}, ${widget.longitude}";
-        })
-        .catchError((_) => "${widget.latitude}, ${widget.longitude}");
-  }
+  const _LocationLinkWidget({
+    required this.latitude,
+    required this.longitude,
+    required this.address,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: _addressFuture,
-      builder: (context, snapshot) {
-        String displayText = "${widget.latitude}, ${widget.longitude}";
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          displayText = "...";
-        } else if (snapshot.hasData) {
-          displayText = snapshot.data!;
+    return GestureDetector(
+      onTap: () async {
+        final url =
+            'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+        if (await canLaunchUrl(Uri.parse(url))) {
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         }
-
-        return GestureDetector(
-          onTap: () async {
-            final url =
-                'https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}';
-            if (await canLaunchUrl(Uri.parse(url))) {
-              await launchUrl(
-                Uri.parse(url),
-                mode: LaunchMode.externalApplication,
-              );
-            }
-          },
-          child: Text(
-            displayText,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.buttonBlueDark,
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.buttonBlueDark,
-            ),
-          ),
-        );
       },
+      child: Text(
+        address,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.buttonBlueDark,
+          decoration: TextDecoration.underline,
+          decorationColor: AppColors.buttonBlueDark,
+        ),
+      ),
     );
   }
 }

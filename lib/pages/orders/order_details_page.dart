@@ -1,8 +1,10 @@
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
+import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
@@ -46,6 +48,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   List<dynamic> _subOrders = [];
   bool _isMultiSelectMode = false;
   final Set<String> _selectedSubOrders = {};
+  DriverProfile? driver;
 
   String? _dateSortDirection; // 'asc' or 'desc'
   String? _quantitySortDirection; // 'asc' or 'desc'
@@ -117,6 +120,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     super.initState();
     _api = DriverOrdersApi(ApiClient());
     _fetchDetails();
+    driver = AuthStorage.getUserData();
   }
 
   Future<void> _fetchDetails({bool checkCompletion = false}) async {
@@ -2064,17 +2068,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             onPick(ImageSource.camera);
                           },
                         ),
-                        const Divider(height: 1, color: Color(0xFFEAEFF2)),
-                        _buildBottomSheetTile(
-                          icon: Icons.photo_library,
-                          title: AppLocalizations.of(
-                            sheetContext,
-                          )!.chooseFromGallery,
-                          onTap: () {
-                            Navigator.pop(sheetContext);
-                            onPick(ImageSource.gallery);
-                          },
-                        ),
+                        if (driver?.canUploadFromGallery == true) ...[
+                          const Divider(height: 1, color: Color(0xFFEAEFF2)),
+                          _buildBottomSheetTile(
+                            icon: Icons.photo_library,
+                            title: AppLocalizations.of(
+                              sheetContext,
+                            )!.chooseFromGallery,
+                            onTap: () {
+                              Navigator.pop(sheetContext);
+                              onPick(ImageSource.gallery);
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),

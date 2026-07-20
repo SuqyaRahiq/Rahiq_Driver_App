@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
+import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
@@ -35,10 +36,21 @@ class _SplashPageState extends State<SplashPage> {
     if (!mounted) return;
 
     if (isSessionValid) {
+      await _refreshAndStoreDriverProfile();
+      if (!mounted) return;
       _goTo(const HomePage());
     } else {
       await AuthStorage.clearTokens();
       if (mounted) _goTo(const LoginPage());
+    }
+  }
+
+  Future<void> _refreshAndStoreDriverProfile() async {
+    try {
+      final profile = await DriverAuthApi(ApiClient()).getProfile();
+      await AuthStorage.saveUserData(profile);
+    } catch (_) {
+      // Keep the last cached profile when the refresh cannot be completed.
     }
   }
 

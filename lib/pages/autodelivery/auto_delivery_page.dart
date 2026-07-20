@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -8,8 +7,6 @@ import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
-import 'package:rahiq_driver/pages/autodelivery/auto_delivery_details_page.dart';
-import 'package:shimmer/shimmer.dart';
 
 class AutoDeliveryPage extends StatefulWidget {
   const AutoDeliveryPage({super.key});

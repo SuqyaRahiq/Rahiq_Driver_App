@@ -25,6 +25,10 @@ class DriverProfile {
   final Supplier? supplier;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool isAutoDeliveryEnabled;
+  final bool canViewContact;
+  final bool canUploadFromGallery;
+  final bool canViewPastOrders;
 
   DriverProfile({
     required this.id,
@@ -49,6 +53,10 @@ class DriverProfile {
     this.supplier,
     this.createdAt,
     this.updatedAt,
+    this.isAutoDeliveryEnabled = false,
+    this.canViewContact = false,
+    this.canUploadFromGallery = false,
+    this.canViewPastOrders = false,
   });
 
   factory DriverProfile.fromJson(Map<String, dynamic> json) {
@@ -70,11 +78,25 @@ class DriverProfile {
       bankName: json['bankName'],
       bankAccountNumber: json['bankAccountNumber'],
       bankIbanNumber: json['bankIbanNumber'],
-      product: json['product'] != null ? Product.fromJson(Map<String, dynamic>.from(json['product'])) : null,
-      vehicle: json['vehicle'] != null ? Vehicle.fromJson(Map<String, dynamic>.from(json['vehicle'])) : null,
-      supplier: json['supplier'] != null ? Supplier.fromJson(Map<String, dynamic>.from(json['supplier'])) : null,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+      product: json['product'] != null
+          ? Product.fromJson(Map<String, dynamic>.from(json['product']))
+          : null,
+      vehicle: json['vehicle'] != null
+          ? Vehicle.fromJson(Map<String, dynamic>.from(json['vehicle']))
+          : null,
+      supplier: json['supplier'] != null
+          ? Supplier.fromJson(Map<String, dynamic>.from(json['supplier']))
+          : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'])
+          : null,
+      isAutoDeliveryEnabled: json['isAutoDeliveryEnabled'] ?? false,
+      canViewContact: json['canViewContact'] ?? false,
+      canUploadFromGallery: json['canUploadFromGallery'] ?? false,
+      canViewPastOrders: json['canViewPastOrders'] ?? false,
     );
   }
 
@@ -102,6 +124,10 @@ class DriverProfile {
       'supplier': supplier?.toJson(),
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'isAutoDeliveryEnabled': isAutoDeliveryEnabled,
+      'canViewContact': canViewContact,
+      'canUploadFromGallery': canUploadFromGallery,
+      'canViewPastOrders': canViewPastOrders,
     };
   }
 }

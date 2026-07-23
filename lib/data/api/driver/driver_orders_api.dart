@@ -3,6 +3,7 @@ import '../../models/driver/driver_order_response.dart';
 import '../../models/driver/driver_dashboard_stats.dart';
 import '../../models/driver/normal_sub_order.dart';
 import '../../models/driver/auto_order_response.dart';
+import '../../models/driver/past_orders_response.dart';
 import '../api_client.dart';
 
 class DriverOrdersApi {
@@ -85,10 +86,21 @@ class DriverOrdersApi {
     }
   }
 
-  Future<List<NormalSubOrder>> getNormalOrderSubOrders(String orderId) async {
+  Future<List<NormalSubOrder>> getNormalOrderSubOrders(
+    String orderId, {
+    String? sortBy,
+    String? sortOrder,
+    bool hasNote = false,
+  }) async {
     try {
+      final queryParameters = <String, dynamic>{};
+      if (sortBy != null) queryParameters['sortBy'] = sortBy;
+      if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
+      if (hasNote) queryParameters['hasNote'] = 'true';
+
       final response = await _apiClient.dio.get(
         '/driver/orders/normal/location/$orderId',
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
       );
       return ApiClient.handleResponse(response, (data) {
         var items = data['data'];
@@ -129,12 +141,20 @@ class DriverOrdersApi {
 
   Future<List<NormalSubOrder>> getAutoOrderDetails(
     String orderId,
-    String type,
-  ) async {
+    String type, {
+    String? sortBy,
+    String? sortOrder,
+    bool hasNote = false,
+  }) async {
     try {
+      final queryParameters = <String, dynamic>{'type': type};
+      if (sortBy != null) queryParameters['sortBy'] = sortBy;
+      if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
+      if (hasNote) queryParameters['hasNote'] = 'true';
+
       final response = await _apiClient.dio.get(
         '/driver/orders/auto/$orderId',
-        queryParameters: {'type': type},
+        queryParameters: queryParameters,
       );
       return ApiClient.handleResponse(response, (data) {
         final List<dynamic> items = data['data']['items'] ?? [];
@@ -313,6 +333,51 @@ class DriverOrdersApi {
       return response;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<PastOrdersResponse> getPastOrders({
+    required int page,
+    required int limit,
+    String? status, // 'delivered' or 'confirmed'
+    String? search,
+    String? from,
+    String? to,
+    String? orderType, // 'NORMAL' or 'AUTO'
+  }) async {
+    try {
+      final queryParameters = <String, dynamic>{'page': page, 'limit': limit};
+      if (status != null && status.isNotEmpty) {
+        queryParameters['status'] = status;
+      }
+
+      if (search != null && search.isNotEmpty) {
+        queryParameters['search'] = search;
+      }
+      if (from != null && from.isNotEmpty) {
+        queryParameters['from'] = from;
+      }
+      if (to != null && to.isNotEmpty) {
+        queryParameters['to'] = to;
+      }
+      if (orderType != null && orderType.isNotEmpty) {
+        queryParameters['orderType'] = orderType;
+      }
+
+      final response = await _apiClient.dio.get(
+        '/driver/orders/past',
+        queryParameters: queryParameters,
+      );
+      return ApiClient.handleResponse(
+        response,
+        (data) => PastOrdersResponse.fromJson(data['data']),
+        fallbackError: 'Failed to get past orders',
+      );
+    } on DioException catch (e) {
+      return ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get past orders',
+      );
     }
   }
 }

@@ -56,59 +56,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   bool _isDateMenuOpen = false;
   bool _isQuantityMenuOpen = false;
 
-  List<dynamic> _getSortedSubOrders() {
-    List<dynamic> list = List.from(_subOrders);
-
-    if (_showOnlyWithNotes) {
-      list = list.where((a) {
-        final hasNotes =
-            (a['deliveryNotes'] != null &&
-                a['deliveryNotes'].toString().trim().isNotEmpty) ||
-            (a['csNotes'] != null && (a['csNotes'] as List).isNotEmpty);
-        return hasNotes;
-      }).toList();
-    }
-
-    if (_dateSortDirection != null || _quantitySortDirection != null) {
-      list.sort((a, b) {
-        int comparison = 0;
-
-        if (_dateSortDirection != null) {
-          final aDateStr = a['assignedDate']?.toString();
-          final bDateStr = b['assignedDate']?.toString();
-          final aDate = aDateStr != null ? DateTime.tryParse(aDateStr) : null;
-          final bDate = bDateStr != null ? DateTime.tryParse(bDateStr) : null;
-
-          if (aDate != null && bDate != null) {
-            comparison = aDate.compareTo(bDate);
-          } else if (aDate != null) {
-            comparison = -1;
-          } else if (bDate != null) {
-            comparison = 1;
-          }
-          if (_dateSortDirection == 'desc') {
-            comparison = -comparison;
-          }
-        }
-
-        if (comparison == 0 && _quantitySortDirection != null) {
-          final aQty = int.tryParse(a['quantity']?.toString() ?? '0') ?? 0;
-          final bQty = int.tryParse(b['quantity']?.toString() ?? '0') ?? 0;
-          final qtyComparison = aQty.compareTo(bQty);
-          if (_quantitySortDirection == 'desc') {
-            comparison = -qtyComparison;
-          } else {
-            comparison = qtyComparison;
-          }
-        }
-
-        return comparison;
-      });
-    }
-
-    return list;
-  }
-
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
 
@@ -125,12 +72,31 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Future<void> _fetchDetails({bool checkCompletion = false}) async {
     try {
+      String? sortBy;
+      String? sortOrder;
+
+      if (_dateSortDirection != null) {
+        sortBy = 'assignedAt';
+        sortOrder = _dateSortDirection;
+      } else if (_quantitySortDirection != null) {
+        sortBy = 'quantity';
+        sortOrder = _quantitySortDirection;
+      }
+
       final details = widget.isAutoOrder
           ? await _api.getAutoOrderDetails(
               widget.orderId,
               widget.orderType ?? '',
+              sortBy: sortBy,
+              sortOrder: sortOrder,
+              hasNote: _showOnlyWithNotes,
             )
-          : await _api.getNormalOrderSubOrders(widget.orderId);
+          : await _api.getNormalOrderSubOrders(
+              widget.orderId,
+              sortBy: sortBy,
+              sortOrder: sortOrder,
+              hasNote: _showOnlyWithNotes,
+            );
 
       if (mounted) {
         setState(() {
@@ -371,14 +337,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
 
-                          if (_isLoading || _subOrders.isNotEmpty)
-                            (!_isLoading && _getSortedSubOrders().isEmpty)
-                                ? Expanded(child: _buildSubOrdersSection())
-                                : _buildSubOrdersSection(),
+                          (!_isLoading && _subOrders.isEmpty)
+                              ? Expanded(child: _buildSubOrdersSection())
+                              : _buildSubOrdersSection(),
 
-                          if (_isLoading ||
-                              _subOrders.isEmpty ||
-                              _getSortedSubOrders().isNotEmpty)
+                          if (_isLoading || _subOrders.isNotEmpty)
                             const Spacer(),
                           const SizedBox(height: 24),
                         ],
@@ -395,7 +358,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget _buildSubOrdersSection() {
-    final sortedSubOrders = _getSortedSubOrders();
+    final sortedSubOrders = _subOrders;
     final visibleUncompleted = sortedSubOrders
         .where(
           (s) =>
@@ -416,18 +379,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.orders,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+          child: Text(
+            AppLocalizations.of(context)!.orders,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
           ),
         ),
         Row(
@@ -512,12 +470,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               selected: _showOnlyWithNotes,
               onSelected: (val) {
                 setState(() {
+                  _isLoading = true;
                   _showOnlyWithNotes = val;
                   if (val) {
                     _dateSortDirection = null;
                     _quantitySortDirection = null;
                   }
                 });
+                _fetchDetails();
               },
               selectedColor: AppColors.buttonBlueDark,
             ),
@@ -533,14 +493,17 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               onCanceled: () => setState(() => _isDateMenuOpen = false),
               onSelected: (val) {
                 setState(() {
+                  _isLoading = true;
                   _isDateMenuOpen = false;
                   _showOnlyWithNotes = false;
                   if (val == 'clear') {
                     _dateSortDirection = null;
                   } else {
                     _dateSortDirection = val;
+                    _quantitySortDirection = null;
                   }
                 });
+                _fetchDetails();
               },
               itemBuilder: (context) {
                 final isAr =
@@ -635,14 +598,17 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               onCanceled: () => setState(() => _isQuantityMenuOpen = false),
               onSelected: (val) {
                 setState(() {
+                  _isLoading = true;
                   _isQuantityMenuOpen = false;
                   _showOnlyWithNotes = false;
                   if (val == 'clear') {
                     _quantitySortDirection = null;
                   } else {
                     _quantitySortDirection = val;
+                    _dateSortDirection = null;
                   }
                 });
+                _fetchDetails();
               },
               itemBuilder: (context) {
                 final isAr =
@@ -752,7 +718,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 ),
               );
             }
-            final sortedList = _getSortedSubOrders();
+            final sortedList = _subOrders;
             if (sortedList.isEmpty) {
               final isAr = Localizations.localeOf(context).languageCode == 'ar';
               return Expanded(

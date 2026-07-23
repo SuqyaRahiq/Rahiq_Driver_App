@@ -52,6 +52,9 @@ class NormalSubOrder {
   final String? deliveryVideo;
   final bool? deliveredToDifferentMosque;
   final String? differentMosqueReason;
+  final String? deliveredAt;
+  final Map<String, dynamic>? location;
+  final Map<String, dynamic>? city;
 
   NormalSubOrder({
     required this.id,
@@ -69,6 +72,9 @@ class NormalSubOrder {
     this.deliveryVideo,
     this.deliveredToDifferentMosque,
     this.differentMosqueReason,
+    this.deliveredAt,
+    this.location,
+    this.city,
   });
 
   factory NormalSubOrder.fromJson(Map<String, dynamic> json) {
@@ -90,6 +96,9 @@ class NormalSubOrder {
       deliveryVideo: json['deliveryVideo'],
       deliveredToDifferentMosque: json['deliveredToDifferentMosque'],
       differentMosqueReason: json['differentMosqueReason'],
+      deliveredAt: json['deliveredAt'],
+      location: json['location'],
+      city: json['city'],
     );
   }
 
@@ -110,6 +119,9 @@ class NormalSubOrder {
       'deliveryVideo': deliveryVideo,
       'deliveredToDifferentMosque': deliveredToDifferentMosque,
       'differentMosqueReason': differentMosqueReason,
+      'deliveredAt': deliveredAt,
+      'location': location,
+      'city': city,
     };
   }
 }

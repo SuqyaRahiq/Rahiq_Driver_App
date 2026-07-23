@@ -10,6 +10,7 @@ import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/profile/my_account_page.dart';
 import 'package:rahiq_driver/pages/profile/app_settings_page.dart';
 import 'package:rahiq_driver/pages/profile/notifications_page.dart';
+import 'package:rahiq_driver/pages/profile/past_orders.dart';
 import 'package:rahiq_driver/data/api/driver/driver_notifications_api.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -305,6 +306,19 @@ class _ProfileTabState extends State<ProfileTab> {
                             ),
 
                             if (driver?.canViewPastOrders == true) ...{
+                              const SizedBox(height: 12),
+                              _buildStandaloneTile(
+                                icon: Icons.history_rounded,
+                                title: AppLocalizations.of(context)?.pastOrders ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'الطلبات السابقة' : 'Past Orders'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const PastOrdersPage(),
+                                    ),
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 12),
                               _buildStandaloneTile(
                                 icon: Icons.settings_outlined,

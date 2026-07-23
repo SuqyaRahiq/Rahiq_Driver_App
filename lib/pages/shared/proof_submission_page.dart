@@ -525,6 +525,20 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
           _buildNotDeliveredSection(context, provider, proof),
           const SizedBox(height: 16),
         ],
+        if (widget.isAutoDelivery || widget.isAutoOrder) ...[
+          Card(
+            elevation: 3,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildSelectDeliveredLocation(context, provider, proof),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ],
     );
   }
@@ -577,104 +591,114 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
               ),
               const SizedBox(height: 12),
               Divider(color: Colors.grey, thickness: 1),
-              const SizedBox(height: 12),
-              Text(
-                AppLocalizations.of(context)!.select_delivered_location,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.buttonBlueDark,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.buttonBlueDark),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: proof.deliveredLocationName != null
-                        ? AppColors.buttonBlueDark
-                        : Colors.white,
-                  ),
-                  onPressed: () async {
-                    try {
-                      provider.setLoadingLocations(proof.subOrderId, true);
-                      final locationsApi = DriverLocationsApi(ApiClient());
-                      final locationsResponse = await locationsApi
-                          .getSubOrderLocationsContext(
-                            subOrderId: proof.subOrderId,
-                            page: 1,
-                            limit: 30,
-                          );
-
-                      if (!context.mounted) {
-                        provider.setLoadingLocations(proof.subOrderId, false);
-                        return;
-                      }
-
-                      if (locationsResponse.data.items.isEmpty) {
-                        provider.setLoadingLocations(proof.subOrderId, false);
-                        CustomSnackbar.show(
-                          context: context,
-                          message: AppLocalizations.of(
-                            context,
-                          )!.no_locations_available,
-                          isError: true,
-                        );
-                        return;
-                      }
-
-                      _showLocationsBottomSheet(
-                        context,
-                        provider,
-                        proof,
-                        locationsResponse,
-                      );
-                      provider.setLoadingLocations(proof.subOrderId, false);
-                    } catch (e) {
-                      print('[LocationsContext] Error: $e');
-                      provider.setLoadingLocations(proof.subOrderId, false);
-                      if (context.mounted) {
-                        CustomSnackbar.show(
-                          context: context,
-                          message: AppLocalizations.of(
-                            context,
-                          )!.failed_to_load_locations,
-                          isError: true,
-                        );
-                      }
-                    }
-                  },
-
-                  child: proof.isLoadingLocations
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: WaterLoadingIndicator(
-                            waveColor1: proof.deliveredLocationName != null
-                                ? Colors.white
-                                : AppColors.buttonBlueDark,
-                          ),
-                        )
-                      : Text(
-                          proof.deliveredLocationName ??
-                              AppLocalizations.of(context)!.selectNewLocation,
-                          style: TextStyle(
-                            color: proof.deliveredLocationName != null
-                                ? Colors.white
-                                : AppColors.buttonBlueDark,
-                          ),
-                        ),
-                ),
-              ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSelectDeliveredLocation(
+    BuildContext context,
+    ProofSubmissionProvider provider,
+    SubOrderProof proof,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.select_delivered_location,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.buttonBlueDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.buttonBlueDark),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: proof.deliveredLocationName != null
+                  ? AppColors.buttonBlueDark
+                  : Colors.white,
+            ),
+            onPressed: () async {
+              try {
+                provider.setLoadingLocations(proof.subOrderId, true);
+                final locationsApi = DriverLocationsApi(ApiClient());
+                final locationsResponse = await locationsApi
+                    .getSubOrderLocationsContext(
+                      subOrderId: proof.subOrderId,
+                      page: 1,
+                      limit: 30,
+                    );
+
+                if (!context.mounted) {
+                  provider.setLoadingLocations(proof.subOrderId, false);
+                  return;
+                }
+
+                if (locationsResponse.data.items.isEmpty) {
+                  provider.setLoadingLocations(proof.subOrderId, false);
+                  CustomSnackbar.show(
+                    context: context,
+                    message: AppLocalizations.of(
+                      context,
+                    )!.no_locations_available,
+                    isError: true,
+                  );
+                  return;
+                }
+
+                _showLocationsBottomSheet(
+                  context,
+                  provider,
+                  proof,
+                  locationsResponse,
+                );
+                provider.setLoadingLocations(proof.subOrderId, false);
+              } catch (e) {
+                print('[LocationsContext] Error: $e');
+                provider.setLoadingLocations(proof.subOrderId, false);
+                if (context.mounted) {
+                  CustomSnackbar.show(
+                    context: context,
+                    message: AppLocalizations.of(
+                      context,
+                    )!.failed_to_load_locations,
+                    isError: true,
+                  );
+                }
+              }
+            },
+            child: proof.isLoadingLocations
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: WaterLoadingIndicator(
+                      waveColor1: proof.deliveredLocationName != null
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                    ),
+                  )
+                : Text(
+                    proof.deliveredLocationName ??
+                        AppLocalizations.of(context)!.selectNewLocation,
+                    style: TextStyle(
+                      color: proof.deliveredLocationName != null
+                          ? Colors.white
+                          : AppColors.buttonBlueDark,
+                    ),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 

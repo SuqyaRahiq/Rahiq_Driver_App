@@ -591,6 +591,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
               ),
               const SizedBox(height: 12),
               Divider(color: Colors.grey, thickness: 1),
+              const SizedBox(height: 12),
+              _buildSelectDeliveredLocation(context, provider, proof),
             ],
           ],
         ),
@@ -1378,6 +1380,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
   ) {
     final normalSub = widget.normalSubOrder;
     final deliveryNote = normalSub?.deliveryNotes;
+    final csnotes = normalSub?.csNotes;
 
     final firstName =
         normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';
@@ -1665,7 +1668,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                 if (deliveryNote != "" && deliveryNote != null) ...[
                   const SizedBox(height: 12),
                   Text(
-                    AppLocalizations.of(context)!.notes_text,
+                    AppLocalizations.of(context)!.customer_note,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1674,6 +1677,24 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                   ),
                   Text(
                     deliveryNote,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (csnotes != null && csnotes.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    AppLocalizations.of(context)!.customer_service_notes,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    csnotes.join(', '),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

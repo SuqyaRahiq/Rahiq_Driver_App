@@ -658,4 +658,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get showMenu => 'عرض القائمة';
+
+  @override
+  String get customer_note => 'ملاحظة العميل';
+
+  @override
+  String get customer_service_notes => 'ملاحظات خدمة العملاء';
 }

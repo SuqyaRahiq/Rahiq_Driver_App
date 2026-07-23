@@ -660,4 +660,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showMenu => 'Show Menu';
+
+  @override
+  String get customer_note => 'Customer Note';
+
+  @override
+  String get customer_service_notes => 'Customer Service Notes';
 }

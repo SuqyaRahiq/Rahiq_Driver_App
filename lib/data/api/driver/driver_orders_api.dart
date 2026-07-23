@@ -168,6 +168,22 @@ class DriverOrdersApi {
     }
   }
 
+  Future<Map<String, dynamic>> getSubOrderDetails(String subOrderId) async {
+    try {
+      final response = await _apiClient.dio.get('/driver/orders/sub-orders/$subOrderId');
+      return ApiClient.handleResponse(
+        response,
+        (data) => data['data'] as Map<String, dynamic>,
+        fallbackError: 'Failed to get sub order details',
+      );
+    } on DioException catch (e) {
+      return ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to get sub order details',
+      );
+    }
+  }
+
   Future<void> confirmSubOrder({
     required String subOrderId,
     required String mosqueFrontImagePath,

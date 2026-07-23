@@ -264,5 +264,7 @@
   "notes_text": "Notes",
   "select_all": "Select All",
   "customer_name": "Customer Name",
-  "showMenu": "Show Menu"
+  "showMenu": "Show Menu",
+  "customer_note": "Customer Note",
+  "customer_service_notes": "Customer Service Notes"
 }

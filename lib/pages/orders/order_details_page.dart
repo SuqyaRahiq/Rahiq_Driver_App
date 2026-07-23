@@ -123,6 +123,78 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
   }
 
+  Future<void> _navigateToSingleProofSubmission(String subId) async {
+    try {
+      setState(() => _isLoading = true);
+      final detailedSubOrder = await _api.getSubOrderDetails(subId);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      final customer =
+          detailedSubOrder['customerDetails'] ?? <String, dynamic>{};
+      final address =
+          detailedSubOrder['deliveryAddress'] ?? customer['address'];
+
+      final submitted = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProofSubmissionPage(
+            isAutoOrder: widget.isAutoOrder,
+            orderId: widget.orderId,
+            orderType: widget.orderType,
+            product: Product(
+              id: (detailedSubOrder['product'] ?? {})['id']?.toString() ?? '',
+              name:
+                  (detailedSubOrder['product'] ?? {})['name']?.toString() ?? '',
+              nameAr:
+                  (detailedSubOrder['product'] ?? {})['nameAr']?.toString() ??
+                  '',
+              image:
+                  (detailedSubOrder['product'] ?? {})['image']?.toString() ??
+                  '',
+            ),
+            subOrders: [subId],
+            singleCustomerData: {
+              'firstName': customer['firstName'],
+              'lastName': customer['lastName'],
+              'phoneNumber': customer['phoneNumber'],
+              'address': address,
+              'subOrderNumber':
+                  detailedSubOrder['subOrderNumber']?.toString() ??
+                  (subId.length > 8 ? subId.substring(0, 8) : subId),
+              'quantity': detailedSubOrder['quantity'],
+              'countryCode':
+                  detailedSubOrder['customerDetails']?['countryCode'] ??
+                  customer['countryCode'] ??
+                  '',
+            },
+            initialMosqueFrontImage: detailedSubOrder['mosqueFrontImage'],
+            initialMosqueInsideImage: detailedSubOrder['mosqueInsideImage'],
+            latitude: widget.latitude,
+            longitude: widget.longitude,
+          ),
+        ),
+      );
+
+      if (submitted == true) {
+        setState(() {
+          _isMultiSelectMode = false;
+          _selectedSubOrders.clear();
+        });
+        _fetchDetails(checkCompletion: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        CustomSnackbar.show(
+          context: context,
+          message: e.toString(),
+          isError: true,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,73 +232,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         onTap: () {
                           if (_selectedSubOrders.length == 1) {
                             final subId = _selectedSubOrders.first;
-                            final subOrder = _subOrders.firstWhere(
-                              (s) => s['id']?.toString() == subId,
-                              orElse: () => <String, dynamic>{},
-                            );
-                            final customer =
-                                subOrder['customerDetails'] ??
-                                <String, dynamic>{};
-                            final address =
-                                subOrder['deliveryAddress'] ??
-                                customer['address'];
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProofSubmissionPage(
-                                  isAutoOrder: widget.isAutoOrder,
-                                  orderId: widget.orderId,
-                                  orderType: widget.orderType,
-                                  product: Product(
-                                    id:
-                                        (subOrder['product'] ?? {})['id']
-                                            ?.toString() ??
-                                        '',
-                                    name:
-                                        (subOrder['product'] ?? {})['name']
-                                            ?.toString() ??
-                                        '',
-                                    nameAr:
-                                        (subOrder['product'] ?? {})['nameAr']
-                                            ?.toString() ??
-                                        '',
-                                    image:
-                                        (subOrder['product'] ?? {})['image']
-                                            ?.toString() ??
-                                        '',
-                                  ),
-                                  subOrders: [subId],
-                                  singleCustomerData: {
-                                    'firstName': customer['firstName'],
-                                    'lastName': customer['lastName'],
-                                    'phoneNumber': customer['phoneNumber'],
-                                    'address': address,
-                                    'subOrderNumber':
-                                        subOrder['subOrderNumber']
-                                            ?.toString() ??
-                                        (subId),
-                                    'quantity': subOrder['quantity'],
-                                    'countryCode':
-                                        subOrder['customerDetails']?['countryCode'] ??
-                                        customer['countryCode'] ??
-                                        '',
-                                  },
-                                  initialMosqueFrontImage:
-                                      subOrder['mosqueFrontImage'],
-                                  initialMosqueInsideImage:
-                                      subOrder['mosqueInsideImage'],
-                                  latitude: widget.latitude,
-                                  longitude: widget.longitude,
-                                ),
-                              ),
-                            ).then((submitted) {
-                              setState(() {
-                                _isMultiSelectMode = false;
-                                _selectedSubOrders.clear();
-                              });
-                              _fetchDetails(checkCompletion: submitted == true);
-                            });
+                            _navigateToSingleProofSubmission(subId);
                           } else {
                             _showBatchImagesBottomSheet(context);
                           }
@@ -797,67 +803,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         }
                       });
                     } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) {
-                            final customer = subOrder['customerDetails'] ?? {};
-                            final address =
-                                subOrder['deliveryAddress'] ??
-                                customer['address'];
-
-                            return ProofSubmissionPage(
-                              isAutoOrder: widget.isAutoOrder,
-                              orderId: widget.orderId,
-                              orderType: widget.orderType,
-                              product: Product(
-                                id:
-                                    (subOrder['product'] ?? {})['id']
-                                        ?.toString() ??
-                                    '',
-                                name:
-                                    (subOrder['product'] ?? {})['name']
-                                        ?.toString() ??
-                                    '',
-                                nameAr:
-                                    (subOrder['product'] ?? {})['nameAr']
-                                        ?.toString() ??
-                                    '',
-                                image:
-                                    (subOrder['product'] ?? {})['image']
-                                        ?.toString() ??
-                                    '',
-                              ),
-                              subOrders: [subId],
-                              singleCustomerData: {
-                                'firstName': customer['firstName'],
-                                'lastName': customer['lastName'],
-                                'phoneNumber': customer['phoneNumber'],
-                                'address': address,
-                                'subOrderNumber':
-                                    subOrder['subOrderNumber']?.toString() ??
-                                    (subId.length > 8
-                                        ? subId.substring(0, 8)
-                                        : subId),
-                                'quantity': subOrder['quantity'],
-                                'countryCode':
-                                    subOrder['customerDetails']?['countryCode'] ??
-                                    customer['countryCode'] ??
-                                    '',
-                              },
-                              initialMosqueFrontImage:
-                                  subOrder['mosqueFrontImage'],
-                              initialMosqueInsideImage:
-                                  subOrder['mosqueInsideImage'],
-                              latitude: widget.latitude,
-                              longitude: widget.longitude,
-                            );
-                          },
-                        ),
-                      ).then(
-                        (submitted) =>
-                            _fetchDetails(checkCompletion: submitted == true),
-                      );
+                      _navigateToSingleProofSubmission(subId);
                     }
                   },
                   child: Container(
@@ -1517,7 +1463,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              AppLocalizations.of(context)!.notes_text,
+                              AppLocalizations.of(
+                                context,
+                              )!.customer_service_notes,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -1552,7 +1500,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              AppLocalizations.of(context)!.notes_text,
+                              AppLocalizations.of(context)!.customer_note,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

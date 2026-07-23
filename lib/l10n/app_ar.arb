@@ -264,5 +264,7 @@
   "select_all": "اختر الكل",
   "customer_name": "اسم العميل",
   "privacy_policy": "سياسة الخصوصية",
-  "showMenu": "عرض القائمة"
+  "showMenu": "عرض القائمة",
+  "customer_note": "ملاحظة العميل",
+  "customer_service_notes": "ملاحظات خدمة العملاء"
 }

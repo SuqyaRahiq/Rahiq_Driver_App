@@ -216,7 +216,7 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
                                       isPhoneNumber: true,
                                       title: isAr ? 'رقم الهاتف' : 'Phone',
                                       value:
-                                          '${order.customerDetails?.countryCode ?? ''} ${order.customerDetails!.phoneNumber}',
+                                          '${order.customerDetails?.countryCode ?? ''}${order.customerDetails!.phoneNumber}',
                                     ),
                                 ],
                               ),
@@ -253,7 +253,10 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
                                     title: isAr
                                         ? 'تاريخ التعيين'
                                         : 'Assigned Date',
-                                    value: _formatDate(order.assignedDate!, context),
+                                    value: _formatDate(
+                                      order.assignedDate!,
+                                      context,
+                                    ),
                                   ),
                                 if (order.deliveredAt != null)
                                   _buildDetailRow(
@@ -261,7 +264,10 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
                                     title: isAr
                                         ? 'تاريخ التوصيل'
                                         : 'Delivered At',
-                                    value: _formatDate(order.deliveredAt!, context),
+                                    value: _formatDate(
+                                      order.deliveredAt!,
+                                      context,
+                                    ),
                                   ),
                                 _buildDetailRow(
                                   isPhoneNumber: false,

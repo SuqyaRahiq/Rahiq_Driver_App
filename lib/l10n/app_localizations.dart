@@ -1351,6 +1351,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Menu'**
   String get showMenu;
+
+  /// No description provided for @customer_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Note'**
+  String get customer_note;
+
+  /// No description provided for @customer_service_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Service Notes'**
+  String get customer_service_notes;
 }
 
 class _AppLocalizationsDelegate

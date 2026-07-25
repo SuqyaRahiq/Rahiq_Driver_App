@@ -55,6 +55,7 @@ class NormalSubOrder {
   final String? deliveredAt;
   final Map<String, dynamic>? location;
   final Map<String, dynamic>? city;
+  final dynamic giftCard;
 
   NormalSubOrder({
     required this.id,
@@ -75,6 +76,7 @@ class NormalSubOrder {
     this.deliveredAt,
     this.location,
     this.city,
+    this.giftCard,
   });
 
   factory NormalSubOrder.fromJson(Map<String, dynamic> json) {
@@ -99,6 +101,7 @@ class NormalSubOrder {
       deliveredAt: json['deliveredAt'],
       location: json['location'],
       city: json['city'],
+      giftCard: json['giftCard'],
     );
   }
 
@@ -122,6 +125,7 @@ class NormalSubOrder {
       'deliveredAt': deliveredAt,
       'location': location,
       'city': city,
+      'giftCard': giftCard,
     };
   }
 }

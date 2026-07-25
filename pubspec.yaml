@@ -62,7 +62,6 @@ dependencies:
   material_symbols_icons: ^4.2928.1
   geolocator: ^14.0.3
   geocoding: ^5.0.0
-  share_plus: ^13.3.0
   flutter_image_compress: ^2.5.0
   video_compress: ^3.1.4
 dev_dependencies:

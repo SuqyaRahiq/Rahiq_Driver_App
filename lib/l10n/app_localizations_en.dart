@@ -537,6 +537,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Video duration should not exceed 10 seconds.';
 
   @override
+  String get videoSizeLimitError => 'Video size should not exceed 6 MB.';
+
+  @override
+  String get imageSizeLimitError => 'Image size should not exceed 2 MB.';
+
+  @override
   String get missingMediaError => 'Please provide all required media.';
 
   @override

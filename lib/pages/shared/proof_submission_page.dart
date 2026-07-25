@@ -983,6 +983,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                       : AppLocalizations.of(context)!.mosqueFront,
                   path: proof.mosqueFrontImage,
                   onPick: (source) => provider.pickSubOrderImage(
+                    context,
                     proof.subOrderId,
                     'front',
                     source,
@@ -1001,6 +1002,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                       : AppLocalizations.of(context)!.mosqueInsideImage,
                   path: proof.mosqueInsideImage,
                   onPick: (source) => provider.pickSubOrderImage(
+                    context,
                     proof.subOrderId,
                     'inside',
                     source,
@@ -1021,6 +1023,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                   label: AppLocalizations.of(context)!.productPlaced,
                   path: proof.packagesImage,
                   onPick: (source) => provider.pickSubOrderImage(
+                    context,
                     proof.subOrderId,
                     'package',
                     source,
@@ -1157,6 +1160,10 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     if (error != null && error is String && context.mounted) {
       final errorMsg = error == 'video_too_long'
           ? AppLocalizations.of(context)!.videoDurationLimitError
+          : error == 'video_too_large'
+          ? AppLocalizations.of(context)!.videoSizeLimitError
+          : error == 'image_too_large'
+          ? AppLocalizations.of(context)!.imageSizeLimitError
           : error;
       CustomSnackbar.show(context: context, message: errorMsg, isError: true);
     }

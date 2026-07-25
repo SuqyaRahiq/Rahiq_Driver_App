@@ -1106,6 +1106,18 @@ abstract class AppLocalizations {
   /// **'Video duration should not exceed 10 seconds.'**
   String get videoDurationLimitError;
 
+  /// No description provided for @videoSizeLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Video size should not exceed 6 MB.'**
+  String get videoSizeLimitError;
+
+  /// No description provided for @imageSizeLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Image size should not exceed 2 MB.'**
+  String get imageSizeLimitError;
+
   /// No description provided for @missingMediaError.
   ///
   /// In en, this message translates to:

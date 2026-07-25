@@ -85,29 +85,73 @@ class ProofSubmissionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickGlobalImage(String type, ImageSource source) async {
-    final XFile? file = await _picker.pickImage(source: source);
-    if (file != null) {
-      if (type == 'front') _globalMosqueFrontImage = file.path;
-      if (type == 'inside') _globalMosqueInsideImage = file.path;
-      if (type == 'package') _globalPackagesImage = file.path;
-      notifyListeners();
+  Future<bool> _isFileTooLarge(String path, int maxSizeInMB) async {
+    try {
+      final file = File(path);
+      final sizeInBytes = await file.length();
+      final sizeInMB = sizeInBytes / (1024 * 1024);
+      return sizeInMB > maxSizeInMB;
+    } catch (e) {
+      return false;
     }
   }
 
-  Future<void> pickSubOrderImage(
+  Future<String?> pickGlobalImage(BuildContext context, String type, ImageSource source) async {
+    String? filePath;
+    if (source == ImageSource.camera) {
+      filePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+        ),
+      );
+    } else {
+      final XFile? file = await _picker.pickImage(source: source);
+      filePath = file?.path;
+    }
+
+    if (filePath != null) {
+      if (await _isFileTooLarge(filePath, 2)) {
+        return 'image_too_large';
+      }
+      if (type == 'front') _globalMosqueFrontImage = filePath;
+      if (type == 'inside') _globalMosqueInsideImage = filePath;
+      if (type == 'package') _globalPackagesImage = filePath;
+      notifyListeners();
+    }
+    return null;
+  }
+
+  Future<String?> pickSubOrderImage(
+    BuildContext context,
     String subOrderId,
     String type,
     ImageSource source,
   ) async {
-    final XFile? file = await _picker.pickImage(source: source);
-    if (file != null) {
+    String? filePath;
+    if (source == ImageSource.camera) {
+      filePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+        ),
+      );
+    } else {
+      final XFile? file = await _picker.pickImage(source: source);
+      filePath = file?.path;
+    }
+
+    if (filePath != null) {
+      if (await _isFileTooLarge(filePath, 2)) {
+        return 'image_too_large';
+      }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
-      if (type == 'front') proof.mosqueFrontImage = file.path;
-      if (type == 'inside') proof.mosqueInsideImage = file.path;
-      if (type == 'package') proof.packagesImage = file.path;
+      if (type == 'front') proof.mosqueFrontImage = filePath;
+      if (type == 'inside') proof.mosqueInsideImage = filePath;
+      if (type == 'package') proof.packagesImage = filePath;
       notifyListeners();
     }
+    return null;
   }
 
   Future<bool> _isVideoTooLong(String path) async {
@@ -149,6 +193,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
       if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
       }
+      if (await _isFileTooLarge(filePath, 6)) {
+        return 'video_too_large';
+      }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
       proof.proofVideo = filePath;
       notifyListeners();
@@ -181,6 +228,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
     if (filePath != null) {
       if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
+      }
+      if (await _isFileTooLarge(filePath, 6)) {
+        return 'video_too_large';
       }
       _globalProofVideo = filePath;
       notifyListeners();

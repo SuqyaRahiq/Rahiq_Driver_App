@@ -224,6 +224,8 @@
   "productDetails": "تفاصيل المنتج",
   "videoDurationLimitNote": "ملاحظة: يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
   "videoDurationLimitError": "يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
+  "videoSizeLimitError": "يجب ألا يتجاوز حجم الفيديو 6 ميغابايت.",
+  "imageSizeLimitError": "يجب ألا يتجاوز حجم الصورة 2 ميغابايت.",
   "missingMediaError": "يرجى توفير جميع الوسائط المطلوبة.",
   "save": "حفظ",
   "edit": "تعديل",

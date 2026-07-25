@@ -16,6 +16,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final String orderId;
@@ -60,6 +61,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   String? _batchMosqueInsideImage;
 
   final ImagePicker _picker = ImagePicker();
+
+  Future<String?> _pickImageWithConstraints(BuildContext context, ImageSource source) async {
+    String? filePath;
+    if (source == ImageSource.camera) {
+      filePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+        ),
+      );
+    } else {
+      final file = await _picker.pickImage(source: source);
+      filePath = file?.path;
+    }
+
+    if (filePath != null) {
+      try {
+        final file = File(filePath);
+        final sizeInBytes = await file.length();
+        final sizeInMB = sizeInBytes / (1024 * 1024);
+        if (sizeInMB > 2) {
+          if (context.mounted) {
+            CustomSnackbar.show(
+              context: context, 
+              message: AppLocalizations.of(context)!.imageSizeLimitError, 
+              isError: true,
+            );
+          }
+          return null;
+        }
+      } catch (e) {
+        debugPrint('Error checking file size: $e');
+      }
+    }
+    return filePath;
+  }
+
   bool _isBatchUploading = false;
 
   @override
@@ -1644,15 +1682,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   debugPrint(
                                     'Bulk Image Upload: Mosque front image picking started from source: $source',
                                   );
-                                  final file = await _picker.pickImage(
-                                    source: source,
-                                  );
+                                  final file = await _pickImageWithConstraints(context, source);
                                   if (file != null) {
                                     debugPrint(
-                                      'Bulk Image Upload: Mosque front image picked successfully: ${file.path}',
+                                      'Bulk Image Upload: Mosque front image picked successfully: $file',
                                     );
                                     setSheetState(
-                                      () => _batchMosqueFrontImage = file.path,
+                                      () => _batchMosqueFrontImage = file,
                                     );
                                   } else {
                                     debugPrint(
@@ -1687,15 +1723,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   debugPrint(
                                     'Bulk Image Upload: Mosque inside image picking started from source: $source',
                                   );
-                                  final file = await _picker.pickImage(
-                                    source: source,
-                                  );
+                                  final file = await _pickImageWithConstraints(context, source);
                                   if (file != null) {
                                     debugPrint(
-                                      'Bulk Image Upload: Mosque inside image picked successfully: ${file.path}',
+                                      'Bulk Image Upload: Mosque inside image picked successfully: $file',
                                     );
                                     setSheetState(
-                                      () => _batchMosqueInsideImage = file.path,
+                                      () => _batchMosqueInsideImage = file,
                                     );
                                   } else {
                                     debugPrint(

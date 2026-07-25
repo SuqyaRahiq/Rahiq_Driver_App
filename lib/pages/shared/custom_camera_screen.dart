@@ -5,8 +5,13 @@ import 'package:rahiq_driver/utils/water_loading.dart';
 
 class CustomCameraScreen extends StatefulWidget {
   final int maxDurationSeconds;
+  final bool isVideoMode;
 
-  const CustomCameraScreen({super.key, this.maxDurationSeconds = 10});
+  const CustomCameraScreen({
+    super.key,
+    this.maxDurationSeconds = 10,
+    this.isVideoMode = true,
+  });
 
   @override
   State<CustomCameraScreen> createState() => _CustomCameraScreenState();
@@ -33,8 +38,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       if (_cameras.isNotEmpty) {
         _controller = CameraController(
           _cameras.first,
-          ResolutionPreset.medium,
-          enableAudio: true,
+          widget.isVideoMode ? ResolutionPreset.medium : ResolutionPreset.high,
+          enableAudio: widget.isVideoMode,
         );
 
         await _controller!.initialize();
@@ -95,6 +100,19 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       });
     } catch (e) {
       debugPrint('Error starting video recording: $e');
+    }
+  }
+
+  Future<void> _takePicture() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    try {
+      final XFile imageFile = await _controller!.takePicture();
+      if (mounted) {
+        Navigator.pop(context, imageFile.path);
+      }
+    } catch (e) {
+      debugPrint('Error taking picture: $e');
     }
   }
 
@@ -228,7 +246,9 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   GestureDetector(
-                    onTap: _isRecording ? _stopRecording : _startRecording,
+                    onTap: widget.isVideoMode 
+                        ? (_isRecording ? _stopRecording : _startRecording)
+                        : _takePicture,
                     child: Container(
                       height: 80,
                       width: 80,
@@ -238,11 +258,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                       ),
                       child: Center(
                         child: Container(
-                          height: _isRecording ? 30 : 60,
-                          width: _isRecording ? 30 : 60,
+                          height: widget.isVideoMode 
+                              ? (_isRecording ? 30 : 60)
+                              : 60,
+                          width: widget.isVideoMode 
+                              ? (_isRecording ? 30 : 60)
+                              : 60,
                           decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: _isRecording
+                            color: widget.isVideoMode ? Colors.red : Colors.white,
+                            borderRadius: widget.isVideoMode && _isRecording
                                 ? BorderRadius.circular(8)
                                 : BorderRadius.circular(30),
                           ),
@@ -261,7 +285,9 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                 left: 0,
                 right: 0,
                 child: Text(
-                  'Tap to record (Max ${widget.maxDurationSeconds}s)',
+                  widget.isVideoMode 
+                      ? 'Tap to record (Max ${widget.maxDurationSeconds}s)'
+                      : 'Tap to take picture',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,

@@ -81,7 +81,20 @@ class ApiClient {
           if (e.response?.statusCode == 401) {
             if (!_isRefreshing) {
               _isRefreshing = true;
-              final refreshed = await refreshToken();
+              bool refreshed;
+              try {
+                refreshed = await refreshToken();
+              } catch (_) {
+                // Network/server error during refresh — don't destroy the
+                // session over a transient failure. Surface the original
+                // error and let the user retry the action.
+                _isRefreshing = false;
+                for (var completer in _pendingRequests) {
+                  completer.complete(false);
+                }
+                _pendingRequests.clear();
+                return handler.next(e);
+              }
               _isRefreshing = false;
 
               if (refreshed) {
@@ -171,8 +184,15 @@ class ApiClient {
         );
         return true;
       }
-    } catch (e) {
-      return false;
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      // 4xx = the refresh token itself is invalid/expired → return false
+      if (statusCode != null && statusCode >= 400 && statusCode < 500) {
+        return false;
+      }
+      // Network / server errors → rethrow so callers can distinguish
+      // a connectivity blip from a genuinely dead session.
+      rethrow;
     }
     return false;
   }

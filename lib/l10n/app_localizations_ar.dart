@@ -690,4 +690,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String whatsappDriverMessage(String orderNumber) {
     return 'عزيزي العميل، هذا هو مندوب التوصيل الخاص بك من تطبيق رحيق بخصوص طلبك رقم #$orderNumber.';
   }
+
+  @override
+  String get connectionError =>
+      'تعذّر الاتصال بالخادم.\nيرجى التحقق من اتصالك بالإنترنت.';
+
+  @override
+  String get retryButton => 'إعادة المحاولة';
 }

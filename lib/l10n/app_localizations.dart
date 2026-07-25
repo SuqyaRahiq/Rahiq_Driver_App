@@ -1411,6 +1411,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dear Customer, this is your delivery driver from the Rahiq app regarding your order #{orderNumber}.'**
   String whatsappDriverMessage(String orderNumber);
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the server.\nPlease check your internet connection.'**
+  String get connectionError;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryButton;
 }
 
 class _AppLocalizationsDelegate

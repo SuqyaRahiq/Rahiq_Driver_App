@@ -1355,31 +1355,32 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     ),
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.info_outline_rounded,
-                                color: Colors.orange,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  AppLocalizations.of(
-                                    sheetContext,
-                                  )!.mediaLimitNote,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.w500,
+                        if (isVideo)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.info_outline_rounded,
+                                  color: Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      sheetContext,
+                                    )!.mediaLimitNote,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                         _buildBottomSheetTile(
                           icon: Icons.camera_alt,
                           title: isVideo

@@ -281,5 +281,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "connectionError": "Could not connect to the server.\nPlease check your internet connection.",
+  "retryButton": "Retry"
 }

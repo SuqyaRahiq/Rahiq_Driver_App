@@ -692,4 +692,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String whatsappDriverMessage(String orderNumber) {
     return 'Dear Customer, this is your delivery driver from the Rahiq app regarding your order #$orderNumber.';
   }
+
+  @override
+  String get connectionError =>
+      'Could not connect to the server.\nPlease check your internet connection.';
+
+  @override
+  String get retryButton => 'Retry';
 }

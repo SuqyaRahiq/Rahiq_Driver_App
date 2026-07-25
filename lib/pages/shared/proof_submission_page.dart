@@ -958,8 +958,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     String? customerNote;
 
     final normalSub = widget.normalSubOrder;
-    final deliveryNote = normalSub?.deliveryNotes;
-    final csnotes = normalSub?.csNotes ?? [];
+    final deliveryNote = normalSub?.deliveryNotes ?? customer?['deliveryNotes'];
+    final csnotes = normalSub?.csNotes ?? customer?['csNotes'] ?? [];
     final product =
         normalSub?.product ?? widget.product ?? widget.autoDelivery?.product;
     final productName = Directionality.of(context) == TextDirection.rtl
@@ -1472,8 +1472,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     bool canShowContact,
   ) {
     final normalSub = widget.normalSubOrder;
-    final deliveryNote = normalSub?.deliveryNotes;
-    final csnotes = normalSub?.csNotes;
+    final deliveryNote = normalSub?.deliveryNotes ?? customer['deliveryNotes'];
+    final csnotes = normalSub?.csNotes ?? customer['csNotes'];
 
     final firstName =
         normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';

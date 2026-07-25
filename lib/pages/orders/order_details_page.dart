@@ -73,11 +73,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<String?> _pickImageWithConstraints(BuildContext context, ImageSource source, {
+  Future<String?> _pickImageWithConstraints(
+    BuildContext context,
+    ImageSource source, {
     String? customerName,
     String? quantity,
     String? date,
-   
   }) async {
     String? filePath;
     if (source == ImageSource.camera) {
@@ -89,9 +90,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             customerName: customerName,
             quantity: quantity,
             date: date,
-           customerNote: null,
-           customerServiceNotes: [],
-
+            customerNote: null,
+            customerServiceNotes: [],
           ),
         ),
       );
@@ -110,8 +110,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         if (sizeInMB > 2) {
           if (context.mounted) {
             CustomSnackbar.show(
-              context: context, 
-              message: AppLocalizations.of(context)!.imageSizeLimitError, 
+              context: context,
+              message: AppLocalizations.of(context)!.imageSizeLimitError,
               isError: true,
             );
           }
@@ -314,6 +314,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   detailedSubOrder['customerDetails']?['countryCode'] ??
                   customer['countryCode'] ??
                   '',
+              'deliveryNotes': detailedSubOrder['deliveryNotes'],
+              'csNotes': detailedSubOrder['csNotes'],
             },
             initialMosqueFrontImage: detailedSubOrder['mosqueFrontImage'],
             initialMosqueInsideImage: detailedSubOrder['mosqueInsideImage'],
@@ -423,100 +425,106 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         },
         child: SingleChildScrollView(
           child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height,
-          ),
-          child: IntrinsicHeight(
-            child: Column(
-              children: [
-                // ── Header ────────────────────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  color: AppColors.buttonBlueDark,
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 60, 16, 20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          (Localizations.localeOf(context).languageCode ==
-                                      'ar' &&
-                                  widget.nameAr.isNotEmpty)
-                              ? widget.nameAr
-                              : widget.name,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 38),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: Container(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  // ── Header ────────────────────────────────────────────────────
+                  Container(
                     width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF5F7FA),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
+                    color: AppColors.buttonBlueDark,
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      16,
+                      60,
+                      16,
+                      20,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 28, 24, 100),
-                      child: Column(
-                        children: [
-                          if (_error != null)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _error!,
-                                style: const TextStyle(color: Colors.red),
-                              ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 0),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            (Localizations.localeOf(context).languageCode ==
+                                        'ar' &&
+                                    widget.nameAr.isNotEmpty)
+                                ? widget.nameAr
+                                : widget.name,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 38),
+                      ],
+                    ),
+                  ),
 
-                          (!_isLoading && _subOrders.isEmpty)
-                              ? Expanded(child: _buildSubOrdersSection())
-                              : _buildSubOrdersSection(),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 28, 0, 100),
+                        child: Column(
+                          children: [
+                            if (_error != null)
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ),
 
-                          if (_isLoading || _subOrders.isNotEmpty)
-                            const Spacer(),
-                          const SizedBox(height: 24),
-                        ],
+                            (!_isLoading && _subOrders.isEmpty)
+                                ? Expanded(child: _buildSubOrdersSection())
+                                : _buildSubOrdersSection(),
+
+                            if (_isLoading || _subOrders.isNotEmpty)
+                              const Spacer(),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -543,7 +551,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
           child: Text(
             AppLocalizations.of(context)!.orders,
             style: const TextStyle(
@@ -554,7 +562,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
           child: Material(
             color: Colors.white,
             elevation: 1,
@@ -601,306 +609,326 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            FilterChip(
-              showCheckmark: false,
-              backgroundColor: Colors.white,
-              side: BorderSide(
-                color: isAllSelected
-                    ? AppColors.buttonBlueDark.withValues(alpha: 0.7)
-                    : Colors.grey.shade300,
-                width: 1,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              labelStyle: const TextStyle(color: Colors.black87),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: isAllSelected
-                          ? AppColors.buttonBlueDark
-                          : Colors.white,
-                      border: Border.all(
-                        color: isAllSelected
-                            ? AppColors.buttonBlueDark
-                            : Colors.black87,
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: isAllSelected
-                        ? const Center(
-                            child: Icon(
-                              Icons.check,
-                              size: 14,
-                              color: AppColors.white,
-                            ),
-                          )
-                        : null,
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.only(start: 16),
+                child: FilterChip(
+                  showCheckmark: false,
+                  backgroundColor: Colors.white,
+                  side: BorderSide(
+                    color: isAllSelected
+                        ? AppColors.buttonBlueDark.withValues(alpha: 0.7)
+                        : Colors.grey.shade300,
+                    width: 1,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    AppLocalizations.of(context)!.select_all,
-                    style: TextStyle(fontSize: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
                   ),
-                ],
-              ),
-              selected: isAllSelected,
-              onSelected: (val) {
-                setState(() {
-                  if (val == true) {
-                    _isMultiSelectMode = true;
-                    _selectedSubOrders.addAll(
-                      visibleUncompleted.map((s) => s['id'].toString()),
-                    );
-                  } else {
-                    _selectedSubOrders.removeAll(
-                      visibleUncompleted.map((s) => s['id'].toString()),
-                    );
-                    if (_selectedSubOrders.isEmpty) {
-                      _isMultiSelectMode = false;
-                    }
-                  }
-                });
-              },
-              selectedColor: AppColors.white,
-            ),
-            const SizedBox(width: 8),
+                  labelStyle: const TextStyle(color: Colors.black87),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 18,
+                        height: 18,
 
-            FilterChip(
-              showCheckmark: false,
-              backgroundColor: Colors.white,
-              labelStyle: TextStyle(
-                color: _showOnlyWithNotes ? Colors.white : Colors.black87,
-              ),
-              labelPadding: EdgeInsets.symmetric(horizontal: 2),
-              label: Text(AppLocalizations.of(context)!.notes_text),
-              selected: _showOnlyWithNotes,
-              onSelected: (val) {
-                setState(() {
-                  _isLoading = true;
-                  _showOnlyWithNotes = val;
-                });
-                _fetchDetails();
-              },
-              selectedColor: AppColors.buttonBlueDark,
-            ),
-            const SizedBox(width: 8),
-            PopupMenuButton<String>(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              position: PopupMenuPosition.under,
-              onOpened: () => setState(() => _isDateMenuOpen = true),
-              onCanceled: () => setState(() => _isDateMenuOpen = false),
-              onSelected: (val) {
-                setState(() {
-                  _isLoading = true;
-                  _isDateMenuOpen = false;
-                  if (val == 'clear') {
-                    _dateSortDirection = null;
-                  } else {
-                    _dateSortDirection = val;
-                    _quantitySortDirection = null;
-                  }
-                });
-                _fetchDetails();
-              },
-              itemBuilder: (context) {
-                final isAr =
-                    Localizations.localeOf(context).languageCode == 'ar';
-                return [
-                  PopupMenuItem(
-                    value: 'asc',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isAr ? 'من الأقدم للأحدث' : 'Oldest to Newest',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          _dateSortDirection == 'asc'
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: _dateSortDirection == 'asc'
+                        decoration: BoxDecoration(
+                          color: isAllSelected
                               ? AppColors.buttonBlueDark
-                              : Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'desc',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isAr ? 'من الأحدث للأقدم' : 'Newest to Oldest',
+                              : Colors.white,
+                          border: Border.all(
+                            color: isAllSelected
+                                ? AppColors.buttonBlueDark
+                                : Colors.black87,
+                            width: 1.5,
                           ),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          _dateSortDirection == 'desc'
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: _dateSortDirection == 'desc'
-                              ? AppColors.buttonBlueDark
-                              : Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
+                        child: isAllSelected
+                            ? const Center(
+                                child: Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: AppColors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(context)!.select_all,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
                   ),
-                  if (_dateSortDirection != null)
+                  selected: isAllSelected,
+                  onSelected: (val) {
+                    setState(() {
+                      if (val == true) {
+                        _isMultiSelectMode = true;
+                        _selectedSubOrders.addAll(
+                          visibleUncompleted.map((s) => s['id'].toString()),
+                        );
+                      } else {
+                        _selectedSubOrders.removeAll(
+                          visibleUncompleted.map((s) => s['id'].toString()),
+                        );
+                        if (_selectedSubOrders.isEmpty) {
+                          _isMultiSelectMode = false;
+                        }
+                      }
+                    });
+                  },
+                  selectedColor: AppColors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              FilterChip(
+                showCheckmark: false,
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: _showOnlyWithNotes ? Colors.white : Colors.black87,
+                ),
+                labelPadding: EdgeInsets.symmetric(horizontal: 2),
+                label: Text(AppLocalizations.of(context)!.notes_text),
+                selected: _showOnlyWithNotes,
+                onSelected: (val) {
+                  setState(() {
+                    _isLoading = true;
+                    _showOnlyWithNotes = val;
+                  });
+                  _fetchDetails();
+                },
+                selectedColor: AppColors.buttonBlueDark,
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                position: PopupMenuPosition.under,
+                onOpened: () => setState(() => _isDateMenuOpen = true),
+                onCanceled: () => setState(() => _isDateMenuOpen = false),
+                onSelected: (val) {
+                  setState(() {
+                    _isLoading = true;
+                    _isDateMenuOpen = false;
+                    if (val == 'clear') {
+                      _dateSortDirection = null;
+                    } else {
+                      _dateSortDirection = val;
+                      _quantitySortDirection = null;
+                    }
+                  });
+                  _fetchDetails();
+                },
+                itemBuilder: (context) {
+                  final isAr =
+                      Localizations.localeOf(context).languageCode == 'ar';
+                  return [
                     PopupMenuItem(
-                      value: 'clear',
+                      value: 'asc',
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              isAr ? 'مسح الفرز' : 'Clear Sort',
-                              style: TextStyle(color: AppColors.buttonBlueDark),
+                              isAr ? 'من الأقدم للأحدث' : 'Oldest to Newest',
                             ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            _dateSortDirection == 'asc'
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: _dateSortDirection == 'asc'
+                                ? AppColors.buttonBlueDark
+                                : Colors.grey,
+                            size: 20,
                           ),
                         ],
                       ),
                     ),
-                ];
-              },
-              child: IgnorePointer(
-                child: FilterChip(
-                  label: Text('↑↓ ${AppLocalizations.of(context)!.date}'),
-                  selected: _dateSortDirection != null || _isDateMenuOpen,
-                  onSelected: (_) {}, // Handled by PopupMenuButton
-                  selectedColor: AppColors.buttonBlueDark,
-                  labelPadding: EdgeInsets.symmetric(horizontal: 2),
-                  showCheckmark: false,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
-                    color: (_dateSortDirection != null || _isDateMenuOpen)
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            PopupMenuButton<String>(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              position: PopupMenuPosition.under,
-              onOpened: () => setState(() => _isQuantityMenuOpen = true),
-              onCanceled: () => setState(() => _isQuantityMenuOpen = false),
-              onSelected: (val) {
-                setState(() {
-                  _isLoading = true;
-                  _isQuantityMenuOpen = false;
-                  if (val == 'clear') {
-                    _quantitySortDirection = null;
-                  } else {
-                    _quantitySortDirection = val;
-                    _dateSortDirection = null;
-                  }
-                });
-                _fetchDetails();
-              },
-              itemBuilder: (context) {
-                final isAr =
-                    Localizations.localeOf(context).languageCode == 'ar';
-                return [
-                  PopupMenuItem(
-                    value: 'asc',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isAr ? 'من الأقل للأكثر' : 'Lowest to Highest',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          _quantitySortDirection == 'asc'
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: _quantitySortDirection == 'asc'
-                              ? AppColors.buttonBlueDark
-                              : Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'desc',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isAr ? 'من الأكثر للأقل' : 'Highest to Lowest',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          _quantitySortDirection == 'desc'
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: _quantitySortDirection == 'desc'
-                              ? AppColors.buttonBlueDark
-                              : Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_quantitySortDirection != null)
                     PopupMenuItem(
-                      value: 'clear',
+                      value: 'desc',
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              isAr ? 'مسح الفرز' : 'Clear Sort',
-                              style: TextStyle(color: AppColors.buttonBlueDark),
+                              isAr ? 'من الأحدث للأقدم' : 'Newest to Oldest',
                             ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            _dateSortDirection == 'desc'
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: _dateSortDirection == 'desc'
+                                ? AppColors.buttonBlueDark
+                                : Colors.grey,
+                            size: 20,
                           ),
                         ],
                       ),
                     ),
-                ];
-              },
-              child: IgnorePointer(
-                child: FilterChip(
-                  label: Text('↑↓ ${AppLocalizations.of(context)!.quantity}'),
-                  selected:
-                      _quantitySortDirection != null || _isQuantityMenuOpen,
-                  onSelected: (_) {}, // Handled by PopupMenuButton
-                  selectedColor: AppColors.buttonBlueDark,
-                  labelPadding: EdgeInsets.symmetric(horizontal: 2),
-                  showCheckmark: false,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
-                    color:
-                        (_quantitySortDirection != null || _isQuantityMenuOpen)
-                        ? Colors.white
-                        : Colors.black87,
+                    if (_dateSortDirection != null)
+                      PopupMenuItem(
+                        value: 'clear',
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isAr ? 'مسح الفرز' : 'Clear Sort',
+                                style: TextStyle(
+                                  color: AppColors.buttonBlueDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ];
+                },
+                child: IgnorePointer(
+                  child: FilterChip(
+                    label: Text('↑↓ ${AppLocalizations.of(context)!.date}'),
+                    selected: _dateSortDirection != null || _isDateMenuOpen,
+                    onSelected: (_) {}, // Handled by PopupMenuButton
+                    selectedColor: AppColors.buttonBlueDark,
+                    labelPadding: EdgeInsets.symmetric(horizontal: 2),
+                    showCheckmark: false,
+                    backgroundColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: (_dateSortDirection != null || _isDateMenuOpen)
+                          ? Colors.white
+                          : Colors.black87,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Padding(
+                padding: EdgeInsetsDirectional.only(end: 16),
+                child: PopupMenuButton<String>(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  position: PopupMenuPosition.under,
+                  onOpened: () => setState(() => _isQuantityMenuOpen = true),
+                  onCanceled: () => setState(() => _isQuantityMenuOpen = false),
+                  onSelected: (val) {
+                    setState(() {
+                      _isLoading = true;
+                      _isQuantityMenuOpen = false;
+                      if (val == 'clear') {
+                        _quantitySortDirection = null;
+                      } else {
+                        _quantitySortDirection = val;
+                        _dateSortDirection = null;
+                      }
+                    });
+                    _fetchDetails();
+                  },
+                  itemBuilder: (context) {
+                    final isAr =
+                        Localizations.localeOf(context).languageCode == 'ar';
+                    return [
+                      PopupMenuItem(
+                        value: 'asc',
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isAr ? 'من الأقل للأكثر' : 'Lowest to Highest',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              _quantitySortDirection == 'asc'
+                                  ? Icons.check_circle
+                                  : Icons.circle_outlined,
+                              color: _quantitySortDirection == 'asc'
+                                  ? AppColors.buttonBlueDark
+                                  : Colors.grey,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'desc',
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isAr ? 'من الأكثر للأقل' : 'Highest to Lowest',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              _quantitySortDirection == 'desc'
+                                  ? Icons.check_circle
+                                  : Icons.circle_outlined,
+                              color: _quantitySortDirection == 'desc'
+                                  ? AppColors.buttonBlueDark
+                                  : Colors.grey,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_quantitySortDirection != null)
+                        PopupMenuItem(
+                          value: 'clear',
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isAr ? 'مسح الفرز' : 'Clear Sort',
+                                  style: TextStyle(
+                                    color: AppColors.buttonBlueDark,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ];
+                  },
+                  child: IgnorePointer(
+                    child: FilterChip(
+                      label: Text(
+                        '↑↓ ${AppLocalizations.of(context)!.quantity}',
+                      ),
+                      selected:
+                          _quantitySortDirection != null || _isQuantityMenuOpen,
+                      onSelected: (_) {}, // Handled by PopupMenuButton
+                      selectedColor: AppColors.buttonBlueDark,
+                      labelPadding: EdgeInsets.symmetric(horizontal: 2),
+                      showCheckmark: false,
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color:
+                            (_quantitySortDirection != null ||
+                                _isQuantityMenuOpen)
+                            ? Colors.white
+                            : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
         Builder(
@@ -915,7 +943,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     (index) => Container(
                       width: double.infinity,
                       height: 120,
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(
+                        bottom: 12,
+                        left: 16,
+                        right: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -972,356 +1004,401 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               );
             }
             return Column(
-              children: sortedList.map((subOrder) {
-                final product = subOrder['product'] ?? {};
-                final subId = subOrder['id']?.toString() ?? '';
-                final isSelected = _selectedSubOrders.contains(subId);
-                final isCompleted =
-                    subOrder['status'] == 'DELIVERED' ||
-                    subOrder['status'] == 'COMPLETED';
+              children:
+                  sortedList
+                      .map((subOrder) {
+                        final product = subOrder['product'] ?? {};
+                        final subId = subOrder['id']?.toString() ?? '';
+                        final isSelected = _selectedSubOrders.contains(subId);
+                        final isCompleted =
+                            subOrder['status'] == 'DELIVERED' ||
+                            subOrder['status'] == 'COMPLETED';
 
-                return GestureDetector(
-                  onLongPress: () {
-                    if (isCompleted) return;
-                    if (_subOrders.length > 1) {
-                      setState(() {
-                        _isMultiSelectMode = true;
-                        _selectedSubOrders.add(subId);
-                      });
-                    }
-                  },
-                  onTap: () {
-                    if (isCompleted) return;
-                    if (_isMultiSelectMode) {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedSubOrders.remove(subId);
-                          if (_selectedSubOrders.isEmpty) {
-                            _isMultiSelectMode = false;
-                          }
-                        } else {
-                          _selectedSubOrders.add(subId);
-                        }
-                      });
-                    } else {
-                      _navigateToSingleProofSubmission(subId);
-                    }
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: isSelected
-                          ? Border.all(
-                              color: AppColors.buttonBlueDark,
-                              width: 2,
-                            )
-                          : Border.all(color: Colors.transparent, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsetsDirectional.only(
-                                      end: 8,
-                                    ),
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: Checkbox(
-                                        value: isSelected,
-                                        onChanged: isCompleted
-                                            ? null
-                                            : (bool? value) {
-                                                setState(() {
-                                                  _isMultiSelectMode = true;
-                                                  if (value == true) {
-                                                    _selectedSubOrders.add(
-                                                      subId,
-                                                    );
-                                                  } else {
-                                                    _selectedSubOrders.remove(
-                                                      subId,
-                                                    );
-                                                    if (_selectedSubOrders
-                                                        .isEmpty) {
-                                                      _isMultiSelectMode =
-                                                          false;
-                                                    }
-                                                  }
-                                                });
-                                              },
-                                        activeColor: AppColors.buttonBlueDark,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      (Localizations.localeOf(
-                                                    context,
-                                                  ).languageCode ==
-                                                  'ar'
-                                              ? 'رقم الطلب : '
-                                              : 'Order Number : ') +
-                                          (subOrder['subOrderNumber']
-                                                  ?.toString() ??
-                                              subOrder['id']
-                                                  ?.toString()
-                                                  .substring(0, 8) ??
-                                              ''),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.buttonBlueDark,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isCompleted)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        AppLocalizations.of(context)!.completed,
-                                        style: TextStyle(
-                                          color: Colors.green,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-
-                              const Divider(),
-
-                              Row(
-                                children: [
-                                  if (product['image'] != null &&
-                                      product['image'].toString().isNotEmpty)
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      margin: EdgeInsetsDirectional.only(
-                                        end: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: CachedNetworkImage(
-                                        imageUrl: product['image'],
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Shimmer.fromColors(
-                                              baseColor: Colors.grey[300]!,
-                                              highlightColor: Colors.grey[100]!,
-                                              child: Container(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(
-                                              Icons.inventory_2_outlined,
-                                              color: Colors.grey,
-                                            ),
-                                      ),
+                        return GestureDetector(
+                          onLongPress: () {
+                            if (isCompleted) return;
+                            if (_subOrders.length > 1) {
+                              setState(() {
+                                _isMultiSelectMode = true;
+                                _selectedSubOrders.add(subId);
+                              });
+                            }
+                          },
+                          onTap: () {
+                            if (isCompleted) return;
+                            if (_isMultiSelectMode) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedSubOrders.remove(subId);
+                                  if (_selectedSubOrders.isEmpty) {
+                                    _isMultiSelectMode = false;
+                                  }
+                                } else {
+                                  _selectedSubOrders.add(subId);
+                                }
+                              });
+                            } else {
+                              _navigateToSingleProofSubmission(subId);
+                            }
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 12,
+                              left: 16,
+                              right: 16,
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: AppColors.buttonBlueDark,
+                                      width: 2,
                                     )
-                                  else
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      margin: const EdgeInsets.only(right: 12),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.inventory_2_outlined,
-                                        color: Colors.grey,
-                                      ),
+                                  : Border.all(
+                                      color: Colors.transparent,
+                                      width: 2,
                                     ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          (Localizations.localeOf(
-                                                        context,
-                                                      ).languageCode ==
-                                                      'ar' &&
-                                                  product['nameAr'] != null &&
-                                                  product['nameAr']
-                                                      .toString()
-                                                      .isNotEmpty)
-                                              ? product['nameAr']
-                                              : (product['name'] ??
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.product),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          AppLocalizations.of(context)!.qty(
-                                            subOrder['quantity']?.toString() ??
-                                                '1',
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.buttonBlueDark,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      if (subOrder['deliveryNotes'] != null &&
-                                          subOrder['deliveryNotes']
-                                              .toString()
-                                              .isNotEmpty) ...[
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _showNotesBottomSheet(
-                                              context,
-                                              subOrder,
-                                              true,
-                                            );
-                                          },
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                WidgetStatePropertyAll(
-                                                  Colors.white,
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.only(
+                                                  end: 8,
                                                 ),
-                                            shape: WidgetStatePropertyAll(
-                                              CircleBorder(),
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: Checkbox(
+                                                value: isSelected,
+                                                onChanged: isCompleted
+                                                    ? null
+                                                    : (bool? value) {
+                                                        setState(() {
+                                                          _isMultiSelectMode =
+                                                              true;
+                                                          if (value == true) {
+                                                            _selectedSubOrders
+                                                                .add(subId);
+                                                          } else {
+                                                            _selectedSubOrders
+                                                                .remove(subId);
+                                                            if (_selectedSubOrders
+                                                                .isEmpty) {
+                                                              _isMultiSelectMode =
+                                                                  false;
+                                                            }
+                                                          }
+                                                        });
+                                                      },
+                                                activeColor:
+                                                    AppColors.buttonBlueDark,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                              ),
                                             ),
-                                            padding: WidgetStatePropertyAll(
-                                              EdgeInsetsDirectional.zero,
-                                            ),
-                                            minimumSize: WidgetStatePropertyAll(
-                                              Size(36, 36),
-                                            ),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
                                           ),
-                                          child: Stack(
-                                            children: [
-                                              const Icon(
-                                                Symbols.note_stack,
-                                                size: 20,
+                                          Expanded(
+                                            child: Text(
+                                              (Localizations.localeOf(
+                                                            context,
+                                                          ).languageCode ==
+                                                          'ar'
+                                                      ? 'رقم الطلب : '
+                                                      : 'Order Number : ') +
+                                                  (subOrder['subOrderNumber']
+                                                          ?.toString() ??
+                                                      subOrder['id']
+                                                          ?.toString()
+                                                          .substring(0, 8) ??
+                                                      ''),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.buttonBlueDark,
+                                              ),
+                                            ),
+                                          ),
+                                          if (isCompleted)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.completed,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+
+                                      const Divider(),
+
+                                      Row(
+                                        children: [
+                                          if (product['image'] != null &&
+                                              product['image']
+                                                  .toString()
+                                                  .isNotEmpty)
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              margin:
+                                                  EdgeInsetsDirectional.only(
+                                                    end: 12,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                color: Colors.grey.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                              ),
+                                              clipBehavior: Clip.antiAlias,
+                                              child: CachedNetworkImage(
+                                                imageUrl: product['image'],
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) =>
+                                                    Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[300]!,
+                                                      highlightColor:
+                                                          Colors.grey[100]!,
+                                                      child: Container(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                errorWidget:
+                                                    (
+                                                      context,
+                                                      url,
+                                                      error,
+                                                    ) => const Icon(
+                                                      Icons
+                                                          .inventory_2_outlined,
+                                                      color: Colors.grey,
+                                                    ),
+                                              ),
+                                            )
+                                          else
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              margin: const EdgeInsets.only(
+                                                right: 12,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                color: Colors.grey.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                              ),
+                                              child: const Icon(
+                                                Icons.inventory_2_outlined,
                                                 color: Colors.grey,
                                               ),
-                                              Positioned.directional(
-                                                textDirection:
-                                                    TextDirection.ltr,
-                                                top: 1,
-                                                end: 1,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                  radius: 4,
+                                            ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  (Localizations.localeOf(
+                                                                context,
+                                                              ).languageCode ==
+                                                              'ar' &&
+                                                          product['nameAr'] !=
+                                                              null &&
+                                                          product['nameAr']
+                                                              .toString()
+                                                              .isNotEmpty)
+                                                      ? product['nameAr']
+                                                      : (product['name'] ??
+                                                            AppLocalizations.of(
+                                                              context,
+                                                            )!.product),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black87,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                      if (subOrder['deliveryNotes'] != null &&
-                                          subOrder['deliveryNotes']
-                                              .toString()
-                                              .isNotEmpty &&
-                                          subOrder['csNotes'] != null &&
-                                          (subOrder['csNotes'] as List)
-                                              .isNotEmpty)
-                                        const SizedBox(width: 6),
-                                      if (subOrder['csNotes'] != null &&
-                                          (subOrder['csNotes'] as List)
-                                              .isNotEmpty) ...{
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _showNotesBottomSheet(
-                                              context,
-                                              subOrder,
-                                              false,
-                                            );
-                                          },
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                WidgetStatePropertyAll(
-                                                  Colors.white,
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.qty(
+                                                    subOrder['quantity']
+                                                            ?.toString() ??
+                                                        '1',
+                                                  ),
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors
+                                                        .buttonBlueDark,
+                                                  ),
                                                 ),
-                                            shape: WidgetStatePropertyAll(
-                                              CircleBorder(),
+                                              ],
                                             ),
-                                            padding: WidgetStatePropertyAll(
-                                              EdgeInsets.zero,
-                                            ),
-                                            minimumSize: WidgetStatePropertyAll(
-                                              Size(36, 36),
-                                            ),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
                                           ),
-                                          child: Stack(
+                                          Row(
                                             children: [
-                                              const Icon(
-                                                Icons.support_agent_outlined,
-                                                size: 20,
-                                                color: Colors.grey,
-                                              ),
-                                              Positioned.directional(
-                                                textDirection:
-                                                    TextDirection.ltr,
-                                                top: 1,
-                                                end: 1,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                  radius: 4,
+                                              if (subOrder['deliveryNotes'] !=
+                                                      null &&
+                                                  subOrder['deliveryNotes']
+                                                      .toString()
+                                                      .isNotEmpty) ...[
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    _showNotesBottomSheet(
+                                                      context,
+                                                      subOrder,
+                                                      true,
+                                                    );
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor:
+                                                        WidgetStatePropertyAll(
+                                                          Colors.white,
+                                                        ),
+                                                    shape:
+                                                        WidgetStatePropertyAll(
+                                                          CircleBorder(),
+                                                        ),
+                                                    padding:
+                                                        WidgetStatePropertyAll(
+                                                          EdgeInsetsDirectional
+                                                              .zero,
+                                                        ),
+                                                    minimumSize:
+                                                        WidgetStatePropertyAll(
+                                                          Size(36, 36),
+                                                        ),
+                                                    tapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                  ),
+                                                  child: Stack(
+                                                    children: [
+                                                      const Icon(
+                                                        Symbols.note_stack,
+                                                        size: 20,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      Positioned.directional(
+                                                        textDirection:
+                                                            TextDirection.ltr,
+                                                        top: 1,
+                                                        end: 1,
+                                                        child: CircleAvatar(
+                                                          backgroundColor:
+                                                              Colors.orange,
+                                                          radius: 4,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      },
+                                              ],
+                                              if (subOrder['deliveryNotes'] !=
+                                                      null &&
+                                                  subOrder['deliveryNotes']
+                                                      .toString()
+                                                      .isNotEmpty &&
+                                                  subOrder['csNotes'] != null &&
+                                                  (subOrder['csNotes'] as List)
+                                                      .isNotEmpty)
+                                                const SizedBox(width: 6),
+                                              if (subOrder['csNotes'] != null &&
+                                                  (subOrder['csNotes'] as List)
+                                                      .isNotEmpty) ...{
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    _showNotesBottomSheet(
+                                                      context,
+                                                      subOrder,
+                                                      false,
+                                                    );
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor:
+                                                        WidgetStatePropertyAll(
+                                                          Colors.white,
+                                                        ),
+                                                    shape:
+                                                        WidgetStatePropertyAll(
+                                                          CircleBorder(),
+                                                        ),
+                                                    padding:
+                                                        WidgetStatePropertyAll(
+                                                          EdgeInsets.zero,
+                                                        ),
+                                                    minimumSize:
+                                                        WidgetStatePropertyAll(
+                                                          Size(36, 36),
+                                                        ),
+                                                    tapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                  ),
+                                                  child: Stack(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons
+                                                            .support_agent_outlined,
+                                                        size: 20,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      Positioned.directional(
+                                                        textDirection:
+                                                            TextDirection.ltr,
+                                                        top: 1,
+                                                        end: 1,
+                                                        child: CircleAvatar(
+                                                          backgroundColor:
+                                                              Colors.orange,
+                                                          radius: 4,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              },
                                               if (subOrder['giftCard'] !=
                                                   null) ...[
                                                 if ((subOrder['deliveryNotes'] !=
@@ -1378,242 +1455,257 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   ),
                                                 ),
                                               ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              if ((subOrder['mosqueFrontImage'] != null &&
-                                      subOrder['mosqueFrontImage']
-                                          .toString()
-                                          .isNotEmpty) ||
-                                  (subOrder['mosqueInsideImage'] != null &&
-                                      subOrder['mosqueInsideImage']
-                                          .toString()
-                                          .isNotEmpty)) ...[
-                                const SizedBox(height: 8),
-                                const Divider(),
-                                const SizedBox(height: 8),
-
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child:
-                                          (subOrder['mosqueFrontImage'] !=
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      if ((subOrder['mosqueFrontImage'] !=
                                                   null &&
                                               subOrder['mosqueFrontImage']
                                                   .toString()
-                                                  .isNotEmpty)
-                                          ? GestureDetector(
-                                              onTap: () => _showFullScreenImage(
-                                                context,
-                                                subOrder['mosqueFrontImage'],
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  AspectRatio(
-                                                    aspectRatio: 0.8,
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
-                                                      child: CachedNetworkImage(
-                                                        imageUrl:
-                                                            subOrder['mosqueFrontImage'],
-                                                        width: double.infinity,
-                                                        fit: BoxFit.cover,
-                                                        placeholder:
-                                                            (
-                                                              context,
-                                                              url,
-                                                            ) => Shimmer.fromColors(
-                                                              baseColor: Colors
-                                                                  .grey[300]!,
-                                                              highlightColor:
-                                                                  Colors
-                                                                      .grey[100]!,
-                                                              child: Container(
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                            ),
-                                                        errorWidget:
-                                                            (
-                                                              context,
-                                                              url,
-                                                              error,
-                                                            ) => Container(
-                                                              color: Colors
-                                                                  .grey[200],
-                                                              width: double
-                                                                  .infinity,
-                                                              child: const Icon(
-                                                                Icons
-                                                                    .image_not_supported,
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    (widget.orderType
-                                                                    ?.toLowerCase() ==
-                                                                'orphanage' ||
-                                                            widget.orderType
-                                                                    ?.toLowerCase() ==
-                                                                'orphanages')
-                                                        ? AppLocalizations.of(
-                                                            context,
-                                                          )!.orphanageFront
-                                                        : (widget.orderType
-                                                                      ?.toLowerCase() ==
-                                                                  'graveyard' ||
-                                                              widget.orderType
-                                                                      ?.toLowerCase() ==
-                                                                  'graveyards')
-                                                        ? AppLocalizations.of(
-                                                            context,
-                                                          )!.graveyardFront
-                                                        : AppLocalizations.of(
-                                                            context,
-                                                          )!.mosqueFront,
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: Colors.black87,
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : const SizedBox(),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child:
+                                                  .isNotEmpty) ||
                                           (subOrder['mosqueInsideImage'] !=
                                                   null &&
                                               subOrder['mosqueInsideImage']
                                                   .toString()
-                                                  .isNotEmpty)
-                                          ? GestureDetector(
-                                              onTap: () => _showFullScreenImage(
-                                                context,
-                                                subOrder['mosqueInsideImage'],
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  AspectRatio(
-                                                    aspectRatio: 0.8,
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
+                                                  .isNotEmpty)) ...[
+                                        const SizedBox(height: 8),
+                                        const Divider(),
+                                        const SizedBox(height: 8),
+
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child:
+                                                  (subOrder['mosqueFrontImage'] !=
+                                                          null &&
+                                                      subOrder['mosqueFrontImage']
+                                                          .toString()
+                                                          .isNotEmpty)
+                                                  ? GestureDetector(
+                                                      onTap: () =>
+                                                          _showFullScreenImage(
+                                                            context,
+                                                            subOrder['mosqueFrontImage'],
                                                           ),
-                                                      child: CachedNetworkImage(
-                                                        imageUrl:
-                                                            subOrder['mosqueInsideImage'],
-                                                        width: double.infinity,
-                                                        fit: BoxFit.cover,
-                                                        placeholder:
-                                                            (
-                                                              context,
-                                                              url,
-                                                            ) => Shimmer.fromColors(
-                                                              baseColor: Colors
-                                                                  .grey[300]!,
-                                                              highlightColor:
-                                                                  Colors
-                                                                      .grey[100]!,
-                                                              child: Container(
-                                                                color: Colors
-                                                                    .white,
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          AspectRatio(
+                                                            aspectRatio: 0.8,
+                                                            child: ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    8,
+                                                                  ),
+                                                              child: CachedNetworkImage(
+                                                                imageUrl:
+                                                                    subOrder['mosqueFrontImage'],
+                                                                width: double
+                                                                    .infinity,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                placeholder: (context, url) => Shimmer.fromColors(
+                                                                  baseColor: Colors
+                                                                      .grey[300]!,
+                                                                  highlightColor:
+                                                                      Colors
+                                                                          .grey[100]!,
+                                                                  child: Container(
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                                errorWidget:
+                                                                    (
+                                                                      context,
+                                                                      url,
+                                                                      error,
+                                                                    ) => Container(
+                                                                      color: Colors
+                                                                          .grey[200],
+                                                                      width: double
+                                                                          .infinity,
+                                                                      child: const Icon(
+                                                                        Icons
+                                                                            .image_not_supported,
+                                                                        color: Colors
+                                                                            .grey,
+                                                                      ),
+                                                                    ),
                                                               ),
                                                             ),
-                                                        errorWidget:
-                                                            (
-                                                              context,
-                                                              url,
-                                                              error,
-                                                            ) => Container(
-                                                              color: Colors
-                                                                  .grey[200],
-                                                              width: double
-                                                                  .infinity,
-                                                              child: const Icon(
-                                                                Icons
-                                                                    .image_not_supported,
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 8,
+                                                          ),
+                                                          Text(
+                                                            (widget.orderType
+                                                                            ?.toLowerCase() ==
+                                                                        'orphanage' ||
+                                                                    widget.orderType
+                                                                            ?.toLowerCase() ==
+                                                                        'orphanages')
+                                                                ? AppLocalizations.of(
+                                                                    context,
+                                                                  )!.orphanageFront
+                                                                : (widget.orderType
+                                                                              ?.toLowerCase() ==
+                                                                          'graveyard' ||
+                                                                      widget.orderType
+                                                                              ?.toLowerCase() ==
+                                                                          'graveyards')
+                                                                ? AppLocalizations.of(
+                                                                    context,
+                                                                  )!.graveyardFront
+                                                                : AppLocalizations.of(
+                                                                    context,
+                                                                  )!.mosqueFront,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .black87,
+                                                                ),
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
                                                       ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    (widget.orderType
-                                                                    ?.toLowerCase() ==
-                                                                'orphanage' ||
-                                                            widget.orderType
-                                                                    ?.toLowerCase() ==
-                                                                'orphanages')
-                                                        ? AppLocalizations.of(
+                                                    )
+                                                  : const SizedBox(),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child:
+                                                  (subOrder['mosqueInsideImage'] !=
+                                                          null &&
+                                                      subOrder['mosqueInsideImage']
+                                                          .toString()
+                                                          .isNotEmpty)
+                                                  ? GestureDetector(
+                                                      onTap: () =>
+                                                          _showFullScreenImage(
                                                             context,
-                                                          )!.orphanageInsideImage
-                                                        : (widget.orderType
-                                                                      ?.toLowerCase() ==
-                                                                  'graveyard' ||
-                                                              widget.orderType
-                                                                      ?.toLowerCase() ==
-                                                                  'graveyards')
-                                                        ? AppLocalizations.of(
-                                                            context,
-                                                          )!.graveyardInsideImage
-                                                        : AppLocalizations.of(
-                                                            context,
-                                                          )!.mosqueInsideImage,
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: Colors.black87,
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : const SizedBox(),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Expanded(child: SizedBox()),
-                                    const SizedBox(width: 12),
-                                    const Expanded(child: SizedBox()),
-                                  ],
+                                                            subOrder['mosqueInsideImage'],
+                                                          ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          AspectRatio(
+                                                            aspectRatio: 0.8,
+                                                            child: ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    8,
+                                                                  ),
+                                                              child: CachedNetworkImage(
+                                                                imageUrl:
+                                                                    subOrder['mosqueInsideImage'],
+                                                                width: double
+                                                                    .infinity,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                placeholder: (context, url) => Shimmer.fromColors(
+                                                                  baseColor: Colors
+                                                                      .grey[300]!,
+                                                                  highlightColor:
+                                                                      Colors
+                                                                          .grey[100]!,
+                                                                  child: Container(
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                                errorWidget:
+                                                                    (
+                                                                      context,
+                                                                      url,
+                                                                      error,
+                                                                    ) => Container(
+                                                                      color: Colors
+                                                                          .grey[200],
+                                                                      width: double
+                                                                          .infinity,
+                                                                      child: const Icon(
+                                                                        Icons
+                                                                            .image_not_supported,
+                                                                        color: Colors
+                                                                            .grey,
+                                                                      ),
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 8,
+                                                          ),
+                                                          Text(
+                                                            (widget.orderType
+                                                                            ?.toLowerCase() ==
+                                                                        'orphanage' ||
+                                                                    widget.orderType
+                                                                            ?.toLowerCase() ==
+                                                                        'orphanages')
+                                                                ? AppLocalizations.of(
+                                                                    context,
+                                                                  )!.orphanageInsideImage
+                                                                : (widget.orderType
+                                                                              ?.toLowerCase() ==
+                                                                          'graveyard' ||
+                                                                      widget.orderType
+                                                                              ?.toLowerCase() ==
+                                                                          'graveyards')
+                                                                ? AppLocalizations.of(
+                                                                    context,
+                                                                  )!.graveyardInsideImage
+                                                                : AppLocalizations.of(
+                                                                    context,
+                                                                  )!.mosqueInsideImage,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .black87,
+                                                                ),
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : const SizedBox(),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Expanded(child: SizedBox()),
+                                            const SizedBox(width: 12),
+                                            const Expanded(child: SizedBox()),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                        );
                       })
                       .cast<Widget>()
                       .toList()
@@ -1635,6 +1727,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     bool isForDeliveryNote,
   ) {
     showModalBottomSheet(
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height * 0.3,
+      ),
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1908,7 +2003,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   debugPrint(
                                     'Bulk Image Upload: Mosque front image picking started from source: $source',
                                   );
-                                  final file = await _pickImageWithConstraints(context, source);
+                                  final file = await _pickImageWithConstraints(
+                                    context,
+                                    source,
+                                  );
                                   if (file != null) {
                                     debugPrint(
                                       'Bulk Image Upload: Mosque front image picked successfully: $file',
@@ -1949,7 +2047,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   debugPrint(
                                     'Bulk Image Upload: Mosque inside image picking started from source: $source',
                                   );
-                                  final file = await _pickImageWithConstraints(context, source);
+                                  final file = await _pickImageWithConstraints(
+                                    context,
+                                    source,
+                                  );
                                   if (file != null) {
                                     debugPrint(
                                       'Bulk Image Upload: Mosque inside image picked successfully: $file',

@@ -209,6 +209,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lastName => 'الاسم الأخير';
 
   @override
+  String get fullName => 'الاسم الكامل';
+
+  @override
+  String get username => 'اسم المستخدم';
+
+  @override
   String get email => 'البريد الإلكتروني';
 
   @override
@@ -252,6 +258,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pleaseEnterYourPhoneNumber => 'الرجاء إدخال رقم الهاتف';
+
+  @override
+  String get enterUsername => 'أدخل اسم المستخدم';
+
+  @override
+  String get pleaseEnterYourUsername => 'الرجاء إدخال اسم المستخدم';
 
   @override
   String get enterPassword => 'أدخل كلمة المرور';
@@ -528,8 +540,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productDetails => 'تفاصيل المنتج';
 
   @override
-  String get videoDurationLimitNote =>
-      'ملاحظة: يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.';
+  String get mediaLimitNote =>
+      'ملاحظة: يجب ألا يتجاوز حجم الصورة/الفيديو 10 ميغابايت. يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.';
 
   @override
   String get videoDurationLimitError => 'يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.';
@@ -670,4 +682,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customer_service_notes => 'ملاحظات خدمة العملاء';
+
+  @override
+  String whatsappDriverMessage(String orderNumber) {
+    return 'عزيزي العميل، هذا هو مندوب التوصيل الخاص بك من تطبيق رحيق بخصوص طلبك رقم #$orderNumber.';
+  }
 }

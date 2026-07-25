@@ -85,6 +85,8 @@
   "personalInformation": "Personal Information",
   "firstName": "First Name",
   "lastName": "Last Name",
+  "fullName": "Full Name",
+  "username": "Username",
   "email": "Email",
   "gender": "Gender",
   "contactDetails": "Contact Details",
@@ -100,6 +102,8 @@
   "search": "Search",
   "enterPhoneNumber": "Enter phone number",
   "pleaseEnterYourPhoneNumber": "Please enter your phone number",
+  "enterUsername": "Enter username",
+  "pleaseEnterYourUsername": "Please enter your username",
   "enterPassword": "Enter password",
   "pleaseEnterYourPassword": "Please enter your password",
   "normalOrders": "Normal orders",
@@ -222,7 +226,7 @@
   "capacity": "Capacity",
   "packages": "Packages",
   "productDetails": "Product Details",
-  "videoDurationLimitNote": "Note: Video duration should not exceed 10 seconds.",
+  "mediaLimitNote": "Note: Image/Video size should not exceed 10MB. Video duration should not exceed 10 seconds.",
   "videoDurationLimitError": "Video duration should not exceed 10 seconds.",
   "videoSizeLimitError": "Video size should not exceed 6 MB.",
   "imageSizeLimitError": "Image size should not exceed 2 MB.",
@@ -268,5 +272,13 @@
   "customer_name": "Customer Name",
   "showMenu": "Show Menu",
   "customer_note": "Customer Note",
-  "customer_service_notes": "Customer Service Notes"
+  "customer_service_notes": "Customer Service Notes",
+  "whatsappDriverMessage": "Dear Customer, this is your delivery driver from the Rahiq app regarding your order #{orderNumber}.",
+  "@whatsappDriverMessage": {
+    "placeholders": {
+      "orderNumber": {
+        "type": "String"
+      }
+    }
+  }
 }

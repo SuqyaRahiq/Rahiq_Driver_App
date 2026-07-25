@@ -482,6 +482,18 @@ abstract class AppLocalizations {
   /// **'Last Name'**
   String get lastName;
 
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
   /// No description provided for @email.
   ///
   /// In en, this message translates to:
@@ -571,6 +583,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter your phone number'**
   String get pleaseEnterYourPhoneNumber;
+
+  /// No description provided for @enterUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter username'**
+  String get enterUsername;
+
+  /// No description provided for @pleaseEnterYourUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your username'**
+  String get pleaseEnterYourUsername;
 
   /// No description provided for @enterPassword.
   ///
@@ -1094,11 +1118,11 @@ abstract class AppLocalizations {
   /// **'Product Details'**
   String get productDetails;
 
-  /// No description provided for @videoDurationLimitNote.
+  /// No description provided for @mediaLimitNote.
   ///
   /// In en, this message translates to:
-  /// **'Note: Video duration should not exceed 10 seconds.'**
-  String get videoDurationLimitNote;
+  /// **'Note: Image/Video size should not exceed 10MB. Video duration should not exceed 10 seconds.'**
+  String get mediaLimitNote;
 
   /// No description provided for @videoDurationLimitError.
   ///
@@ -1375,6 +1399,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer Service Notes'**
   String get customer_service_notes;
+
+  /// No description provided for @whatsappDriverMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Customer, this is your delivery driver from the Rahiq app regarding your order #{orderNumber}.'**
+  String whatsappDriverMessage(String orderNumber);
 }
 
 class _AppLocalizationsDelegate

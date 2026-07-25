@@ -21,6 +21,9 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
   List<DriverAutoDelivery> _allItems = [];
   bool _isLoading = true;
   String? _error;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isFetchingMore = false;
 
   @override
   void initState() {
@@ -34,11 +37,15 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
       setState(() {
         _isLoading = true;
         _error = null;
+        _currentPage = 1;
+        _hasMore = true;
+        _isFetchingMore = false;
       });
-      final items = await _deliveriesApi.getAutoDeliveries();
+      final items = await _deliveriesApi.getAutoDeliveries(page: 1, limit: 30);
       if (mounted) {
         setState(() {
           _allItems = items;
+          _hasMore = items.length == 30;
           _isLoading = false;
         });
       }
@@ -52,6 +59,36 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
     }
   }
 
+  Future<void> _fetchMoreItems() async {
+    if (_isFetchingMore || !_hasMore) return;
+    
+    setState(() {
+      _isFetchingMore = true;
+    });
+    
+    try {
+      final nextPage = _currentPage + 1;
+      final newItems = await _deliveriesApi.getAutoDeliveries(page: nextPage, limit: 30);
+      
+      if (mounted) {
+        setState(() {
+          _currentPage = nextPage;
+          _allItems.addAll(newItems);
+          if (newItems.isEmpty || newItems.length < 30) {
+            _hasMore = false;
+          }
+          _isFetchingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isFetchingMore = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,8 +96,15 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
       body: RefreshIndicator(
         onRefresh: _fetchItems,
         color: AppColors.buttonBlueDark,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (!_isLoading && !_isFetchingMore && _hasMore && scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+              _fetchMoreItems();
+            }
+            return false;
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               // ── Header ──────────────────────────────────────────────────────
@@ -140,6 +184,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -153,9 +198,14 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 150),
-      itemCount: _allItems.length,
+      itemCount: _allItems.length + (_isFetchingMore ? 1 : 0),
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _buildOrderCard(_allItems[index]),
+      itemBuilder: (context, index) {
+        if (index == _allItems.length) {
+          return const ListShimmerLoader(itemCount: 2);
+        }
+        return _buildOrderCard(_allItems[index]);
+      },
     );
   }
 

@@ -2,6 +2,7 @@ import 'dart:async' show Timer;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
@@ -26,6 +27,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
 import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProofSubmissionPage extends StatefulWidget {
   final String orderId;
@@ -525,7 +527,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
           _buildNotDeliveredSection(context, provider, proof),
           const SizedBox(height: 16),
         ],
-        if (widget.isAutoDelivery || widget.isAutoOrder) ...[
+        if (widget.isAutoDelivery ||
+            (widget.isAutoOrder && widget.product?.serialNumber == 2)) ...[
           Card(
             elevation: 3,
             color: Colors.white,
@@ -691,7 +694,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                   )
                 : Text(
                     proof.deliveredLocationName ??
-                        AppLocalizations.of(context)!.selectNewLocation,
+                        AppLocalizations.of(context)!.select_delivery_location,
                     style: TextStyle(
                       color: proof.deliveredLocationName != null
                           ? Colors.white
@@ -948,6 +951,48 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     BuildContext context,
     SubOrderProof proof,
   ) {
+    Map<String, dynamic>? customer = widget.singleCustomerData;
+    String? cName;
+    String? cQuantity;
+    String? cDate;
+    List<String>? cNotes;
+    String? customerNote;
+
+    final normalSub = widget.normalSubOrder;
+    final deliveryNote = normalSub?.deliveryNotes;
+    final csnotes = normalSub?.csNotes ?? [];
+    final product =
+        normalSub?.product ?? widget.product ?? widget.autoDelivery?.product;
+    final productName = Directionality.of(context) == TextDirection.rtl
+        ? product?.nameAr ?? ''
+        : product?.name ?? '';
+
+    final firstName =
+        normalSub?.customerDetails?.firstName ?? customer?['firstName'] ?? '';
+    final lastName =
+        normalSub?.customerDetails?.lastName ?? customer?['lastName'] ?? '';
+    final name = '$firstName $lastName'.trim();
+
+    final quantity = normalSub?.quantity ?? customer?['quantity'];
+    final today = DateTime.now();
+    final todayDate = DateFormat(
+      'd MMMM y',
+      Localizations.localeOf(context).languageCode,
+    ).format(today.toLocal());
+
+    cName = name;
+    if (cName.isEmpty) cName = null;
+    cQuantity = quantity?.toString();
+    cDate = todayDate;
+    if (csnotes != null) {
+      if (csnotes.isNotEmpty) {
+        cNotes = (csnotes).map((e) => e.toString()).toList();
+      }
+    }
+    if (deliveryNote != null) {
+      customerNote = deliveryNote;
+    }
+
     return Card(
       elevation: 3,
       color: Colors.white,
@@ -987,6 +1032,12 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     proof.subOrderId,
                     'front',
                     source,
+                    customerName: cName,
+                    quantity: cQuantity,
+                    date: cDate,
+                    customerNote: customerNote,
+                    customerServiceNotes: cNotes,
+                    productName: productName,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1006,6 +1057,11 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     proof.subOrderId,
                     'inside',
                     source,
+                    customerName: cName,
+                    quantity: cQuantity,
+                    customerNote: customerNote,
+                    customerServiceNotes: cNotes,
+                    productName: productName,
                   ),
                 ),
               ],
@@ -1027,6 +1083,12 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     proof.subOrderId,
                     'package',
                     source,
+                    customerName: cName,
+                    quantity: cQuantity,
+                    date: cDate,
+                    customerNote: customerNote,
+                    customerServiceNotes: cNotes,
+                    productName: productName,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1046,7 +1108,14 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     context,
                     proof.subOrderId,
                     source,
+                    customerName: cName,
+                    quantity: cQuantity,
+                    date: cDate,
+                    customerNote: customerNote,
+                    customerServiceNotes: cNotes,
+                    productName: productName,
                   ),
+                  isLoading: provider.isCompressingVideo(proof.subOrderId),
                 ),
               ],
             ),
@@ -1062,6 +1131,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     required String? path,
     required Function(ImageSource) onPick,
     bool isVideo = false,
+    bool isLoading = false,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -1083,29 +1153,68 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 clipBehavior: Clip.hardEdge,
-                child: path != null
-                    ? (isVideo
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: VideoThumbnailWidget(path: path),
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: path.startsWith('http')
-                                  ? CachedNetworkImage(
-                                      imageUrl: path,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) =>
-                                          Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                    )
-                                  : Image.file(File(path), fit: BoxFit.cover),
-                            ))
+                child: isLoading
+                    ? const Center(
+                        child: WaterLoadingIndicator(
+                          waveColor1: AppColors.buttonBlueDark,
+                        ),
+                      )
+                    : path != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          isVideo
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: VideoThumbnailWidget(path: path),
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: path.startsWith('http')
+                                      ? CachedNetworkImage(
+                                          imageUrl: path,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              Shimmer.fromColors(
+                                                baseColor: Colors.grey[300]!,
+                                                highlightColor:
+                                                    Colors.grey[100]!,
+                                                child: Container(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        )
+                                      : Image.file(
+                                          File(path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                          if (!path.startsWith('http'))
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Share.shareXFiles([
+                                    XFile(path),
+                                  ], text: 'Debug: Captured Media');
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.share,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
                     : Center(
                         child: Icon(
                           isVideo
@@ -1269,32 +1378,31 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     ),
                     child: Column(
                       children: [
-                        if (isVideo)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.info_outline_rounded,
-                                  color: Colors.orange,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    AppLocalizations.of(
-                                      sheetContext,
-                                    )!.videoDurationLimitNote,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: Colors.orange,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    sheetContext,
+                                  )!.mediaLimitNote,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                        ),
                         _buildBottomSheetTile(
                           icon: Icons.camera_alt,
                           title: isVideo
@@ -1403,19 +1511,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
         customer['countryCode'] ??
         '';
     final quantity = normalSub?.quantity ?? customer['quantity'];
-    final orderedDate = customer['orderedDate'];
-
-    String formatDate(dynamic dateStr) {
-      if (dateStr == null) return '';
-      try {
-        final dt = DateTime.parse(dateStr.toString()).toLocal();
-        return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-      } catch (_) {
-        return dateStr.toString().length > 10
-            ? dateStr.toString().substring(0, 10)
-            : dateStr.toString();
-      }
-    }
+    final today = DateTime.now();
 
     return Container(
       width: double.infinity,
@@ -1450,107 +1546,114 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (name.isNotEmpty) ...[
-                  Text(
-                    AppLocalizations.of(context)!.customer_name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (phoneNumber != null &&
-                        phoneNumber.toString().isNotEmpty &&
-                        canShowContact) ...[
-                      Column(
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (name.isNotEmpty) ...[
+                            Text(
+                              AppLocalizations.of(context)!.customer_name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            if (phoneNumber != null &&
+                                phoneNumber.toString().isNotEmpty &&
+                                canShowContact) ...[
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)!.phoneNumber,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Directionality(
+                                    textDirection: TextDirection.ltr,
+                                    child: Text(
+                                      '$countryCode$phoneNumber',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppLocalizations.of(context)!.phoneNumber,
+                            AppLocalizations.of(context)!.date,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey,
                             ),
                           ),
-                          Directionality(
+                          Text(
+                            "${today.toLocal().day.toString().padLeft(2, '0')}/${today.toLocal().month.toString().padLeft(2, '0')}/${today.toLocal().year}",
                             textDirection: TextDirection.ltr,
-                            child: Text(
-                              '$countryCode$phoneNumber',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          if (quantity != null) ...[
+                            Text(
+                              AppLocalizations.of(context)!.quantity,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              Directionality.of(context) == TextDirection.ltr
+                                  ? "$quantity ${widget.product?.name ?? ''}"
+                                  : "$quantity ${widget.product?.nameAr ?? ''}",
+
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
-                    ],
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (quantity != null) ...[
-                          Text(
-                            AppLocalizations.of(context)!.quantity,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          Text(
-                            Directionality.of(context) == TextDirection.ltr
-                                ? "$quantity ${widget.product?.name ?? ''}"
-                                : "$quantity ${widget.product?.nameAr ?? ''}",
-
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
                     ),
-                    const SizedBox(height: 12),
                   ],
                 ),
 
-                if (orderedDate != null) ...[
-                  const SizedBox(height: 12),
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(
-                      AppLocalizations.of(context)!.date,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    formatDate(orderedDate),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
                 if (widget.latitude != null && widget.longitude != null) ...[
                   const SizedBox(height: 12),
                   Column(
@@ -1601,8 +1704,15 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                 phoneNumber.toString().isNotEmpty) {
                               final number = '$countryCode$phoneNumber'
                                   .replaceAll('+', '');
+                              final message =
+                                  'عزيزي العميل، هذا هو مندوب التوصيل الخاص بك من تطبيق رحيق بخصوص طلبك رقم \u202A#$subOrderNumber\u202C.';
+                              final encodedMessage = Uri.encodeComponent(
+                                message,
+                              );
                               launchUrl(
-                                Uri.parse('https://wa.me/$number'),
+                                Uri.parse(
+                                  'https://wa.me/$number?text=$encodedMessage',
+                                ),
                                 mode: LaunchMode.externalApplication,
                               );
                             }
@@ -1630,7 +1740,15 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                             if (phoneNumber != null &&
                                 phoneNumber.toString().isNotEmpty) {
                               final number = '$countryCode$phoneNumber';
-                              launchUrl(Uri.parse('sms:$number'));
+                              final message =
+                                  'عزيزي العميل، هذا هو مندوب التوصيل الخاص بك من تطبيق رحيق بخصوص طلبك رقم \u202A#$subOrderNumber\u202C.';
+                              final encodedMessage = Uri.encodeComponent(
+                                message,
+                              );
+                              final uriString = Platform.isIOS
+                                  ? 'sms:$number&body=$encodedMessage'
+                                  : 'sms:$number?body=$encodedMessage';
+                              launchUrl(Uri.parse(uriString));
                             }
                           },
                           child: Container(

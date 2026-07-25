@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/common_widgets/language_switch.dart';
-import 'package:country_picker/country_picker.dart';
+
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/api_exception.dart';
 import 'package:rahiq_driver/services/notification_service.dart';
@@ -24,22 +23,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  Country _selectedCountry = Country(
-    phoneCode: '966',
-    countryCode: 'SA',
-    e164Sc: 0,
-    geographic: true,
-    level: 1,
-    name: 'Saudi Arabia',
-    example: '501234567',
-    displayName: 'Saudi Arabia',
-    displayNameNoCountryCode: 'Saudi Arabia',
-    e164Key: '',
-  );
+
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -77,8 +65,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final localeCode = mounted ? Localizations.localeOf(context).languageCode : 'en';
       final response = await api.login({
-        "countryCode": "+${_selectedCountry.phoneCode}",
-        "phoneNumber": _phoneController.text.trim(),
+        "username": _usernameController.text.trim(),
         "deviceType": Platform.isIOS ? "IOS" : "ANDROID",
         "fcmToken": fcmToken ?? "dummy_fcm_token",
         "deviceId": deviceId ?? "dummy_device_id",
@@ -118,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -221,10 +208,10 @@ class _LoginPageState extends State<LoginPage> {
                           // Phone Input
                           FormField<String>(
                             validator: (_) {
-                              if (_phoneController.text.trim().isEmpty) {
+                              if (_usernameController.text.trim().isEmpty) {
                                 return AppLocalizations.of(
                                   context,
-                                )!.pleaseEnterYourPhoneNumber;
+                                )!.pleaseEnterYourUsername;
                               }
                               return null;
                             },
@@ -256,124 +243,10 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Theme(
-                                          data: Theme.of(context).copyWith(
-                                            textSelectionTheme:
-                                                const TextSelectionThemeData(
-                                                  cursorColor:
-                                                      AppColors.buttonBlueDark,
-                                                ),
-                                          ),
-                                          child: Builder(
-                                            builder: (context) => InkWell(
-                                              onTap: () {
-                                                showCountryPicker(
-                                                  favorite: const ["SA"],
-                                                  context: context,
-                                                  showPhoneCode: true,
-                                                  onSelect: (Country country) {
-                                                    setState(() {
-                                                      _selectedCountry =
-                                                          country;
-                                                    });
-                                                  },
-                                                  countryListTheme: CountryListThemeData(
-                                                    backgroundColor:
-                                                        Colors.white,
-                                                    bottomSheetHeight:
-                                                        MediaQuery.of(
-                                                          context,
-                                                        ).size.height *
-                                                        0.7,
-                                                    borderRadius:
-                                                        const BorderRadius.only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                30,
-                                                              ),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                30,
-                                                              ),
-                                                        ),
-                                                    inputDecoration: InputDecoration(
-                                                      hintText:
-                                                          AppLocalizations.of(
-                                                            context,
-                                                          )!.search,
-                                                      prefixIcon: const Icon(
-                                                        Icons.search,
-                                                      ),
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              15,
-                                                            ),
-                                                        borderSide:
-                                                            const BorderSide(
-                                                              color: AppColors
-                                                                  .buttonBlueDark,
-                                                            ),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              15,
-                                                            ),
-                                                        borderSide:
-                                                            const BorderSide(
-                                                              color: AppColors
-                                                                  .buttonBlueDark,
-                                                            ),
-                                                      ),
-                                                      border: OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              15,
-                                                            ),
-                                                        borderSide: BorderSide(
-                                                          color: Colors.grey
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 14,
-                                                    backgroundColor:
-                                                        Colors.grey[200],
-                                                    backgroundImage: NetworkImage(
-                                                      "https://flagcdn.com/w80/${_selectedCountry.countryCode.toLowerCase()}.png",
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Directionality(
-                                                    textDirection:
-                                                        TextDirection.ltr,
-                                                    child: Text(
-                                                      "+${_selectedCountry.phoneCode}",
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const Icon(
-                                                    Icons.keyboard_arrow_down,
-                                                    size: 18,
-                                                    color: Colors.grey,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                        const Icon(
+                                          Icons.person_outline,
+                                          color: Colors.grey,
+                                          size: 20,
                                         ),
                                         const SizedBox(width: 12),
                                         Container(
@@ -386,16 +259,12 @@ class _LoginPageState extends State<LoginPage> {
                                           child: TextField(
                                             cursorColor:
                                                 AppColors.buttonBlueDark,
-                                            controller: _phoneController,
-                                            keyboardType: TextInputType.phone,
-                                            inputFormatters: [
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly,
-                                            ],
+                                            controller: _usernameController,
+                                            keyboardType: TextInputType.text,
                                             decoration: InputDecoration(
                                               hintText: AppLocalizations.of(
                                                 context,
-                                              )!.enterPhoneNumber,
+                                              )!.enterUsername,
                                               hintStyle: const TextStyle(
                                                 color: Colors.grey,
                                                 fontSize: 14,

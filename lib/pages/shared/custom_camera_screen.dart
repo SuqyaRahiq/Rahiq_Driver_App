@@ -6,11 +6,23 @@ import 'package:rahiq_driver/utils/water_loading.dart';
 class CustomCameraScreen extends StatefulWidget {
   final int maxDurationSeconds;
   final bool isVideoMode;
+  final String? customerName;
+  final String? quantity;
+  final String? date;
+  final String? customerNote;
+  final List<String>? customerServiceNotes;
+  final String? productName;
 
   const CustomCameraScreen({
     super.key,
     this.maxDurationSeconds = 10,
     this.isVideoMode = true,
+    this.customerName,
+    this.quantity,
+    this.date,
+    this.customerNote,
+    this.customerServiceNotes,
+    this.productName,
   });
 
   @override
@@ -25,6 +37,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
   int _recordingSeconds = 0;
   Timer? _timer;
   FlashMode _flashMode = FlashMode.off;
+  bool _isDetailsVisible = true;
 
   @override
   void initState() {
@@ -38,7 +51,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       if (_cameras.isNotEmpty) {
         _controller = CameraController(
           _cameras.first,
-          widget.isVideoMode ? ResolutionPreset.medium : ResolutionPreset.high,
+          ResolutionPreset.high,
           enableAudio: widget.isVideoMode,
         );
 
@@ -108,6 +121,22 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
 
     try {
       final XFile imageFile = await _controller!.takePicture();
+
+      try {
+        final size = await imageFile.length();
+        final resolution = _controller!.value.previewSize;
+        debugPrint('📸 Image captured:');
+        debugPrint(' - Path: ${imageFile.path}');
+        debugPrint(' - Size: ${(size / 1024).toStringAsFixed(2)} KB');
+        if (resolution != null) {
+          debugPrint(
+            ' - Resolution: ${resolution.width} x ${resolution.height}',
+          );
+        }
+      } catch (logError) {
+        debugPrint('Error logging image details: $logError');
+      }
+
       if (mounted) {
         Navigator.pop(context, imageFile.path);
       }
@@ -123,6 +152,22 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
 
     try {
       final XFile videoFile = await _controller!.stopVideoRecording();
+
+      try {
+        final size = await videoFile.length();
+        final resolution = _controller!.value.previewSize;
+        debugPrint('🎥 Video recorded:');
+        debugPrint(' - Path: ${videoFile.path}');
+        debugPrint(' - Size: ${(size / (1024 * 1024)).toStringAsFixed(2)} MB');
+        if (resolution != null) {
+          debugPrint(
+            ' - Resolution: ${resolution.width} x ${resolution.height}',
+          );
+        }
+      } catch (logError) {
+        debugPrint('Error logging video details: $logError');
+      }
+
       setState(() {
         _isRecording = false;
       });
@@ -237,16 +282,106 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
               ),
             ),
 
+            if (widget.isVideoMode &&
+                _isDetailsVisible &&
+                (widget.customerName != null ||
+                    widget.quantity != null ||
+                    (widget.customerNote != null &&
+                        widget.customerNote!.isNotEmpty) ||
+                    (widget.customerServiceNotes != null &&
+                        widget.customerServiceNotes!.isNotEmpty)))
+              Positioned(
+                bottom: 150,
+                left: 16,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.5,
+                  ),
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.customerName != null) ...[
+                        Text(
+                          widget.customerName!,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 3),
+                      ],
+                      if (widget.quantity != null) ...[
+                        Text(
+                          "${widget.quantity} ${widget.productName ?? ""} ${widget.date ?? ""}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+
+                      if (widget.customerNote != null &&
+                          widget.customerNote!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          widget.customerNote!,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      if (widget.customerServiceNotes != null &&
+                          widget.customerServiceNotes!.isNotEmpty) ...[
+                        Text(
+                          widget.customerServiceNotes!.join(', '),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
             // Bottom Controls
             Positioned(
               bottom: 30,
               left: 0,
               right: 0,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Expanded(
+                    child:
+                        (widget.isVideoMode &&
+                            (widget.customerName != null ||
+                                widget.quantity != null ||
+                                (widget.customerNote != null &&
+                                    widget.customerNote!.isNotEmpty) ||
+                                (widget.customerServiceNotes != null &&
+                                    widget.customerServiceNotes!.isNotEmpty)))
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 90),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.description_outlined,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isDetailsVisible = !_isDetailsVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                          )
+                        : const SizedBox(),
+                  ),
                   GestureDetector(
-                    onTap: widget.isVideoMode 
+                    onTap: widget.isVideoMode
                         ? (_isRecording ? _stopRecording : _startRecording)
                         : _takePicture,
                     child: Container(
@@ -258,14 +393,16 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                       ),
                       child: Center(
                         child: Container(
-                          height: widget.isVideoMode 
+                          height: widget.isVideoMode
                               ? (_isRecording ? 30 : 60)
                               : 60,
-                          width: widget.isVideoMode 
+                          width: widget.isVideoMode
                               ? (_isRecording ? 30 : 60)
                               : 60,
                           decoration: BoxDecoration(
-                            color: widget.isVideoMode ? Colors.red : Colors.white,
+                            color: widget.isVideoMode
+                                ? Colors.red
+                                : Colors.white,
                             borderRadius: widget.isVideoMode && _isRecording
                                 ? BorderRadius.circular(8)
                                 : BorderRadius.circular(30),
@@ -274,6 +411,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                       ),
                     ),
                   ),
+                  const Expanded(child: SizedBox()),
                 ],
               ),
             ),
@@ -285,7 +423,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                 left: 0,
                 right: 0,
                 child: Text(
-                  widget.isVideoMode 
+                  widget.isVideoMode
                       ? 'Tap to record (Max ${widget.maxDurationSeconds}s)'
                       : 'Tap to take picture',
                   textAlign: TextAlign.center,

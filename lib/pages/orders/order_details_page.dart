@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'dart:io';
@@ -12,8 +14,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
@@ -51,6 +53,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   final Set<String> _selectedSubOrders = {};
   DriverProfile? driver;
 
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isFetchingMore = false;
+
   String? _dateSortDirection; // 'asc' or 'desc'
   String? _quantitySortDirection; // 'asc' or 'desc'
   bool _showOnlyWithNotes = false;
@@ -62,13 +68,26 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<String?> _pickImageWithConstraints(BuildContext context, ImageSource source) async {
+  Future<String?> _pickImageWithConstraints(BuildContext context, ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    List<String>? customerNotes,
+  }) async {
     String? filePath;
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+          builder: (context) => CustomCameraScreen(
+            isVideoMode: false,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+           customerNote: null,
+           customerServiceNotes: [],
+
+          ),
         ),
       );
     } else {
@@ -77,8 +96,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
 
     if (filePath != null) {
+      filePath = await MediaCompressor.compressImage(filePath);
+
       try {
-        final file = File(filePath);
+        final file = File(filePath ?? "");
         final sizeInBytes = await file.length();
         final sizeInMB = sizeInBytes / (1024 * 1024);
         if (sizeInMB > 2) {
@@ -110,6 +131,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Future<void> _fetchDetails({bool checkCompletion = false}) async {
     try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+        _currentPage = 1;
+        _hasMore = true;
+        _isFetchingMore = false;
+      });
       String? sortBy;
       String? sortOrder;
 
@@ -128,17 +156,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              page: 1,
+              limit: 30,
             )
           : await _api.getNormalOrderSubOrders(
               widget.orderId,
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              page: 1,
+              limit: 30,
             );
 
       if (mounted) {
         setState(() {
           _subOrders = details.map((s) => s.toJson()).toList();
+          _hasMore = details.length == 30;
           _isLoading = false;
         });
 
@@ -156,6 +189,64 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         setState(() {
           _error = e.toString();
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchMoreDetails() async {
+    if (_isFetchingMore || !_hasMore) return;
+
+    setState(() {
+      _isFetchingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      String? sortBy;
+      String? sortOrder;
+
+      if (_dateSortDirection != null) {
+        sortBy = 'assignedAt';
+        sortOrder = _dateSortDirection;
+      } else if (_quantitySortDirection != null) {
+        sortBy = 'quantity';
+        sortOrder = _quantitySortDirection;
+      }
+
+      final newDetails = widget.isAutoOrder
+          ? await _api.getAutoOrderDetails(
+              widget.orderId,
+              widget.orderType ?? '',
+              sortBy: sortBy,
+              sortOrder: sortOrder,
+              hasNote: _showOnlyWithNotes,
+              page: nextPage,
+              limit: 30,
+            )
+          : await _api.getNormalOrderSubOrders(
+              widget.orderId,
+              sortBy: sortBy,
+              sortOrder: sortOrder,
+              hasNote: _showOnlyWithNotes,
+              page: nextPage,
+              limit: 30,
+            );
+
+      if (mounted) {
+        setState(() {
+          _currentPage = nextPage;
+          _subOrders.addAll(newDetails.map((s) => s.toJson()).toList());
+          if (newDetails.isEmpty || newDetails.length < 30) {
+            _hasMore = false;
+          }
+          _isFetchingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isFetchingMore = false;
         });
       }
     }
@@ -190,6 +281,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               image:
                   (detailedSubOrder['product'] ?? {})['image']?.toString() ??
                   '',
+              serialNumber:
+                  (detailedSubOrder['product'] ?? {})['serialNumber'] as int?,
             ),
             subOrders: [subId],
             singleCustomerData: {
@@ -301,8 +394,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               ),
             )
           : null,
-      body: SingleChildScrollView(
-        child: ConstrainedBox(
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (!_isLoading &&
+              !_isFetchingMore &&
+              _hasMore &&
+              scrollInfo.metrics.pixels >=
+                  scrollInfo.metrics.maxScrollExtent - 200) {
+            _fetchMoreDetails();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: MediaQuery.of(context).size.height,
           ),
@@ -396,6 +500,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
@@ -1395,7 +1500,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     ),
                   ),
                 );
-              }).toList(),
+                      })
+                      .cast<Widget>()
+                      .toList()
+                    ..addAll(
+                      _isFetchingMore
+                          ? [const ListShimmerLoader(itemCount: 2)]
+                          : [],
+                    ),
             );
           },
         ),

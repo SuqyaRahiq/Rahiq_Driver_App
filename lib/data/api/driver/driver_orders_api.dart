@@ -91,9 +91,11 @@ class DriverOrdersApi {
     String? sortBy,
     String? sortOrder,
     bool hasNote = false,
+    int page = 1,
+    int limit = 30,
   }) async {
     try {
-      final queryParameters = <String, dynamic>{};
+      final queryParameters = <String, dynamic>{'page': page, 'limit': limit};
       if (sortBy != null) queryParameters['sortBy'] = sortBy;
       if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
       if (hasNote) queryParameters['hasNote'] = 'true';
@@ -145,9 +147,11 @@ class DriverOrdersApi {
     String? sortBy,
     String? sortOrder,
     bool hasNote = false,
+    int page = 1,
+    int limit = 30,
   }) async {
     try {
-      final queryParameters = <String, dynamic>{'type': type};
+      final queryParameters = <String, dynamic>{'type': type, 'page': page, 'limit': limit};
       if (sortBy != null) queryParameters['sortBy'] = sortBy;
       if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
       if (hasNote) queryParameters['hasNote'] = 'true';

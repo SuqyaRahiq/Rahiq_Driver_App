@@ -279,7 +279,7 @@ class _OrdersPageState extends State<OrdersPage>
           });
         }
       } else {
-        final autoOrdersResponse = await _ordersApi.getAutoOrders(page: 1);
+        final autoOrdersResponse = await _ordersApi.getAutoOrders(page: 1, limit: 30);
         final autoOrders = autoOrdersResponse.items;
 
         bool hasMore;
@@ -433,6 +433,7 @@ class _OrdersPageState extends State<OrdersPage>
       } else {
         final autoOrdersResponse = await _ordersApi.getAutoOrders(
           page: _autoOrdersPage,
+          limit: 30,
         );
         final autoOrders = autoOrdersResponse.items;
 
@@ -497,7 +498,7 @@ class _OrdersPageState extends State<OrdersPage>
 
     try {
       final nextPage = _autoOrdersPage + 1;
-      final autoOrdersResponse = await _ordersApi.getAutoOrders(page: nextPage);
+      final autoOrdersResponse = await _ordersApi.getAutoOrders(page: nextPage, limit: 30);
       final newAutoOrders = autoOrdersResponse.items;
 
       final isArabic = Localizations.localeOf(context).languageCode == 'ar';

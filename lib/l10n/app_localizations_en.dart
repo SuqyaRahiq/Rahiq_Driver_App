@@ -209,6 +209,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lastName => 'Last Name';
 
   @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get username => 'Username';
+
+  @override
   String get email => 'Email';
 
   @override
@@ -252,6 +258,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseEnterYourPhoneNumber => 'Please enter your phone number';
+
+  @override
+  String get enterUsername => 'Enter username';
+
+  @override
+  String get pleaseEnterYourUsername => 'Please enter your username';
 
   @override
   String get enterPassword => 'Enter password';
@@ -529,8 +541,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productDetails => 'Product Details';
 
   @override
-  String get videoDurationLimitNote =>
-      'Note: Video duration should not exceed 10 seconds.';
+  String get mediaLimitNote =>
+      'Note: Image/Video size should not exceed 10MB. Video duration should not exceed 10 seconds.';
 
   @override
   String get videoDurationLimitError =>
@@ -672,4 +684,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customer_service_notes => 'Customer Service Notes';
+
+  @override
+  String whatsappDriverMessage(String orderNumber) {
+    return 'Dear Customer, this is your delivery driver from the Rahiq app regarding your order #$orderNumber.';
+  }
 }

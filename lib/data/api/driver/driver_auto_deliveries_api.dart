@@ -7,9 +7,9 @@ class DriverAutoDeliveriesApi {
 
   DriverAutoDeliveriesApi(this._apiClient);
 
-  Future<List<DriverAutoDelivery>> getAutoDeliveries() async {
+  Future<List<DriverAutoDelivery>> getAutoDeliveries({int page = 1, int limit = 30}) async {
     try {
-      final response = await _apiClient.dio.get('/driver/auto-deliveries');
+      final response = await _apiClient.dio.get('/driver/auto-deliveries', queryParameters: {'page': page, 'limit': limit});
       return ApiClient.handleResponse(
         response,
         (data) {

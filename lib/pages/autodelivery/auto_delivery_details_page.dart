@@ -14,7 +14,7 @@ import 'package:dio/dio.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
-
+import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -97,13 +97,27 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
   String? _batchPackagesImage;
   final ImagePicker _picker = ImagePicker();
 
-  Future<String?> _pickImageWithConstraints(BuildContext context, ImageSource source) async {
+  Future<String?> _pickImageWithConstraints(
+    BuildContext context,
+    ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    List<String>? customerNotes,
+  }) async {
     String? filePath;
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+          builder: (context) => CustomCameraScreen(
+            isVideoMode: false,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+            customerNote: null,
+            customerServiceNotes: [],
+          ),
         ),
       );
     } else {
@@ -112,8 +126,10 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
     }
 
     if (filePath != null) {
+      filePath = await MediaCompressor.compressImage(filePath);
+
       try {
-        final file = File(filePath);
+        final file = File(filePath ?? "");
         final sizeInBytes = await file.length();
         final sizeInMB = sizeInBytes / (1024 * 1024);
         if (sizeInMB > 2) {

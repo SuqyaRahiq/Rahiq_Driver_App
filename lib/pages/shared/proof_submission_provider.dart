@@ -5,6 +5,7 @@ import 'package:rahiq_driver/data/api/driver/driver_orders_api.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
+import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
 
 class SubOrderProof {
@@ -53,6 +54,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
   List<SubOrderProof> get proofs => _proofs;
 
   final ImagePicker _picker = ImagePicker();
+  final Map<String, bool> _isCompressingVideo = {};
+
+  bool isCompressingVideo(String id) => _isCompressingVideo[id] ?? false;
 
   ProofSubmissionProvider({
     required this.orderId,
@@ -85,7 +89,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> _isFileTooLarge(String path, int maxSizeInMB) async {
+  Future<bool> _isFileTooLarge(String path, double maxSizeInMB) async {
     try {
       final file = File(path);
       final sizeInBytes = await file.length();
@@ -96,13 +100,29 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> pickGlobalImage(BuildContext context, String type, ImageSource source) async {
+  Future<String?> pickGlobalImage(
+    BuildContext context,
+    String type,
+    ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    String? customerNote,
+    List<String>? customerServiceNotes,
+  }) async {
     String? filePath;
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+          builder: (context) => CustomCameraScreen(
+            isVideoMode: false,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+            customerNote: customerNote,
+            customerServiceNotes: customerServiceNotes,
+          ),
         ),
       );
     } else {
@@ -111,7 +131,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
 
     if (filePath != null) {
-      if (await _isFileTooLarge(filePath, 2)) {
+      filePath = await MediaCompressor.compressImage(filePath);
+
+      if (await _isFileTooLarge(filePath!, 2)) {
         return 'image_too_large';
       }
       if (type == 'front') _globalMosqueFrontImage = filePath;
@@ -126,14 +148,28 @@ class ProofSubmissionProvider extends ChangeNotifier {
     BuildContext context,
     String subOrderId,
     String type,
-    ImageSource source,
-  ) async {
+    ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    String? customerNote,
+    List<String>? customerServiceNotes,
+    String? productName,
+  }) async {
     String? filePath;
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CustomCameraScreen(isVideoMode: false),
+          builder: (context) => CustomCameraScreen(
+            isVideoMode: false,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+            customerNote: customerNote,
+            customerServiceNotes: customerServiceNotes,
+            productName: productName,
+          ),
         ),
       );
     } else {
@@ -142,7 +178,9 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
 
     if (filePath != null) {
-      if (await _isFileTooLarge(filePath, 2)) {
+      filePath = await MediaCompressor.compressImage(filePath);
+
+      if (await _isFileTooLarge(filePath!, 2)) {
         return 'image_too_large';
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
@@ -169,16 +207,29 @@ class ProofSubmissionProvider extends ChangeNotifier {
   Future<String?> pickSubOrderVideo(
     BuildContext context,
     String subOrderId,
-    ImageSource source,
-  ) async {
+    ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    String? customerNote,
+    List<String>? customerServiceNotes,
+    String? productName,
+  }) async {
     String? filePath;
 
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              const CustomCameraScreen(maxDurationSeconds: 10),
+          builder: (context) => CustomCameraScreen(
+            maxDurationSeconds: 10,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+            customerNote: customerNote,
+            customerServiceNotes: customerServiceNotes,
+            productName: productName,
+          ),
         ),
       );
     } else {
@@ -193,7 +244,18 @@ class ProofSubmissionProvider extends ChangeNotifier {
       if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
       }
-      if (await _isFileTooLarge(filePath, 6)) {
+
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath, 6.0)) {
+          _isCompressingVideo[subOrderId] = true;
+          notifyListeners();
+          filePath = await MediaCompressor.compressVideo(filePath);
+          _isCompressingVideo[subOrderId] = false;
+          notifyListeners();
+        }
+      }
+
+      if (await _isFileTooLarge(filePath!, 5.9)) {
         return 'video_too_large';
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
@@ -205,16 +267,27 @@ class ProofSubmissionProvider extends ChangeNotifier {
 
   Future<String?> pickGlobalVideo(
     BuildContext context,
-    ImageSource source,
-  ) async {
+    ImageSource source, {
+    String? customerName,
+    String? quantity,
+    String? date,
+    String? customerNote,
+    List<String>? customerServiceNotes,
+  }) async {
     String? filePath;
 
     if (source == ImageSource.camera) {
       filePath = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              const CustomCameraScreen(maxDurationSeconds: 10),
+          builder: (context) => CustomCameraScreen(
+            maxDurationSeconds: 10,
+            customerName: customerName,
+            quantity: quantity,
+            date: date,
+            customerNote: customerNote,
+            customerServiceNotes: customerServiceNotes,
+          ),
         ),
       );
     } else {
@@ -229,7 +302,18 @@ class ProofSubmissionProvider extends ChangeNotifier {
       if (await _isVideoTooLong(filePath)) {
         return 'video_too_long';
       }
-      if (await _isFileTooLarge(filePath, 6)) {
+
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath, 6.0)) {
+          _isCompressingVideo['global'] = true;
+          notifyListeners();
+          filePath = await MediaCompressor.compressVideo(filePath);
+          _isCompressingVideo['global'] = false;
+          notifyListeners();
+        }
+      }
+
+      if (await _isFileTooLarge(filePath!, 5.9)) {
         return 'video_too_large';
       }
       _globalProofVideo = filePath;

@@ -81,6 +81,8 @@
   "personalInformation": "المعلومات الشخصية",
   "firstName": "الاسم الأول",
   "lastName": "الاسم الأخير",
+  "fullName": "الاسم الكامل",
+  "username": "اسم المستخدم",
   "email": "البريد الإلكتروني",
   "gender": "الجنس",
   "contactDetails": "تفاصيل الاتصال",
@@ -96,6 +98,8 @@
   "search": "بحث",
   "enterPhoneNumber": "أدخل رقم الهاتف",
   "pleaseEnterYourPhoneNumber": "الرجاء إدخال رقم الهاتف",
+  "enterUsername": "أدخل اسم المستخدم",
+  "pleaseEnterYourUsername": "الرجاء إدخال اسم المستخدم",
   "enterPassword": "أدخل كلمة المرور",
   "uploadingVideo": "جاري رفع الفيديو",
   "batch_Number": "رقم الدفعة",
@@ -222,7 +226,7 @@
   "capacity": "السعة",
   "packages": "الطرود",
   "productDetails": "تفاصيل المنتج",
-  "videoDurationLimitNote": "ملاحظة: يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
+  "mediaLimitNote": "ملاحظة: يجب ألا يتجاوز حجم الصورة/الفيديو 10 ميغابايت. يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
   "videoDurationLimitError": "يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
   "videoSizeLimitError": "يجب ألا يتجاوز حجم الفيديو 6 ميغابايت.",
   "imageSizeLimitError": "يجب ألا يتجاوز حجم الصورة 2 ميغابايت.",
@@ -268,5 +272,13 @@
   "privacy_policy": "سياسة الخصوصية",
   "showMenu": "عرض القائمة",
   "customer_note": "ملاحظة العميل",
-  "customer_service_notes": "ملاحظات خدمة العملاء"
+  "customer_service_notes": "ملاحظات خدمة العملاء",
+  "whatsappDriverMessage": "عزيزي العميل، هذا هو مندوب التوصيل الخاص بك من تطبيق رحيق بخصوص طلبك رقم #{orderNumber}.",
+  "@whatsappDriverMessage": {
+    "placeholders": {
+      "orderNumber": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -6,8 +6,8 @@ class DriverProfile {
   final String id;
   final String phoneNumber;
   final String countryCode;
-  final String firstName;
-  final String lastName;
+  final String fullName;
+  final String username;
   final String? avatarUrl;
   final bool? isActive;
   final String? type;
@@ -34,8 +34,8 @@ class DriverProfile {
     required this.id,
     required this.phoneNumber,
     required this.countryCode,
-    required this.firstName,
-    required this.lastName,
+    required this.fullName,
+    required this.username,
     this.avatarUrl,
     this.isActive,
     this.type,
@@ -64,8 +64,8 @@ class DriverProfile {
       id: json['id'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
       countryCode: json['countryCode'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
+      fullName: json['fullName'] ?? '',
+      username: json['username'] ?? '',
       avatarUrl: json['avatarUrl'],
       isActive: json['isActive'],
       type: json['type'],
@@ -105,8 +105,8 @@ class DriverProfile {
       'id': id,
       'phoneNumber': phoneNumber,
       'countryCode': countryCode,
-      'firstName': firstName,
-      'lastName': lastName,
+      'fullName': fullName,
+      'username': username,
       'avatarUrl': avatarUrl,
       'isActive': isActive,
       'type': type,

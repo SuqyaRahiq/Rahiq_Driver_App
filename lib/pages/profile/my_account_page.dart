@@ -287,8 +287,8 @@ class _MyAccountPageState extends State<MyAccountPage> {
       return _buildBlockedScreen(p);
     }
 
-    final fullName = '${p.firstName} ${p.lastName}'.trim();
-    final initials = _initials(p.firstName, p.lastName);
+    final fullName = p.fullName;
+    final initials = _initials(fullName);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 60),
@@ -305,14 +305,14 @@ class _MyAccountPageState extends State<MyAccountPage> {
             icon: Icons.person_outline_rounded,
             fields: [
               _FieldData(
-                label: AppLocalizations.of(context)!.firstName,
-                value: p.firstName,
+                label: AppLocalizations.of(context)!.fullName,
+                value: p.fullName,
                 icon: Icons.badge_outlined,
               ),
               _FieldData(
-                label: AppLocalizations.of(context)!.lastName,
-                value: p.lastName,
-                icon: Icons.badge_outlined,
+                label: AppLocalizations.of(context)!.username,
+                value: p.username,
+                icon: Icons.person_outline_rounded,
               ),
 
               _FieldData(
@@ -394,7 +394,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
   }
 
   Widget _buildBlockedScreen(DriverProfile p) {
-    final fullName = '${p.firstName} ${p.lastName}'.trim();
+    final fullName = p.fullName;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 60),
@@ -1356,10 +1356,11 @@ class _MyAccountPageState extends State<MyAccountPage> {
     );
   }
 
-  String _initials(String first, String last) {
-    final f = first.isNotEmpty ? first[0].toUpperCase() : '';
-    final l = last.isNotEmpty ? last[0].toUpperCase() : '';
-    return '$f$l';
+  String _initials(String name) {
+    if (name.trim().isEmpty) return '';
+    final parts = name.trim().split( RegExp(r'\s+'));
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '${parts[0][0].toUpperCase()}${parts[1][0].toUpperCase()}';
   }
 
   String _capitalize(String s) {

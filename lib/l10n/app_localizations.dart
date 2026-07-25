@@ -1142,6 +1142,12 @@ abstract class AppLocalizations {
   /// **'Image size should not exceed 2 MB.'**
   String get imageSizeLimitError;
 
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large, please select another one.'**
+  String get fileTooLarge;
+
   /// No description provided for @missingMediaError.
   ///
   /// In en, this message translates to:

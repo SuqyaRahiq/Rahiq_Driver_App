@@ -555,6 +555,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get imageSizeLimitError => 'Image size should not exceed 2 MB.';
 
   @override
+  String get fileTooLarge => 'File too large, please select another one.';
+
+  @override
   String get missingMediaError => 'Please provide all required media.';
 
   @override

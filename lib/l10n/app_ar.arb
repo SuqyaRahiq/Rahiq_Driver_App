@@ -230,6 +230,7 @@
   "videoDurationLimitError": "يجب ألا تتجاوز مدة الفيديو 10 ثوانٍ.",
   "videoSizeLimitError": "يجب ألا يتجاوز حجم الفيديو 6 ميغابايت.",
   "imageSizeLimitError": "يجب ألا يتجاوز حجم الصورة 2 ميغابايت.",
+  "fileTooLarge": "الملف كبير جدًا، يرجى اختيار ملف آخر.",
   "missingMediaError": "يرجى توفير جميع الوسائط المطلوبة.",
   "save": "حفظ",
   "edit": "تعديل",

@@ -27,7 +27,6 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
 import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ProofSubmissionPage extends StatefulWidget {
   final String orderId;
@@ -984,11 +983,11 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     if (cName.isEmpty) cName = null;
     cQuantity = quantity?.toString();
     cDate = todayDate;
-    if (csnotes != null) {
-      if (csnotes.isNotEmpty) {
-        cNotes = (csnotes).map((e) => e.toString()).toList();
-      }
+
+    if (csnotes.isNotEmpty) {
+      cNotes = (csnotes).map((e) => e.toString()).toList();
     }
+
     if (deliveryNote != null) {
       customerNote = deliveryNote;
     }
@@ -1189,30 +1188,6 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                           fit: BoxFit.cover,
                                         ),
                                 ),
-                          if (!path.startsWith('http'))
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Share.shareXFiles([
-                                    XFile(path),
-                                  ], text: 'Debug: Captured Media');
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.share,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
                         ],
                       )
                     : Center(
@@ -1269,6 +1244,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     if (error != null && error is String && context.mounted) {
       final errorMsg = error == 'video_too_long'
           ? AppLocalizations.of(context)!.videoDurationLimitError
+          : error == 'file_too_large'
+          ? AppLocalizations.of(context)!.fileTooLarge
           : error == 'video_too_large'
           ? AppLocalizations.of(context)!.videoSizeLimitError
           : error == 'image_too_large'

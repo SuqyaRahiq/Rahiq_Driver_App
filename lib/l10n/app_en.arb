@@ -230,6 +230,7 @@
   "videoDurationLimitError": "Video duration should not exceed 10 seconds.",
   "videoSizeLimitError": "Video size should not exceed 6 MB.",
   "imageSizeLimitError": "Image size should not exceed 2 MB.",
+  "fileTooLarge": "File too large, please select another one.",
   "missingMediaError": "Please provide all required media.",
   "save": "Save",
   "edit": "Edit",

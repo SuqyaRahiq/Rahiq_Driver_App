@@ -133,8 +133,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
     if (filePath != null) {
       filePath = await MediaCompressor.compressImage(filePath);
 
-      if (await _isFileTooLarge(filePath!, 2)) {
-        return 'image_too_large';
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath!, 2)) {
+          return 'file_too_large';
+        }
       }
       if (type == 'front') _globalMosqueFrontImage = filePath;
       if (type == 'inside') _globalMosqueInsideImage = filePath;
@@ -180,8 +182,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
     if (filePath != null) {
       filePath = await MediaCompressor.compressImage(filePath);
 
-      if (await _isFileTooLarge(filePath!, 2)) {
-        return 'image_too_large';
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath!, 2)) {
+          return 'file_too_large';
+        }
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
       if (type == 'front') proof.mosqueFrontImage = filePath;
@@ -245,18 +249,16 @@ class ProofSubmissionProvider extends ChangeNotifier {
         return 'video_too_long';
       }
 
-      if (source == ImageSource.gallery) {
-        if (await _isFileTooLarge(filePath, 6.0)) {
-          _isCompressingVideo[subOrderId] = true;
-          notifyListeners();
-          filePath = await MediaCompressor.compressVideo(filePath);
-          _isCompressingVideo[subOrderId] = false;
-          notifyListeners();
-        }
-      }
+      _isCompressingVideo[subOrderId] = true;
+      notifyListeners();
+      filePath = await MediaCompressor.compressVideo(filePath);
+      _isCompressingVideo[subOrderId] = false;
+      notifyListeners();
 
-      if (await _isFileTooLarge(filePath!, 5.9)) {
-        return 'video_too_large';
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath!, 5.9)) {
+          return 'file_too_large';
+        }
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
       proof.proofVideo = filePath;
@@ -303,18 +305,16 @@ class ProofSubmissionProvider extends ChangeNotifier {
         return 'video_too_long';
       }
 
-      if (source == ImageSource.gallery) {
-        if (await _isFileTooLarge(filePath, 6.0)) {
-          _isCompressingVideo['global'] = true;
-          notifyListeners();
-          filePath = await MediaCompressor.compressVideo(filePath);
-          _isCompressingVideo['global'] = false;
-          notifyListeners();
-        }
-      }
+      _isCompressingVideo['global'] = true;
+      notifyListeners();
+      filePath = await MediaCompressor.compressVideo(filePath);
+      _isCompressingVideo['global'] = false;
+      notifyListeners();
 
-      if (await _isFileTooLarge(filePath!, 5.9)) {
-        return 'video_too_large';
+      if (source == ImageSource.gallery) {
+        if (await _isFileTooLarge(filePath!, 5.9)) {
+          return 'file_too_large';
+        }
       }
       _globalProofVideo = filePath;
       notifyListeners();

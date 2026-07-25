@@ -51,7 +51,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       if (_cameras.isNotEmpty) {
         _controller = CameraController(
           _cameras.first,
-          ResolutionPreset.high,
+          widget.isVideoMode ? ResolutionPreset.medium : ResolutionPreset.veryHigh,
           enableAudio: widget.isVideoMode,
         );
 

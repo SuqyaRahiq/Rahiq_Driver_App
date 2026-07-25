@@ -1172,6 +1172,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @searchByOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by order number'**
+  String get searchByOrderNumber;
+
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:

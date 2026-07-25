@@ -91,6 +91,7 @@ class DriverOrdersApi {
     String? sortBy,
     String? sortOrder,
     bool hasNote = false,
+    String? search,
     int page = 1,
     int limit = 30,
   }) async {
@@ -99,6 +100,8 @@ class DriverOrdersApi {
       if (sortBy != null) queryParameters['sortBy'] = sortBy;
       if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
       if (hasNote) queryParameters['hasNote'] = 'true';
+      if (search != null && search.isNotEmpty)
+        queryParameters['search'] = search;
 
       final response = await _apiClient.dio.get(
         '/driver/orders/normal/location/$orderId',
@@ -147,6 +150,7 @@ class DriverOrdersApi {
     String? sortBy,
     String? sortOrder,
     bool hasNote = false,
+    String? search,
     int page = 1,
     int limit = 30,
   }) async {
@@ -155,6 +159,8 @@ class DriverOrdersApi {
       if (sortBy != null) queryParameters['sortBy'] = sortBy;
       if (sortOrder != null) queryParameters['sortOrder'] = sortOrder;
       if (hasNote) queryParameters['hasNote'] = 'true';
+      if (search != null && search.isNotEmpty)
+        queryParameters['search'] = search;
 
       final response = await _apiClient.dio.get(
         '/driver/orders/auto/$orderId',

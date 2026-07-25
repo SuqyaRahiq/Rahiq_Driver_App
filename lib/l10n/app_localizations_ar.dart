@@ -568,6 +568,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get add => 'إضافة';
 
   @override
+  String get searchByOrderNumber => 'البحث برقم الطلب';
+
+  @override
   String get welcome => 'أهلًا بك';
 
   @override

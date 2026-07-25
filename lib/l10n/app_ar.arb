@@ -235,6 +235,7 @@
   "save": "حفظ",
   "edit": "تعديل",
   "add": "إضافة",
+  "searchByOrderNumber": "البحث برقم الطلب",
   "choose_specific_orphanage": "اختر دار أيتام محدد",
   "select_an_orphanage_to_deliver_water_to": "اختر دار أيتام لتوصيل الماء إليه",
   "list_of_orphanages": "قائمة دور الأيتام",

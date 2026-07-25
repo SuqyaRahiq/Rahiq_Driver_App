@@ -235,6 +235,7 @@
   "save": "Save",
   "edit": "Edit",
   "add": "Add",
+  "searchByOrderNumber": "Search by order number",
   "welcome": "Welcome",
   "choose_specific_orphanage": "Choose Specific Orphanage",
   "select_an_orphanage_to_deliver_water_to": "Select an orphanage to deliver water to",

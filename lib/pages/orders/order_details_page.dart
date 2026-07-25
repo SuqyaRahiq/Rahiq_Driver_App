@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
@@ -63,6 +64,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   bool _isDateMenuOpen = false;
   bool _isQuantityMenuOpen = false;
 
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  String _searchQuery = '';
+
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
 
@@ -122,6 +127,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   bool _isBatchUploading = false;
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _api = DriverOrdersApi(ApiClient());
@@ -156,6 +168,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              search: _searchQuery,
               page: 1,
               limit: 30,
             )
@@ -164,6 +177,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              search: _searchQuery,
               page: 1,
               limit: 30,
             );
@@ -221,6 +235,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              search: _searchQuery,
               page: nextPage,
               limit: 30,
             )
@@ -229,6 +244,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               sortBy: sortBy,
               sortOrder: sortOrder,
               hasNote: _showOnlyWithNotes,
+              search: _searchQuery,
               page: nextPage,
               limit: 30,
             );
@@ -537,6 +553,54 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Material(
+            color: Colors.white,
+            elevation: 1,
+            borderRadius: BorderRadius.circular(12),
+            child: TextField(
+              cursorColor: AppColors.buttonBlueDark,
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchByOrderNumber,
+                prefixIcon: Icon(Icons.search, color: AppColors.buttonBlueDark),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  setState(() {
+                    _searchQuery = value.trim();
+                  });
+                  _fetchDetails();
+                });
+              },
+            ),
+          ),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -621,10 +685,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 setState(() {
                   _isLoading = true;
                   _showOnlyWithNotes = val;
-                  if (val) {
-                    _dateSortDirection = null;
-                    _quantitySortDirection = null;
-                  }
                 });
                 _fetchDetails();
               },
@@ -644,7 +704,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 setState(() {
                   _isLoading = true;
                   _isDateMenuOpen = false;
-                  _showOnlyWithNotes = false;
                   if (val == 'clear') {
                     _dateSortDirection = null;
                   } else {
@@ -749,7 +808,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 setState(() {
                   _isLoading = true;
                   _isQuantityMenuOpen = false;
-                  _showOnlyWithNotes = false;
                   if (val == 'clear') {
                     _quantitySortDirection = null;
                   } else {

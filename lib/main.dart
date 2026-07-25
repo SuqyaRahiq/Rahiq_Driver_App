@@ -16,6 +16,7 @@ import 'package:rahiq_driver/services/notification_service.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rahiq_driver/utils/colors.dart';
 
 late ValueNotifier<Locale> localeNotifier;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -99,13 +100,20 @@ class MyApp extends StatelessWidget {
             theme: () {
               var theme = ThemeData(
                 fontFamily: GoogleFonts.manrope().fontFamily,
-                fontFamilyFallback: const ['SaudiRiyal'],
+                fontFamilyFallback: const ['SaudiRiyal', 'SF Pro'],
                 appBarTheme: const AppBarTheme(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
                   elevation: 0,
                 ),
                 useMaterial3: true,
+                textSelectionTheme: TextSelectionThemeData(
+                  cursorColor: AppColors.buttonBlueDark,
+                  selectionHandleColor: AppColors.buttonBlueDark,
+                  selectionColor: AppColors.buttonBlueDark.withValues(
+                    alpha: 0.3,
+                  ),
+                ),
               );
               return theme;
             }(),

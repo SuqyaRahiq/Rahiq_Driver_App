@@ -570,6 +570,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get searchByOrderNumber => 'Search by order number';
+
+  @override
   String get welcome => 'Welcome';
 
   @override

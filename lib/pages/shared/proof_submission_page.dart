@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
-import 'package:rahiq_driver/data/models/driver/normal_sub_order.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
@@ -35,7 +34,6 @@ class ProofSubmissionPage extends StatefulWidget {
   final DriverAutoDelivery? autoDelivery;
   final List<String> subOrders;
   final Map<String, dynamic>? singleCustomerData;
-  final NormalSubOrder? normalSubOrder;
   final String? initialMosqueFrontImage;
   final String? initialMosqueInsideImage;
   final String? orderType;
@@ -51,7 +49,6 @@ class ProofSubmissionPage extends StatefulWidget {
     this.isAutoDelivery = false,
     required this.subOrders,
     this.singleCustomerData,
-    this.normalSubOrder,
     this.initialMosqueFrontImage,
     this.product,
     this.initialMosqueInsideImage,
@@ -68,6 +65,9 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
   DriverProfile? driver;
   bool _isCustomerCardLoading = true;
   String? _customerAddress;
+
+  bool get _isChillerProduct =>
+      widget.isAutoOrder && widget.product?.serialNumber == 2;
 
   @override
   void initState() {
@@ -129,6 +129,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
         orderId: widget.orderId,
         isAutoOrder: widget.isAutoOrder,
         isAutoDelivery: widget.isAutoDelivery,
+        isChillerProduct: _isChillerProduct,
         subOrderIds: widget.subOrders,
         initialMosqueFrontImage: widget.initialMosqueFrontImage,
         initialMosqueInsideImage: widget.initialMosqueInsideImage,
@@ -303,8 +304,14 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (widget.singleCustomerData != null &&
-                                !widget.isAutoDelivery) ...[
+                            if (widget.autoDelivery != null) ...[
+                              _buildAutoDeliveryCard(
+                                context,
+                                widget.autoDelivery!,
+                              ),
+                              const SizedBox(height: 12),
+                            ] else if (widget.singleCustomerData !=
+                                null) ...[
                               _isCustomerCardLoading
                                   ? _buildCustomerCardLoader()
                                   : _buildCustomerCard(
@@ -312,13 +319,6 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                       widget.singleCustomerData!,
                                       driver?.canViewContact == true,
                                     ),
-                              const SizedBox(height: 12),
-                            ],
-                            if (widget.isAutoDelivery) ...[
-                              _buildAutoDeliveryCard(
-                                context,
-                                widget.autoDelivery!,
-                              ),
                               const SizedBox(height: 12),
                             ],
 
@@ -338,45 +338,54 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                   width: double.infinity,
                                   height: 55,
                                   child: ElevatedButton(
-                                    onPressed: () async {
-                                      try {
-                                        await provider.submitProofs();
-                                        if (context.mounted) {
-                                          CustomSnackbar.show(
-                                            context: context,
-                                            message: AppLocalizations.of(
-                                              context,
-                                            )!.proofsUploaded,
-                                          );
-                                          Navigator.pop(context, true);
-                                        }
-                                      } catch (e) {
-                                        if (context.mounted) {
-                                          String errorMessage =
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.somethingWentWrong;
-                                          if (e.toString().contains(
-                                            'missing_media',
-                                          )) {
-                                            errorMessage = AppLocalizations.of(
-                                              context,
-                                            )!.missingMediaError;
-                                          } else if (e is DioException &&
-                                              e.response?.data is Map &&
-                                              e.response?.data['message'] !=
-                                                  null) {
-                                            errorMessage =
-                                                e.response!.data['message'];
+                                    onPressed: provider.canSubmit
+                                        ? () async {
+                                            try {
+                                              await provider.submitProofs();
+                                              if (context.mounted) {
+                                                CustomSnackbar.show(
+                                                  context: context,
+                                                  message: AppLocalizations.of(
+                                                    context,
+                                                  )!.proofsUploaded,
+                                                );
+                                                Navigator.pop(context, true);
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                String errorMessage =
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.somethingWentWrong;
+                                                if (e.toString().contains(
+                                                  'missing_delivered_location',
+                                                )) {
+                                                  errorMessage =
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.missingDeliveredLocationError;
+                                                } else if (e.toString().contains(
+                                                  'missing_',
+                                                )) {
+                                                  errorMessage = AppLocalizations.of(
+                                                    context,
+                                                  )!.missingMediaError;
+                                                } else if (e is DioException &&
+                                                    e.response?.data is Map &&
+                                                    e.response?.data['message'] !=
+                                                        null) {
+                                                  errorMessage =
+                                                      e.response!.data['message'];
+                                                }
+                                                CustomSnackbar.show(
+                                                  context: context,
+                                                  message: errorMessage,
+                                                  isError: true,
+                                                );
+                                              }
+                                            }
                                           }
-                                          CustomSnackbar.show(
-                                            context: context,
-                                            message: errorMessage,
-                                            isError: true,
-                                          );
-                                        }
-                                      }
-                                    },
+                                        : null,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.buttonBlueDark,
                                       disabledBackgroundColor: Colors.grey[300],
@@ -526,8 +535,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
           _buildNotDeliveredSection(context, provider, proof),
           const SizedBox(height: 16),
         ],
-        if (widget.isAutoDelivery ||
-            (widget.isAutoOrder && widget.product?.serialNumber == 2)) ...[
+        if (widget.isAutoDelivery || _isChillerProduct) ...[
           Card(
             elevation: 3,
             color: Colors.white,
@@ -536,7 +544,12 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: _buildSelectDeliveredLocation(context, provider, proof),
+              child: _buildSelectDeliveredLocation(
+                context,
+                provider,
+                proof,
+                isMandatory: _isChillerProduct,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -605,13 +618,16 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
   Widget _buildSelectDeliveredLocation(
     BuildContext context,
     ProofSubmissionProvider provider,
-    SubOrderProof proof,
-  ) {
+    SubOrderProof proof, {
+    bool isMandatory = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppLocalizations.of(context)!.select_delivered_location,
+          isMandatory
+              ? AppLocalizations.of(context)!.select_delivered_location_required
+              : AppLocalizations.of(context)!.select_delivered_location,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -957,22 +973,25 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     List<String>? cNotes;
     String? customerNote;
 
-    final normalSub = widget.normalSubOrder;
-    final deliveryNote = normalSub?.deliveryNotes ?? customer?['deliveryNotes'];
-    final csnotes = normalSub?.csNotes ?? customer?['csNotes'] ?? [];
-    final product =
-        normalSub?.product ?? widget.product ?? widget.autoDelivery?.product;
+    final deliveryNote = customer?['deliveryNotes'];
+    final csnotes = customer?['csNotes'] ?? [];
+    final giftCard = customer?['giftCard'];
+    final giftCardSenderName = giftCard != null
+        ? giftCard['senderName']?.toString()
+        : null;
+    final giftCardRecipientName = giftCard != null
+        ? giftCard['receiverName']?.toString()
+        : null;
+    final product = widget.product ?? widget.autoDelivery?.product;
     final productName = Directionality.of(context) == TextDirection.rtl
         ? product?.nameAr ?? ''
         : product?.name ?? '';
 
-    final firstName =
-        normalSub?.customerDetails?.firstName ?? customer?['firstName'] ?? '';
-    final lastName =
-        normalSub?.customerDetails?.lastName ?? customer?['lastName'] ?? '';
+    final firstName = customer?['firstName'] ?? '';
+    final lastName = customer?['lastName'] ?? '';
     final name = '$firstName $lastName'.trim();
 
-    final quantity = normalSub?.quantity ?? customer?['quantity'];
+    final quantity = customer?['quantity'];
     final today = DateTime.now();
     final todayDate = DateFormat(
       'd MMMM y',
@@ -1038,6 +1057,10 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     customerServiceNotes: cNotes,
                     productName: productName,
                   ),
+                  isLoading: provider.isCompressingImage(
+                    proof.subOrderId,
+                    'front',
+                  ),
                 ),
                 const SizedBox(width: 16),
                 _buildDottedImagePicker(
@@ -1061,6 +1084,10 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     customerNote: customerNote,
                     customerServiceNotes: cNotes,
                     productName: productName,
+                  ),
+                  isLoading: provider.isCompressingImage(
+                    proof.subOrderId,
+                    'inside',
                   ),
                 ),
               ],
@@ -1089,6 +1116,10 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     customerServiceNotes: cNotes,
                     productName: productName,
                   ),
+                  isLoading: provider.isCompressingImage(
+                    proof.subOrderId,
+                    'package',
+                  ),
                 ),
                 const SizedBox(width: 16),
                 _buildDottedImagePicker(
@@ -1113,6 +1144,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     customerNote: customerNote,
                     customerServiceNotes: cNotes,
                     productName: productName,
+                    giftCardSenderName: giftCardSenderName,
+                    giftCardRecipientName: giftCardRecipientName,
                   ),
                   isLoading: provider.isCompressingVideo(proof.subOrderId),
                 ),
@@ -1471,24 +1504,17 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     Map<String, dynamic> customer,
     bool canShowContact,
   ) {
-    final normalSub = widget.normalSubOrder;
-    final deliveryNote = normalSub?.deliveryNotes ?? customer['deliveryNotes'];
-    final csnotes = normalSub?.csNotes ?? customer['csNotes'];
+    final deliveryNote = customer['deliveryNotes'];
+    final csnotes = customer['csNotes'];
+    final address = customer['address'];
 
-    final firstName =
-        normalSub?.customerDetails?.firstName ?? customer['firstName'] ?? '';
-    final lastName =
-        normalSub?.customerDetails?.lastName ?? customer['lastName'] ?? '';
+    final firstName = customer['firstName'] ?? '';
+    final lastName = customer['lastName'] ?? '';
     final name = '$firstName $lastName'.trim();
-    final subOrderNumber =
-        normalSub?.subOrderNumber ?? customer['subOrderNumber'] ?? "";
-    final phoneNumber =
-        normalSub?.customerDetails?.phoneNumber ?? customer['phoneNumber'];
-    final countryCode =
-        normalSub?.customerDetails?.countryCode ??
-        customer['countryCode'] ??
-        '';
-    final quantity = normalSub?.quantity ?? customer['quantity'];
+    final subOrderNumber = customer['subOrderNumber'] ?? "";
+    final phoneNumber = customer['phoneNumber'];
+    final countryCode = customer['countryCode'] ?? '';
+    final quantity = customer['quantity'];
     final today = DateTime.now();
 
     return Container(
@@ -1652,6 +1678,30 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                         address:
                             _customerAddress ??
                             '${widget.latitude}, ${widget.longitude}',
+                      ),
+                    ],
+                  ),
+                ] else if (address != null &&
+                    address.toString().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.addressLabel,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        address.toString(),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),

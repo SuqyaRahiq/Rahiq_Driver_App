@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
 class CustomCameraScreen extends StatefulWidget {
@@ -12,6 +13,8 @@ class CustomCameraScreen extends StatefulWidget {
   final String? customerNote;
   final List<String>? customerServiceNotes;
   final String? productName;
+  final String? giftCardSenderName;
+  final String? giftCardRecipientName;
 
   const CustomCameraScreen({
     super.key,
@@ -23,6 +26,8 @@ class CustomCameraScreen extends StatefulWidget {
     this.customerNote,
     this.customerServiceNotes,
     this.productName,
+    this.giftCardSenderName,
+    this.giftCardRecipientName,
   });
 
   @override
@@ -38,6 +43,20 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
   Timer? _timer;
   FlashMode _flashMode = FlashMode.off;
   bool _isDetailsVisible = true;
+
+  bool get _hasGiftCardInfo =>
+      (widget.giftCardSenderName != null &&
+          widget.giftCardSenderName!.isNotEmpty) ||
+      (widget.giftCardRecipientName != null &&
+          widget.giftCardRecipientName!.isNotEmpty);
+
+  bool get _hasOverlayContent =>
+      widget.customerName != null ||
+      _hasGiftCardInfo ||
+      widget.quantity != null ||
+      (widget.customerNote != null && widget.customerNote!.isNotEmpty) ||
+      (widget.customerServiceNotes != null &&
+          widget.customerServiceNotes!.isNotEmpty);
 
   @override
   void initState() {
@@ -282,14 +301,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
               ),
             ),
 
-            if (widget.isVideoMode &&
-                _isDetailsVisible &&
-                (widget.customerName != null ||
-                    widget.quantity != null ||
-                    (widget.customerNote != null &&
-                        widget.customerNote!.isNotEmpty) ||
-                    (widget.customerServiceNotes != null &&
-                        widget.customerServiceNotes!.isNotEmpty)))
+            if (widget.isVideoMode && _isDetailsVisible && _hasOverlayContent)
               Positioned(
                 bottom: 150,
                 left: 16,
@@ -309,7 +321,21 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.customerName != null) ...[
+                      if (_hasGiftCardInfo) ...[
+                        if (widget.giftCardSenderName != null &&
+                            widget.giftCardSenderName!.isNotEmpty)
+                          Text(
+                            '${AppLocalizations.of(context)!.senderName}: ${widget.giftCardSenderName}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        if (widget.giftCardRecipientName != null &&
+                            widget.giftCardRecipientName!.isNotEmpty)
+                          Text(
+                            '${AppLocalizations.of(context)!.recipientName}: ${widget.giftCardRecipientName}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        const SizedBox(height: 3),
+                      ] else if (widget.customerName != null) ...[
                         Text(
                           widget.customerName!,
                           style: const TextStyle(fontSize: 14),
@@ -352,14 +378,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child:
-                        (widget.isVideoMode &&
-                            (widget.customerName != null ||
-                                widget.quantity != null ||
-                                (widget.customerNote != null &&
-                                    widget.customerNote!.isNotEmpty) ||
-                                (widget.customerServiceNotes != null &&
-                                    widget.customerServiceNotes!.isNotEmpty)))
+                    child: (widget.isVideoMode && _hasOverlayContent)
                         ? Align(
                             alignment: Alignment.centerRight,
                             child: Padding(

@@ -589,7 +589,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
   Widget _buildContent(bool isAr) {
     if (_orders.isEmpty) {
       return _buildEmptyState(
-        _currentStatus == 'delivered'
+        _currentStatus == 'DELIVERED'
             ? (isAr ? 'تم التوصيل' : 'Delivered')
             : (isAr ? 'مؤكد' : 'Confirmed'),
         isAr,

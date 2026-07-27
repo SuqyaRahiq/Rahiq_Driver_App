@@ -59,6 +59,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Select the location you delivered to (optional)';
 
   @override
+  String get select_delivered_location_required =>
+      'Select the location you delivered to';
+
+  @override
   String get no_locations_available => 'No Locations Available';
 
   @override
@@ -559,6 +563,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get missingMediaError => 'Please provide all required media.';
+
+  @override
+  String get missingDeliveredLocationError =>
+      'Please select the delivered location.';
+
+  @override
+  String get senderName => 'Sender';
+
+  @override
+  String get recipientName => 'Recipient';
 
   @override
   String get save => 'Save';

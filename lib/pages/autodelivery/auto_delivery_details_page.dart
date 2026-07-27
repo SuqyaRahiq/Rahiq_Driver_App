@@ -94,7 +94,8 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
 
   String? _batchMosqueFrontImage;
   String? _batchMosqueInsideImage;
-  String? _batchPackagesImage;
+  bool _isCompressingBatchFrontImage = false;
+  bool _isCompressingBatchInsideImage = false;
   final ImagePicker _picker = ImagePicker();
 
   Future<String?> _pickImageWithConstraints(
@@ -1122,8 +1123,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
           builder: (context, setSheetState) {
             final canSave =
                 _batchMosqueFrontImage != null &&
-                _batchMosqueInsideImage != null &&
-                _batchPackagesImage != null;
+                _batchMosqueInsideImage != null;
 
             return Container(
               padding: EdgeInsets.only(
@@ -1159,7 +1159,13 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                             debugPrint(
                               'Bulk Image Upload: Mosque front image picking started from source: $source',
                             );
+                            setSheetState(
+                              () => _isCompressingBatchFrontImage = true,
+                            );
                             final file = await _pickImageWithConstraints(context, source);
+                            setSheetState(
+                              () => _isCompressingBatchFrontImage = false,
+                            );
                             if (file != null) {
                               debugPrint(
                                 'Bulk Image Upload: Mosque front image picked successfully: $file',
@@ -1173,6 +1179,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                               );
                             }
                           },
+                          isLoading: _isCompressingBatchFrontImage,
                         ),
                         const SizedBox(width: 12),
                         _buildDottedImagePicker(
@@ -1185,7 +1192,13 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                             debugPrint(
                               'Bulk Image Upload: Mosque inside image picking started from source: $source',
                             );
+                            setSheetState(
+                              () => _isCompressingBatchInsideImage = true,
+                            );
                             final file = await _pickImageWithConstraints(context, source);
+                            setSheetState(
+                              () => _isCompressingBatchInsideImage = false,
+                            );
                             if (file != null) {
                               debugPrint(
                                 'Bulk Image Upload: Mosque inside image picked successfully: $file',
@@ -1199,6 +1212,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                               );
                             }
                           },
+                          isLoading: _isCompressingBatchInsideImage,
                         ),
                         const SizedBox(width: 12),
                       ],
@@ -1227,9 +1241,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                                   );
                                   debugPrint(
                                     'Bulk Image Upload: Request Mosque Inside Image Path: $_batchMosqueInsideImage',
-                                  );
-                                  debugPrint(
-                                    'Bulk Image Upload: Request Packages Image Path: $_batchPackagesImage',
                                   );
                                   // Not used for Auto Delivery, handled by ProofSubmissionPage
                                   // await _api.bulkUploadMosqueImages(
@@ -1277,7 +1288,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                                   setState(() {
                                     _batchMosqueFrontImage = null;
                                     _batchMosqueInsideImage = null;
-                                    _batchPackagesImage = null;
                                     _isMultiSelectMode = false;
                                     _selectedSubOrders.clear();
                                   });
@@ -1351,6 +1361,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
     required String label,
     required String? path,
     required Function(ImageSource) onPick,
+    bool isLoading = false,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -1372,7 +1383,13 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 clipBehavior: Clip.hardEdge,
-                child: path != null
+                child: isLoading
+                    ? const Center(
+                        child: WaterLoadingIndicator(
+                          waveColor1: AppColors.buttonBlueDark,
+                        ),
+                      )
+                    : path != null
                     ? ClipRRect(
                         borderRadius: BorderRadiusGeometry.circular(12),
                         child: path.startsWith('http')

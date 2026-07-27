@@ -27,6 +27,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
   final String orderId;
   final bool isAutoOrder;
   final bool isAutoDelivery;
+  final bool isChillerProduct;
   final List<String> subOrderIds;
   final DriverOrdersApi _api = DriverOrdersApi(ApiClient());
   final DriverAutoDeliveriesApi _autoDeliveriesApi = DriverAutoDeliveriesApi(
@@ -34,7 +35,6 @@ class ProofSubmissionProvider extends ChangeNotifier {
   );
 
   bool _useSameImages = false;
-  bool get useSameImages => _useSameImages;
   bool get isMultiSelect => subOrderIds.length > 1;
 
   bool _isSubmitting = false;
@@ -42,31 +42,28 @@ class ProofSubmissionProvider extends ChangeNotifier {
 
   String? _globalMosqueFrontImage;
   String? _globalMosqueInsideImage;
-  String? _globalPackagesImage;
-  String? _globalProofVideo;
-
-  String? get globalMosqueFrontImage => _globalMosqueFrontImage;
-  String? get globalMosqueInsideImage => _globalMosqueInsideImage;
-  String? get globalPackagesImage => _globalPackagesImage;
-  String? get globalProofVideo => _globalProofVideo;
 
   List<SubOrderProof> _proofs = [];
   List<SubOrderProof> get proofs => _proofs;
 
   final ImagePicker _picker = ImagePicker();
   final Map<String, bool> _isCompressingVideo = {};
+  final Map<String, bool> _isCompressingImage = {};
 
   bool isCompressingVideo(String id) => _isCompressingVideo[id] ?? false;
+  bool isCompressingImage(String subOrderId, String type) =>
+      _isCompressingImage['$subOrderId:$type'] ?? false;
 
   ProofSubmissionProvider({
     required this.orderId,
     required this.isAutoOrder,
     this.isAutoDelivery = false,
+    this.isChillerProduct = false,
     required this.subOrderIds,
     String? initialMosqueFrontImage,
     String? initialMosqueInsideImage,
   }) {
-    if (isAutoOrder || isMultiSelect || isAutoDelivery) {
+    if (isMultiSelect || isAutoDelivery) {
       _useSameImages = true;
     }
     _proofs = subOrderIds.map((id) => SubOrderProof(id)).toList();
@@ -84,11 +81,6 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
   }
 
-  void toggleUseSameImages(bool? value) {
-    _useSameImages = value ?? false;
-    notifyListeners();
-  }
-
   Future<bool> _isFileTooLarge(String path, double maxSizeInMB) async {
     try {
       final file = File(path);
@@ -98,52 +90,6 @@ class ProofSubmissionProvider extends ChangeNotifier {
     } catch (e) {
       return false;
     }
-  }
-
-  Future<String?> pickGlobalImage(
-    BuildContext context,
-    String type,
-    ImageSource source, {
-    String? customerName,
-    String? quantity,
-    String? date,
-    String? customerNote,
-    List<String>? customerServiceNotes,
-  }) async {
-    String? filePath;
-    if (source == ImageSource.camera) {
-      filePath = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CustomCameraScreen(
-            isVideoMode: false,
-            customerName: customerName,
-            quantity: quantity,
-            date: date,
-            customerNote: customerNote,
-            customerServiceNotes: customerServiceNotes,
-          ),
-        ),
-      );
-    } else {
-      final XFile? file = await _picker.pickImage(source: source);
-      filePath = file?.path;
-    }
-
-    if (filePath != null) {
-      filePath = await MediaCompressor.compressImage(filePath);
-
-      if (source == ImageSource.gallery) {
-        if (await _isFileTooLarge(filePath!, 2)) {
-          return 'file_too_large';
-        }
-      }
-      if (type == 'front') _globalMosqueFrontImage = filePath;
-      if (type == 'inside') _globalMosqueInsideImage = filePath;
-      if (type == 'package') _globalPackagesImage = filePath;
-      notifyListeners();
-    }
-    return null;
   }
 
   Future<String?> pickSubOrderImage(
@@ -180,12 +126,15 @@ class ProofSubmissionProvider extends ChangeNotifier {
     }
 
     if (filePath != null) {
+      final compressionKey = '$subOrderId:$type';
+      _isCompressingImage[compressionKey] = true;
+      notifyListeners();
       filePath = await MediaCompressor.compressImage(filePath);
+      _isCompressingImage[compressionKey] = false;
+      notifyListeners();
 
-      if (source == ImageSource.gallery) {
-        if (await _isFileTooLarge(filePath!, 2)) {
-          return 'file_too_large';
-        }
+      if (await _isFileTooLarge(filePath!, 2)) {
+        return 'image_too_large';
       }
       final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
       if (type == 'front') proof.mosqueFrontImage = filePath;
@@ -218,6 +167,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
     String? customerNote,
     List<String>? customerServiceNotes,
     String? productName,
+    String? giftCardSenderName,
+    String? giftCardRecipientName,
   }) async {
     String? filePath;
 
@@ -233,6 +184,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
             customerNote: customerNote,
             customerServiceNotes: customerServiceNotes,
             productName: productName,
+            giftCardSenderName: giftCardSenderName,
+            giftCardRecipientName: giftCardRecipientName,
           ),
         ),
       );
@@ -267,61 +220,6 @@ class ProofSubmissionProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<String?> pickGlobalVideo(
-    BuildContext context,
-    ImageSource source, {
-    String? customerName,
-    String? quantity,
-    String? date,
-    String? customerNote,
-    List<String>? customerServiceNotes,
-  }) async {
-    String? filePath;
-
-    if (source == ImageSource.camera) {
-      filePath = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CustomCameraScreen(
-            maxDurationSeconds: 10,
-            customerName: customerName,
-            quantity: quantity,
-            date: date,
-            customerNote: customerNote,
-            customerServiceNotes: customerServiceNotes,
-          ),
-        ),
-      );
-    } else {
-      final XFile? file = await _picker.pickVideo(
-        source: source,
-        maxDuration: const Duration(seconds: 10),
-      );
-      filePath = file?.path;
-    }
-
-    if (filePath != null) {
-      if (await _isVideoTooLong(filePath)) {
-        return 'video_too_long';
-      }
-
-      _isCompressingVideo['global'] = true;
-      notifyListeners();
-      filePath = await MediaCompressor.compressVideo(filePath);
-      _isCompressingVideo['global'] = false;
-      notifyListeners();
-
-      if (source == ImageSource.gallery) {
-        if (await _isFileTooLarge(filePath!, 5.9)) {
-          return 'file_too_large';
-        }
-      }
-      _globalProofVideo = filePath;
-      notifyListeners();
-    }
-    return null;
-  }
-
   bool get canSubmit {
     // For multi-select / shared mode: allow flexible mix of global + per-suborder images.
     // Each of the 4 required images can come from either global or suborder-specific source.
@@ -348,6 +246,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
                 p.differentMosqueReason!.isEmpty)) {
           return false;
         }
+
+        if (isChillerProduct &&
+            (p.deliveredLocationId == null ||
+                p.deliveredLocationId!.isEmpty)) {
+          return false;
+        }
       }
       return true;
     } else {
@@ -359,7 +263,10 @@ class ProofSubmissionProvider extends ChangeNotifier {
           p.proofVideo != null &&
           (!p.deliveredToDifferentMosque ||
               (p.differentMosqueReason != null &&
-                  p.differentMosqueReason!.isNotEmpty));
+                  p.differentMosqueReason!.isNotEmpty)) &&
+          (!isChillerProduct ||
+              (p.deliveredLocationId != null &&
+                  p.deliveredLocationId!.isNotEmpty));
     }
   }
 
@@ -371,8 +278,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
       for (final p in _proofs) {
         final mosqueFront = _globalMosqueFrontImage ?? p.mosqueFrontImage;
         final mosqueInside = _globalMosqueInsideImage ?? p.mosqueInsideImage;
-        final packages = _globalPackagesImage ?? p.packagesImage;
-        final video = _globalProofVideo ?? p.proofVideo;
+        final packages = p.packagesImage;
+        final video = p.proofVideo;
 
         if (mosqueFront == null)
           return 'missing_mosque_front_for_${p.subOrderId}';
@@ -385,6 +292,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
             (p.differentMosqueReason == null ||
                 p.differentMosqueReason!.isEmpty)) {
           return 'missing_different_mosque_reason_for_${p.subOrderId}';
+        }
+
+        if (isChillerProduct &&
+            (p.deliveredLocationId == null ||
+                p.deliveredLocationId!.isEmpty)) {
+          return 'missing_delivered_location_for_${p.subOrderId}';
         }
       }
       return null;
@@ -399,6 +312,11 @@ class ProofSubmissionProvider extends ChangeNotifier {
           (p.differentMosqueReason == null ||
               p.differentMosqueReason!.isEmpty)) {
         return 'missing_different_mosque_reason';
+      }
+      if (isChillerProduct &&
+          (p.deliveredLocationId == null ||
+              p.deliveredLocationId!.isEmpty)) {
+        return 'missing_delivered_location';
       }
       return null;
     }
@@ -415,22 +333,19 @@ class ProofSubmissionProvider extends ChangeNotifier {
         print('[ProofSubmission] Submitting auto-delivery: $orderId');
         print('[ProofSubmission] Mosque front: $_globalMosqueFrontImage');
         print('[ProofSubmission] Mosque inside: $_globalMosqueInsideImage');
-        print('[ProofSubmission] Packages: $_globalPackagesImage');
-        print('[ProofSubmission] Video: $_globalProofVideo');
 
-        // For auto-delivery, we need all 4 global images (or use fallback from first proof)
+        // For auto-delivery, mosque front/inside may come from the shared
+        // batch upload; packages/video are always picked per sub-order.
         final mosqueFront =
             _globalMosqueFrontImage ??
             (_proofs.isNotEmpty ? _proofs.first.mosqueFrontImage : null);
         final mosqueInside =
             _globalMosqueInsideImage ??
             (_proofs.isNotEmpty ? _proofs.first.mosqueInsideImage : null);
-        final packages =
-            _globalPackagesImage ??
-            (_proofs.isNotEmpty ? _proofs.first.packagesImage : null);
-        final video =
-            _globalProofVideo ??
-            (_proofs.isNotEmpty ? _proofs.first.proofVideo : null);
+        final packages = _proofs.isNotEmpty
+            ? _proofs.first.packagesImage
+            : null;
+        final video = _proofs.isNotEmpty ? _proofs.first.proofVideo : null;
 
         await _autoDeliveriesApi.confirmAutoDelivery(
           deliveryId: orderId,
@@ -440,6 +355,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
           deliveryVideo: video!,
         );
       } else {
+        if (!canSubmit) throw Exception(missingSubmitReason);
         final p = _proofs.first;
 
         final frontImg = _useSameImages
@@ -448,12 +364,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
         final insideImg = _useSameImages
             ? (_globalMosqueInsideImage ?? p.mosqueInsideImage!)
             : p.mosqueInsideImage!;
-        final packagesImg = _useSameImages
-            ? (_globalPackagesImage ?? p.packagesImage!)
-            : p.packagesImage!;
-        final videoImg = _useSameImages
-            ? (_globalProofVideo ?? p.proofVideo!)
-            : p.proofVideo!;
+        final packagesImg = p.packagesImage!;
+        final videoImg = p.proofVideo!;
 
         await _api.confirmSubOrder(
           subOrderId: p.subOrderId,

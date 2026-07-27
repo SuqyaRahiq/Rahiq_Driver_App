@@ -276,23 +276,7 @@ class _ProfileTabState extends State<ProfileTab> {
                             _buildStandaloneTile(
                               icon: Icons.notifications_none_rounded,
                               title: l10n.notifications,
-                              trailingWidget: _unreadNotificationsCount > 0
-                                  ? Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '$_unreadNotificationsCount',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  : null,
+                              iconBadgeCount: _unreadNotificationsCount,
                               onTap: () async {
                                 await Navigator.push(
                                   context,
@@ -432,6 +416,7 @@ class _ProfileTabState extends State<ProfileTab> {
     required String title,
     required VoidCallback onTap,
     Widget? trailingWidget,
+    int iconBadgeCount = 0,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -456,13 +441,50 @@ class _ProfileTabState extends State<ProfileTab> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: AppColors.buttonBlueDark, size: 22),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.buttonBlueDark.withValues(
+                          alpha: 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: AppColors.buttonBlueDark,
+                        size: 22,
+                      ),
+                    ),
+                    if (iconBadgeCount > 0)
+                      PositionedDirectional(
+                        top: -4,
+                        end: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            iconBadgeCount > 99 ? '99+' : '$iconBadgeCount',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 16),
                 Expanded(

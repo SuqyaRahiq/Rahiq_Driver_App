@@ -59,6 +59,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر الموقع الذي تم التوصيل إليه (اختياري)';
 
   @override
+  String get select_delivered_location_required =>
+      'اختر الموقع الذي تم التوصيل إليه';
+
+  @override
   String get no_locations_available => 'لا توجد مواقع متاحة';
 
   @override
@@ -557,6 +561,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get missingMediaError => 'يرجى توفير جميع الوسائط المطلوبة.';
+
+  @override
+  String get missingDeliveredLocationError =>
+      'يرجى اختيار الموقع الذي تم التوصيل إليه.';
+
+  @override
+  String get senderName => 'المرسل';
+
+  @override
+  String get recipientName => 'المستلم';
 
   @override
   String get save => 'حفظ';

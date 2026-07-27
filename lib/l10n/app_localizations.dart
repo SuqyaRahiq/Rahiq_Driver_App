@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Select the location you delivered to (optional)'**
   String get select_delivered_location;
 
+  /// No description provided for @select_delivered_location_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the location you delivered to'**
+  String get select_delivered_location_required;
+
   /// No description provided for @no_locations_available.
   ///
   /// In en, this message translates to:
@@ -1153,6 +1159,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please provide all required media.'**
   String get missingMediaError;
+
+  /// No description provided for @missingDeliveredLocationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select the delivered location.'**
+  String get missingDeliveredLocationError;
+
+  /// No description provided for @senderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender'**
+  String get senderName;
+
+  /// No description provided for @recipientName.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get recipientName;
 
   /// No description provided for @save.
   ///

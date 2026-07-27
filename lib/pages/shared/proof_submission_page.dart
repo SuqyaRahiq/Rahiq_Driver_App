@@ -716,7 +716,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
       "Mosque has been removed",
       "Mosque refused to accept water",
       "Mosque did not need the water",
-      "Mosque was in a secuirity facility",
+      "Mosque was in a security facility",
     ];
     final reasonsAr = [
       "المسجد تحت الإنشاء",

@@ -319,7 +319,9 @@ class _ProfileTabState extends State<ProfileTab> {
                                   );
                                 },
                               ),
-                              const SizedBox(height: 12),
+                             
+                            },
+                            const SizedBox(height: 12),
                               _buildStandaloneTile(
                                 icon: Icons.settings_outlined,
                                 title: l10n.appSettings,
@@ -331,8 +333,7 @@ class _ProfileTabState extends State<ProfileTab> {
                                     ),
                                   );
                                 },
-                              ),
-                            },
+                            ),
 
                             const SizedBox(height: 12),
                             _buildStandaloneTile(

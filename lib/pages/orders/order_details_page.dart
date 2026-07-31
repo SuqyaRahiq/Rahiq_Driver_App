@@ -1415,46 +1415,38 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 as List)
                                                             .isNotEmpty))
                                                   const SizedBox(width: 6),
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    _showGiftCardDialog(
-                                                      context,
-                                                      subOrder['giftCard'],
-                                                    );
-                                                  },
-                                                  child: Container(
-                                                    width: 36,
-                                                    height: 36,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                          color: Colors.white,
-                                                          shape:
-                                                              BoxShape.circle,
-                                                        ),
-                                                    child: Stack(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons.card_giftcard,
-                                                          size: 20,
-                                                          color: Colors.grey,
-                                                        ),
-                                                        Positioned.directional(
-                                                          textDirection:
-                                                              TextDirection.ltr,
-                                                          top: 6,
-                                                          end: 6,
-                                                          child:
-                                                              const CircleAvatar(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .orange,
-                                                                radius: 4,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                                Container(
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Colors.white,
+                                                        shape:
+                                                            BoxShape.circle,
+                                                      ),
+                                                  child: Stack(
+                                                    alignment:
+                                                        Alignment.center,
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.card_giftcard,
+                                                        size: 20,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      Positioned.directional(
+                                                        textDirection:
+                                                            TextDirection.ltr,
+                                                        top: 6,
+                                                        end: 6,
+                                                        child:
+                                                            const CircleAvatar(
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .orange,
+                                                              radius: 4,
+                                                            ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
@@ -2487,116 +2479,4 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
-  void _showGiftCardDialog(BuildContext context, dynamic giftCard) {
-    if (giftCard == null) return;
-
-    final senderName = giftCard['senderName'] ?? '';
-    final receiverName = giftCard['receiverName'] ?? '';
-    final generatedImage =
-        giftCard['generatedImage'] ?? giftCard['templateImage'] ?? '';
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(color: Colors.black.withValues(alpha: 0.9)),
-            if (generatedImage.isNotEmpty)
-              InteractiveViewer(
-                child: Image.network(
-                  generatedImage,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ),
-            Positioned.directional(
-              textDirection: Directionality.of(context),
-              top: 0,
-              start: 0,
-              end: 0,
-              child: SafeArea(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.buttonBlueDark.withValues(
-                              alpha: 0.7,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Expanded(
-                      //   child: Column(
-                      //     crossAxisAlignment: CrossAxisAlignment.start,
-                      //     children: [
-                      //       Text(
-                      //         (Localizations.localeOf(context).languageCode ==
-                      //                     'ar'
-                      //                 ? 'من: '
-                      //                 : 'Sender: ') +
-                      //             senderName,
-                      //         style: const TextStyle(
-                      //           color: Colors.white,
-                      //           fontSize: 16,
-                      //           fontWeight: FontWeight.bold,
-                      //         ),
-                      //       ),
-                      //       const SizedBox(height: 4),
-                      //       Text(
-                      //         (Localizations.localeOf(context).languageCode ==
-                      //                     'ar'
-                      //                 ? 'إلى: '
-                      //                 : 'Receiver: ') +
-                      //             receiverName,
-                      //         style: const TextStyle(
-                      //           color: Colors.white,
-                      //           fontSize: 16,
-                      //           fontWeight: FontWeight.bold,
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -569,10 +569,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please select the delivered location.';
 
   @override
-  String get senderName => 'Sender';
+  String get senderName => 'Gift from';
 
   @override
-  String get recipientName => 'Recipient';
+  String get recipientName => 'To';
 
   @override
   String get save => 'Save';

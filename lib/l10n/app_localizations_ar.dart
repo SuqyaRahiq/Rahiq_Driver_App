@@ -567,10 +567,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرجى اختيار الموقع الذي تم التوصيل إليه.';
 
   @override
-  String get senderName => 'المرسل';
+  String get senderName => 'هدية من';
 
   @override
-  String get recipientName => 'المستلم';
+  String get recipientName => 'إلى';
 
   @override
   String get save => 'حفظ';

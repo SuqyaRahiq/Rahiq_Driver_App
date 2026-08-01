@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginTermsSuffix.
   ///
   /// In en, this message translates to:
-  /// **' of the Yanabee app.'**
+  /// **' of the Rahiq app.'**
   String get loginTermsSuffix;
 
   /// No description provided for @failed_to_load_locations.

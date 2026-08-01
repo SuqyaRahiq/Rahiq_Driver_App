@@ -55,7 +55,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginTermsPrefix => 'بتسجيلك في انت توافق على ';
 
   @override
-  String get loginTermsSuffix => ' لتطبيق ينابيع.';
+  String get loginTermsSuffix => ' لتطبيق رحيق.';
 
   @override
   String get failed_to_load_locations => 'تعذر تحميل المواقع';

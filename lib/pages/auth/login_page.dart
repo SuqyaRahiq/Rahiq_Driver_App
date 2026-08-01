@@ -152,6 +152,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.buttonBlueDark,
         shape: Border.all(width: 0, color: AppColors.buttonBlueDark),
@@ -171,336 +172,363 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
+      body: SafeArea(
         child: Column(
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: const BoxDecoration(
-                      color: AppColors.buttonBlueDark,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(40),
-                        bottomRight: Radius.circular(40),
-                      ),
-                    ),
-                    // Empty space instead of image
-                    child: Center(
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 180,
-                            width: 180,
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.contain,
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(40),
+                            bottomRight: Radius.circular(40),
+                          ),
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.35,
+                            width: MediaQuery.of(context).size.width,
+                            decoration: const BoxDecoration(
+                              color: AppColors.buttonBlueDark,
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(40),
+                                bottomRight: Radius.circular(40),
+                              ),
+                            ),
+                            // Empty space instead of image
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 180,
+                                    width: 180,
+                                    child: Image.asset(
+                                      'assets/logo.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                  SizedBox(height: 30),
+                                ],
+                              ),
                             ),
                           ),
-                          SizedBox(height: 30),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.35 - 50,
-                    left: 24,
-                    right: 24,
-                    bottom: 40,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.buttonBlueDark.withValues(
-                            alpha: 0.15,
-                          ),
-                          blurRadius: 50,
-                          offset: const Offset(0, 25),
-                          spreadRadius: -10,
                         ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * 0.35 - 50,
+                            left: 24,
+                            right: 24,
+                            bottom: 40,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(25),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.buttonBlueDark.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  blurRadius: 50,
+                                  offset: const Offset(0, 25),
+                                  spreadRadius: -10,
+                                ),
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Phone Input
+                                  FormField<String>(
+                                    validator: (_) {
+                                      if (_usernameController.text
+                                          .trim()
+                                          .isEmpty) {
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.pleaseEnterYourUsername;
+                                      }
+                                      return null;
+                                    },
+                                    builder: (state) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              border: Border.all(
+                                                color: state.hasError
+                                                    ? Colors.red.shade700
+                                                    : AppColors.indicatorGrey,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.02),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.person_outline,
+                                                  color: Colors.grey,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Container(
+                                                  height: 24,
+                                                  width: 1,
+                                                  color: Colors.grey[300],
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: TextField(
+                                                    cursorColor: AppColors
+                                                        .buttonBlueDark,
+                                                    controller:
+                                                        _usernameController,
+                                                    keyboardType:
+                                                        TextInputType.text,
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          )!.enterUsername,
+                                                      hintStyle:
+                                                          const TextStyle(
+                                                            color: Colors.grey,
+                                                            fontSize: 14,
+                                                          ),
+                                                      border: InputBorder.none,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                    ),
+                                                    onChanged: (val) {
+                                                      state.didChange(val);
+                                                      if (state.hasError) {
+                                                        state.validate();
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (state.hasError)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 16,
+                                                right: 16,
+                                                top: 8,
+                                              ),
+                                              child: Text(
+                                                state.errorText!,
+                                                style: TextStyle(
+                                                  color: Colors.red.shade700,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Password Input
+                                  FormField<String>(
+                                    validator: (_) {
+                                      if (_passwordController.text
+                                          .trim()
+                                          .isEmpty) {
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.pleaseEnterYourPassword;
+                                      }
+                                      return null;
+                                    },
+                                    builder: (state) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              border: Border.all(
+                                                color: state.hasError
+                                                    ? Colors.red.shade700
+                                                    : AppColors.indicatorGrey,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.02),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.lock_outline,
+                                                  color: Colors.grey,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Container(
+                                                  height: 24,
+                                                  width: 1,
+                                                  color: Colors.grey[300],
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: TextField(
+                                                    cursorColor: AppColors
+                                                        .buttonBlueDark,
+                                                    controller:
+                                                        _passwordController,
+                                                    obscureText:
+                                                        _obscurePassword,
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          )!.enterPassword,
+                                                      hintStyle:
+                                                          const TextStyle(
+                                                            color: Colors.grey,
+                                                            fontSize: 14,
+                                                          ),
+                                                      border: InputBorder.none,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                    ),
+                                                    onChanged: (val) {
+                                                      state.didChange(val);
+                                                      if (state.hasError) {
+                                                        state.validate();
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  constraints:
+                                                      const BoxConstraints(),
+                                                  icon: Icon(
+                                                    _obscurePassword
+                                                        ? Icons.visibility_off
+                                                        : Icons.visibility,
+                                                    color: Colors.grey,
+                                                    size: 20,
+                                                  ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _obscurePassword =
+                                                          !_obscurePassword;
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (state.hasError)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 16,
+                                                right: 16,
+                                                top: 8,
+                                              ),
+                                              child: Text(
+                                                state.errorText!,
+                                                style: TextStyle(
+                                                  color: Colors.red.shade700,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+
+                                  const SizedBox(height: 32),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading ? null : _login,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.buttonBlueDark,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            35,
+                                          ),
+                                        ),
+                                      ),
+                                      child: _isLoading
+                                          ? WaterLoadingIndicator(
+                                              waveColor1:
+                                                  AppColors.buttonBlueDark,
+                                              size: 20,
+                                            )
+                                          : Text(
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.login,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Phone Input
-                          FormField<String>(
-                            validator: (_) {
-                              if (_usernameController.text.trim().isEmpty) {
-                                return AppLocalizations.of(
-                                  context,
-                                )!.pleaseEnterYourUsername;
-                              }
-                              return null;
-                            },
-                            builder: (state) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(25),
-                                      border: Border.all(
-                                        color: state.hasError
-                                            ? Colors.red.shade700
-                                            : AppColors.indicatorGrey,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.02,
-                                          ),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.person_outline,
-                                          color: Colors.grey,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Container(
-                                          height: 24,
-                                          width: 1,
-                                          color: Colors.grey[300],
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextField(
-                                            cursorColor:
-                                                AppColors.buttonBlueDark,
-                                            controller: _usernameController,
-                                            keyboardType: TextInputType.text,
-                                            decoration: InputDecoration(
-                                              hintText: AppLocalizations.of(
-                                                context,
-                                              )!.enterUsername,
-                                              hintStyle: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 14,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                            onChanged: (val) {
-                                              state.didChange(val);
-                                              if (state.hasError) {
-                                                state.validate();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (state.hasError)
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 16,
-                                        right: 16,
-                                        top: 8,
-                                      ),
-                                      child: Text(
-                                        state.errorText!,
-                                        style: TextStyle(
-                                          color: Colors.red.shade700,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Password Input
-                          FormField<String>(
-                            validator: (_) {
-                              if (_passwordController.text.trim().isEmpty) {
-                                return AppLocalizations.of(
-                                  context,
-                                )!.pleaseEnterYourPassword;
-                              }
-                              return null;
-                            },
-                            builder: (state) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(25),
-                                      border: Border.all(
-                                        color: state.hasError
-                                            ? Colors.red.shade700
-                                            : AppColors.indicatorGrey,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.02,
-                                          ),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.lock_outline,
-                                          color: Colors.grey,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Container(
-                                          height: 24,
-                                          width: 1,
-                                          color: Colors.grey[300],
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextField(
-                                            cursorColor:
-                                                AppColors.buttonBlueDark,
-                                            controller: _passwordController,
-                                            obscureText: _obscurePassword,
-                                            decoration: InputDecoration(
-                                              hintText: AppLocalizations.of(
-                                                context,
-                                              )!.enterPassword,
-                                              hintStyle: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 14,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                            onChanged: (val) {
-                                              state.didChange(val);
-                                              if (state.hasError) {
-                                                state.validate();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(),
-                                          icon: Icon(
-                                            _obscurePassword
-                                                ? Icons.visibility_off
-                                                : Icons.visibility,
-                                            color: Colors.grey,
-                                            size: 20,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _obscurePassword =
-                                                  !_obscurePassword;
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (state.hasError)
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 16,
-                                        right: 16,
-                                        top: 8,
-                                      ),
-                                      child: Text(
-                                        state.errorText!,
-                                        style: TextStyle(
-                                          color: Colors.red.shade700,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 32),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.buttonBlueDark,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(35),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? WaterLoadingIndicator(
-                                      waveColor1: AppColors.buttonBlueDark,
-                                      size: 20,
-                                    )
-                                  : Text(
-                                      AppLocalizations.of(context)!.login,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildTermsNotice(context),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            _buildTermsNotice(context),
           ],
         ),
       ),

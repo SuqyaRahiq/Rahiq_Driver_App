@@ -12,6 +12,8 @@
   "pastOrders":"الطلبات السابقة",
   "myAccount": "حسابي",
   "termsConditions": "الشروط والأحكام",
+  "loginTermsPrefix": "بتسجيلك في انت توافق على ",
+  "loginTermsSuffix": " لتطبيق ينابيع.",
   "selectDeliveredLocationOptional": "اختر الموقع الذي تم التوصيل إليه (اختياري)",
   "accountSection": "الحساب",
   "welcomeToTheDriverDashboard": "مرحبًا بك في لوحة تحكم السائق",

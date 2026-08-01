@@ -52,6 +52,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get termsConditions => 'الشروط والأحكام';
 
   @override
+  String get loginTermsPrefix => 'بتسجيلك في انت توافق على ';
+
+  @override
+  String get loginTermsSuffix => ' لتطبيق ينابيع.';
+
+  @override
   String get failed_to_load_locations => 'تعذر تحميل المواقع';
 
   @override

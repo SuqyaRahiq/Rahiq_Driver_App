@@ -14,6 +14,8 @@
   "cancel": "Cancel",
   "myAccount": "My Account",
   "termsConditions": "Terms & Conditions",
+  "loginTermsPrefix": "By signing in, you agree to the ",
+  "loginTermsSuffix": " of the Yanabee app.",
     "failed_to_load_locations":"Failed to load locations",
   "select_delivered_location":"Select the location you delivered to (optional)",
   "select_delivered_location_required":"Select the location you delivered to",

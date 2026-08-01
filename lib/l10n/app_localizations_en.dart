@@ -52,6 +52,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsConditions => 'Terms & Conditions';
 
   @override
+  String get loginTermsPrefix => 'By signing in, you agree to the ';
+
+  @override
+  String get loginTermsSuffix => ' of the Yanabee app.';
+
+  @override
   String get failed_to_load_locations => 'Failed to load locations';
 
   @override

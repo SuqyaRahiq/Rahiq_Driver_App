@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/common_widgets/language_switch.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/api_exception.dart';
@@ -26,8 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-
+  final TapGestureRecognizer _termsTapRecognizer = TapGestureRecognizer();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -63,7 +64,9 @@ class _LoginPageState extends State<LoginPage> {
         debugPrint('Failed to get device info: $e');
       }
 
-      final localeCode = mounted ? Localizations.localeOf(context).languageCode : 'en';
+      final localeCode = mounted
+          ? Localizations.localeOf(context).languageCode
+          : 'en';
       final response = await api.login({
         "username": _usernameController.text.trim(),
         "deviceType": Platform.isIOS ? "IOS" : "ANDROID",
@@ -107,7 +110,42 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _termsTapRecognizer.dispose();
     super.dispose();
+  }
+
+  Future<void> _openTermsAndConditions() async {
+    final url = Uri.parse("https://suqyarahiq.com/terms-and-conditions.html");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Widget _buildTermsNotice(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          style: TextStyle(fontSize: 12.5, color: Colors.grey[600]),
+          children: [
+            TextSpan(text: l10n.loginTermsPrefix),
+            TextSpan(
+              text: l10n.termsConditions,
+              style: const TextStyle(
+                color: AppColors.buttonBlueDark,
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.buttonBlueDark,
+                fontWeight: FontWeight.w600,
+              ),
+              recognizer: _termsTapRecognizer..onTap = _openTermsAndConditions,
+            ),
+            TextSpan(text: l10n.loginTermsSuffix),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -276,8 +314,9 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                             onChanged: (val) {
                                               state.didChange(val);
-                                              if (state.hasError)
+                                              if (state.hasError) {
                                                 state.validate();
+                                              }
                                             },
                                           ),
                                         ),
@@ -376,8 +415,9 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                             onChanged: (val) {
                                               state.didChange(val);
-                                              if (state.hasError)
+                                              if (state.hasError) {
                                                 state.validate();
+                                              }
                                             },
                                           ),
                                         ),
@@ -451,7 +491,9 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
+                          _buildTermsNotice(context),
+                          const SizedBox(height: 8),
                         ],
                       ),
                     ),

@@ -182,6 +182,18 @@ abstract class AppLocalizations {
   /// **'Terms & Conditions'**
   String get termsConditions;
 
+  /// No description provided for @loginTermsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing in, you agree to the '**
+  String get loginTermsPrefix;
+
+  /// No description provided for @loginTermsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' of the Yanabee app.'**
+  String get loginTermsSuffix;
+
   /// No description provided for @failed_to_load_locations.
   ///
   /// In en, this message translates to:

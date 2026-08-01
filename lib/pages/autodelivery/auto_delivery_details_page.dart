@@ -7,6 +7,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/cs_notes.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -975,7 +976,9 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                                 Expanded(
                                   child: Text(
                                     AppLocalizations.of(context)!.notes(
-                                      (subOrder['csNotes'] as List).join('\n'),
+                                      csNotesToRemarks(
+                                        subOrder['csNotes'] as List?,
+                                      ).join('\n'),
                                     ),
                                     style: const TextStyle(
                                       fontSize: 13,

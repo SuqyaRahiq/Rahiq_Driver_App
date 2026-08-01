@@ -1169,13 +1169,13 @@ abstract class AppLocalizations {
   /// No description provided for @senderName.
   ///
   /// In en, this message translates to:
-  /// **'Sender'**
+  /// **'Gift from'**
   String get senderName;
 
   /// No description provided for @recipientName.
   ///
   /// In en, this message translates to:
-  /// **'Recipient'**
+  /// **'To'**
   String get recipientName;
 
   /// No description provided for @save.

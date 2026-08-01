@@ -367,8 +367,7 @@ class DriverOrdersApi {
     required int limit,
     String? status, // 'delivered' or 'confirmed'
     String? search,
-    String? from,
-    String? to,
+    String? date,
     String? orderType, // 'NORMAL' or 'AUTO'
   }) async {
     try {
@@ -380,11 +379,8 @@ class DriverOrdersApi {
       if (search != null && search.isNotEmpty) {
         queryParameters['search'] = search;
       }
-      if (from != null && from.isNotEmpty) {
-        queryParameters['from'] = from;
-      }
-      if (to != null && to.isNotEmpty) {
-        queryParameters['to'] = to;
+      if (date != null && date.isNotEmpty) {
+        queryParameters['date'] = date;
       }
       if (orderType != null && orderType.isNotEmpty) {
         queryParameters['orderType'] = orderType;

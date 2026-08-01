@@ -19,10 +19,8 @@ class PastOrdersPage extends StatefulWidget {
   State<PastOrdersPage> createState() => _PastOrdersPageState();
 }
 
-class _PastOrdersPageState extends State<PastOrdersPage>
-    with SingleTickerProviderStateMixin {
+class _PastOrdersPageState extends State<PastOrdersPage> {
   late DriverOrdersApi _ordersApi;
-  late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
@@ -35,43 +33,26 @@ class _PastOrdersPageState extends State<PastOrdersPage>
   final int _limit = 30;
   bool _hasMore = true;
 
-  String _currentStatus = 'DELIVERED'; // default tab
   String? _searchQuery;
-  String? _orderType; // 'NORMAL' or 'AUTO'
-  DateTime? _fromDate;
-  DateTime? _toDate;
+  DateTime? _selectedDate;
 
-  bool _isTypeMenuOpen = false;
+  int _totalOrders = 0;
+  int _totalQuantity = 0;
 
   @override
   void initState() {
     super.initState();
     _ordersApi = DriverOrdersApi(ApiClient());
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
     _scrollController.addListener(_onScroll);
     _fetchOrders(refresh: true);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _scrollController.dispose();
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
-  }
-
-  void _onTabChanged() {
-    if (_tabController.indexIsChanging) {
-      final newStatus = _tabController.index == 0 ? 'DELIVERED' : 'CONFIRMED';
-      if (_currentStatus != newStatus) {
-        setState(() {
-          _currentStatus = newStatus;
-        });
-        _fetchOrders(refresh: true);
-      }
-    }
   }
 
   void _onScroll() {
@@ -96,20 +77,14 @@ class _PastOrdersPageState extends State<PastOrdersPage>
     });
   }
 
-  // ── Themed Date Range Picker ────────────────────────────────────────────
-  Future<void> _selectDateRange(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      switchToCalendarEntryModeIcon: Icon(
-        Icons.calendar_month_outlined,
-        color: Colors.white,
-      ),
+  // ── Themed Date Picker ──────────────────────────────────────────────────
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       context: context,
       locale: Localizations.localeOf(context),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      initialDateRange: _fromDate != null && _toDate != null
-          ? DateTimeRange(start: _fromDate!, end: _toDate!)
-          : null,
+      initialDate: _selectedDate ?? DateTime.now(),
       builder: (context, child) {
         final baseTheme = Theme.of(context);
 
@@ -123,7 +98,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
             ),
             datePickerTheme: DatePickerThemeData(
               backgroundColor: Colors.white,
-              // Header (the big "Start Date - End Date" bar at the top)
+              // Header (the big date bar at the top)
               headerBackgroundColor: AppColors.buttonBlueDark,
               headerForegroundColor: Colors.white,
               headerHeadlineStyle: const TextStyle(
@@ -131,12 +106,6 @@ class _PastOrdersPageState extends State<PastOrdersPage>
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
-              // Range specific styling
-              rangePickerHeaderBackgroundColor: AppColors.buttonBlueDark,
-              rangePickerHeaderForegroundColor: Colors.white,
-              rangePickerBackgroundColor: Colors.white,
-              rangeSelectionBackgroundColor: AppColors.buttonBlueDark
-                  .withValues(alpha: 0.12),
               // Day cells
               dayForegroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
@@ -190,7 +159,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
             ),
           ),
           // IMPORTANT: return `child` as-is (just re-themed). `child` is the
-          // full DateRangePickerDialog, which is itself a Dialog and already
+          // full DatePickerDialog, which is itself a Dialog and already
           // handles its own sizing + keyboard-aware repositioning internally
           // (via AnimatedPadding tied to MediaQuery.viewInsets). Wrapping it
           // in our own fixed-height ConstrainedBox/ClipRRect breaks that: when
@@ -207,17 +176,15 @@ class _PastOrdersPageState extends State<PastOrdersPage>
 
     if (picked != null) {
       setState(() {
-        _fromDate = picked.start;
-        _toDate = picked.end;
+        _selectedDate = picked;
       });
       _fetchOrders(refresh: true);
     }
   }
 
-  void _clearDateRange() {
+  void _clearDate() {
     setState(() {
-      _fromDate = null;
-      _toDate = null;
+      _selectedDate = null;
     });
     _fetchOrders(refresh: true);
   }
@@ -241,13 +208,10 @@ class _PastOrdersPageState extends State<PastOrdersPage>
       final response = await _ordersApi.getPastOrders(
         page: _page,
         limit: _limit,
-        status: _currentStatus,
         search: _searchQuery,
-        from: _fromDate != null
-            ? DateFormat('yyyy-MM-dd').format(_fromDate!)
+        date: _selectedDate != null
+            ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
             : null,
-        to: _toDate != null ? DateFormat('yyyy-MM-dd').format(_toDate!) : null,
-        orderType: _orderType,
       );
 
       if (mounted) {
@@ -261,6 +225,8 @@ class _PastOrdersPageState extends State<PastOrdersPage>
           _hasMore = response.items.length >= _limit;
           _isLoading = false;
           _isLoadingMore = false;
+          _totalOrders = response.meta?.total ?? 0;
+          _totalQuantity = response.totalQuantity;
         });
       }
     } catch (e) {
@@ -356,45 +322,6 @@ class _PastOrdersPageState extends State<PastOrdersPage>
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
-                      // Pill-shaped TabBar
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Material(
-                          elevation: 1,
-                          borderRadius: BorderRadius.circular(25),
-                          color: Colors.white,
-                          child: Container(
-                            height: 60,
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: TabBar(
-                              splashFactory: NoSplash.splashFactory,
-                              splashBorderRadius: BorderRadius.circular(25),
-                              controller: _tabController,
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              dividerColor: Colors.transparent,
-                              indicator: BoxDecoration(
-                                color: AppColors.buttonBlueDark,
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              labelColor: Colors.white,
-                              unselectedLabelColor: Colors.grey[600],
-                              labelStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              tabs: [
-                                Tab(text: isAr ? 'تم التوصيل' : 'Delivered'),
-                                Tab(text: isAr ? 'مؤكد' : 'Confirmed'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 16),
                       // Filters & Search
                       _buildFiltersAndSearch(isAr),
@@ -449,136 +376,83 @@ class _PastOrdersPageState extends State<PastOrdersPage>
             ),
           ),
           const SizedBox(height: 12),
-          // Filter Chips Row
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                // Type Filter
-                PopupMenuButton<String>(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  position: PopupMenuPosition.under,
-                  onOpened: () => setState(() => _isTypeMenuOpen = true),
-                  onCanceled: () => setState(() => _isTypeMenuOpen = false),
-                  onSelected: (val) {
-                    setState(() {
-                      _isTypeMenuOpen = false;
-                      if (val == 'clear') {
-                        _orderType = null;
-                      } else {
-                        _orderType = val;
-                      }
-                    });
-                    _fetchOrders(refresh: true);
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'NORMAL',
-                      child: Row(
-                        children: [
-                          Expanded(child: Text(isAr ? 'عادي' : 'NORMAL')),
-                          if (_orderType == 'NORMAL')
-                            const Icon(
-                              Icons.check_circle,
-                              color: AppColors.buttonBlueDark,
-                              size: 20,
-                            ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'AUTO',
-                      child: Row(
-                        children: [
-                          Expanded(child: Text(isAr ? 'تلقائي' : 'AUTO')),
-                          if (_orderType == 'AUTO')
-                            const Icon(
-                              Icons.check_circle,
-                              color: AppColors.buttonBlueDark,
-                              size: 20,
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (_orderType != null)
-                      PopupMenuItem(
-                        value: 'clear',
-                        child: Text(
-                          isAr ? 'مسح الفلتر' : 'Clear',
-                          style: const TextStyle(
-                            color: AppColors.buttonBlueDark,
-                          ),
-                        ),
-                      ),
-                  ],
-                  child: IgnorePointer(
-                    child: FilterChip(
-                      label: Text(
-                        _orderType == 'NORMAL'
-                            ? (isAr ? 'عادي' : 'Normal')
-                            : _orderType == 'AUTO'
-                            ? (isAr ? 'تلقائي' : 'Auto')
-                            : (isAr ? 'النوع' : 'Type'),
-                      ),
-                      selected: _orderType != null || _isTypeMenuOpen,
-                      onSelected: (_) {},
-                      selectedColor: AppColors.buttonBlueDark,
-                      showCheckmark: false,
-                      backgroundColor: Colors.white,
-                      side: BorderSide(
-                        color: (_orderType != null || _isTypeMenuOpen)
-                            ? Colors.transparent
-                            : Colors.grey.shade300,
-                      ),
-                      labelStyle: TextStyle(
-                        color: (_orderType != null || _isTypeMenuOpen)
-                            ? Colors.white
-                            : Colors.black87,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
+          _buildFilterBar(isAr),
+        ],
+      ),
+    );
+  }
 
-                // Date Range Filter
-                FilterChip(
-                  label: Text(
-                    (_fromDate != null && _toDate != null)
-                        ? '${DateFormat('MMM d').format(_fromDate!)} - ${DateFormat('MMM d').format(_toDate!)}'
-                        : (isAr ? 'نطاق التاريخ' : 'Date Range'),
-                  ),
-                  selected: _fromDate != null && _toDate != null,
-                  onSelected: (_) => _selectDateRange(context),
-                  selectedColor: AppColors.buttonBlueDark,
-                  showCheckmark: false,
-                  backgroundColor: Colors.white,
-                  side: BorderSide(
-                    color: (_fromDate != null && _toDate != null)
-                        ? Colors.transparent
-                        : Colors.grey.shade300,
-                  ),
-                  labelStyle: TextStyle(
-                    color: (_fromDate != null && _toDate != null)
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
+  // ── Date filter + result counts, combined into one bar ──────────────────
+  Widget _buildFilterBar(bool isAr) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.buttonBlueDark,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Date filter (start side)
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => _selectDate(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(
+                  alpha: _selectedDate != null ? 0.22 : 0.12,
                 ),
-                if (_fromDate != null && _toDate != null) ...[
-                  const SizedBox(width: 8),
-                  ActionChip(
-                    label: const Icon(
-                      Icons.close,
-                      size: 16,
-                      color: Colors.black54,
-                    ),
-                    onPressed: _clearDateRange,
-                    backgroundColor: Colors.grey.shade200,
-                    side: BorderSide.none,
-                    padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.calendar_month_outlined,
+                    size: 16,
+                    color: Colors.white,
                   ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _selectedDate != null
+                        ? DateFormat('MMM d, yyyy').format(_selectedDate!)
+                        : (isAr ? 'التاريخ' : 'Date'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (_selectedDate != null) ...[
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: _clearDate,
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Result counts (end side)
+          Text(
+            isAr
+                ? '$_totalOrders طلب • $_totalQuantity منتج'
+                : '$_totalOrders orders • $_totalQuantity products',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -588,12 +462,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
 
   Widget _buildContent(bool isAr) {
     if (_orders.isEmpty) {
-      return _buildEmptyState(
-        _currentStatus == 'DELIVERED'
-            ? (isAr ? 'تم التوصيل' : 'Delivered')
-            : (isAr ? 'مؤكد' : 'Confirmed'),
-        isAr,
-      );
+      return _buildEmptyState(isAr);
     }
 
     return ListView.separated(
@@ -613,6 +482,28 @@ class _PastOrdersPageState extends State<PastOrdersPage>
         }
         return _buildOrderCard(_orders[index], isAr);
       },
+    );
+  }
+
+  Widget _buildStatusBadge(String? status, bool isAr) {
+    final isDelivered = status == 'DELIVERED';
+    final color = isDelivered ? Colors.green : AppColors.buttonBlueDark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        isDelivered
+            ? (isAr ? 'تم التوصيل' : 'Delivered')
+            : (isAr ? 'مؤكد' : 'Confirmed'),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
     );
   }
 
@@ -709,16 +600,27 @@ class _PastOrdersPageState extends State<PastOrdersPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            isAr
-                                ? (order.location?['nameAr'] ??
-                                      order.location?['name'] ??
-                                      'بدون اسم')
-                                : (order.location?['name'] ?? 'No Name'),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black87,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isAr
+                                      ? (order.location?['nameAr'] ??
+                                            order.location?['name'] ??
+                                            'بدون اسم')
+                                      : (order.location?['name'] ??
+                                            'No Name'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              _buildStatusBadge(order.status, isAr),
+                            ],
                           ),
                           const SizedBox(height: 3),
                           if (order.quantity != null && order.quantity! > 0)
@@ -805,7 +707,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
     );
   }
 
-  Widget _buildEmptyState(String tabLabel, bool isAr) {
+  Widget _buildEmptyState(bool isAr) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.4,
       child: Center(
@@ -826,9 +728,7 @@ class _PastOrdersPageState extends State<PastOrdersPage>
             ),
             const SizedBox(height: 16),
             Text(
-              isAr
-                  ? 'لا توجد طلبات في قسم $tabLabel'
-                  : 'No orders in $tabLabel',
+              isAr ? 'لا توجد طلبات سابقة' : 'No past orders found',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

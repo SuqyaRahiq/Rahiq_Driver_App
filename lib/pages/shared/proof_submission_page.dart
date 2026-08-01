@@ -12,6 +12,7 @@ import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/cs_notes.dart';
 import 'package:rahiq_driver/utils/rtl_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
@@ -1004,7 +1005,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     cDate = todayDate;
 
     if (csnotes.isNotEmpty) {
-      cNotes = (csnotes).map((e) => e.toString()).toList();
+      cNotes = csNotesToRemarks(csnotes as List?);
     }
 
     if (deliveryNote != null) {
@@ -1847,7 +1848,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     ),
                   ),
                   Text(
-                    csnotes.join(', '),
+                    csNotesToRemarks(csnotes as List?).join(', '),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

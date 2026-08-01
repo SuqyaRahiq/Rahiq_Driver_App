@@ -140,25 +140,91 @@ class _OrdersPageState extends State<OrdersPage>
     return const LatLng(24.7136, 46.6753); // Riyadh fallback
   }
 
-  Future<void> _goToMyLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  // Requests OS location permission if needed, without moving the camera.
+  // GoogleMap's `myLocationEnabled: true` only renders the blue dot once
+  // this permission is actually granted at the OS level — declaring it in
+  // the manifest/plist alone isn't enough, so this must run eagerly on map
+  // creation rather than only reactively when the user taps "my location".
+  Future<bool> _ensureLocationPermission() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
     }
-    if (permission == LocationPermission.deniedForever) return;
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  Future<void> _goToMyLocation({bool promptIfDisabled = true}) async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return;
+    if (!serviceEnabled) {
+      if (promptIfDisabled) {
+        _showEnableLocationDialog();
+      }
+      return;
+    }
+
+    final granted = await _ensureLocationPermission();
+    if (!mounted || !granted) return;
 
     final position = await Geolocator.getCurrentPosition();
+    if (!mounted) return;
     _mapController?.animateCamera(
       CameraUpdate.newLatLngZoom(
         LatLng(position.latitude, position.longitude),
         14.0,
+      ),
+    );
+  }
+
+  Future<void> _showEnableLocationDialog() async {
+    final isAr = Directionality.of(context) == TextDirection.rtl;
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.location_off_rounded,
+              color: AppColors.buttonBlueDark,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isAr ? 'خدمة الموقع غير مفعلة' : 'Location Services Off',
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isAr
+              ? 'يرجى تفعيل خدمة الموقع لعرض موقعك الحالي على الخريطة.'
+              : 'Please enable location services to show your current location on the map.',
+          style: const TextStyle(fontSize: 14, height: 1.6),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(isAr ? 'إلغاء' : 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.openLocationSettings();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.buttonBlueDark,
+            ),
+            child: Text(
+              isAr ? 'تفعيل الموقع' : 'Enable Location',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -176,7 +242,7 @@ class _OrdersPageState extends State<OrdersPage>
         return;
       }
     }
-    _goToMyLocation();
+    _goToMyLocation(promptIfDisabled: false);
   }
 
   @override
@@ -340,6 +406,7 @@ class _OrdersPageState extends State<OrdersPage>
     _tabController.dispose();
     _fcmSubscription?.cancel();
     _refreshDebounceTimer?.cancel();
+    _mapController = null;
     super.dispose();
   }
 
@@ -357,7 +424,7 @@ class _OrdersPageState extends State<OrdersPage>
 
     if (driverProfile != null) {
       setState(() {
-        _phoneNumber = driverProfile.countryCode + driverProfile.phoneNumber;
+        _phoneNumber = driverProfile.username;
       });
     }
   }
@@ -663,6 +730,8 @@ class _OrdersPageState extends State<OrdersPage>
 
                 onMapCreated: (controller) {
                   _mapController = controller;
+                  _ensureLocationPermission();
+                  _focusMap();
                 },
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,

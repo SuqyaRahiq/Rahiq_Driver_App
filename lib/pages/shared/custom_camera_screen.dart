@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -61,6 +62,14 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
   @override
   void initState() {
     super.initState();
+    // Camera/video recording should follow the device's rotation instead of
+    // being stuck in portrait — matches the orientations declared in
+    // Info.plist (portrait + both landscapes, no upside-down).
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     _initCamera();
   }
 
@@ -70,7 +79,9 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       if (_cameras.isNotEmpty) {
         _controller = CameraController(
           _cameras.first,
-          widget.isVideoMode ? ResolutionPreset.medium : ResolutionPreset.veryHigh,
+          widget.isVideoMode
+              ? ResolutionPreset.medium
+              : ResolutionPreset.veryHigh,
           enableAudio: widget.isVideoMode,
         );
 
@@ -90,6 +101,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
 
   @override
   void dispose() {
+    // Restore unrestricted rotation for the rest of the app (it doesn't
+    // lock orientation anywhere else, so an empty list is the correct way
+    // to lift the restriction set above rather than re-locking to portrait).
+    SystemChrome.setPreferredOrientations([]);
     _timer?.cancel();
     _controller?.dispose();
     super.dispose();
@@ -233,215 +248,192 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            // Camera Preview
-            Positioned.fill(child: Center(child: CameraPreview(_controller!))),
+            // ── Camera area: preview + all overlays that must never reach
+            // into the bottom controls bar below. Because this Stack is a
+            // sibling of the bottom bar inside a Column (not absolutely
+            // positioned against the full screen), nothing here can ever
+            // visually overlap the record button, regardless of screen
+            // size/type or how tall the note content grows.
+            Expanded(child: _buildCameraStack()),
 
-            // Top Controls
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Back Button
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    onPressed: () {
-                      if (_isRecording) {
-                        _stopRecording();
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
+            // Bottom Controls
+            _buildBottomControls(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  // Recording Timer
-                  if (_isRecording)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.fiber_manual_record,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDuration(_recordingSeconds),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+  Widget _buildCameraStack() {
+    return LayoutBuilder(
+      builder: (context, constraints) => _buildCameraStackContent(
+        context,
+        // Leave headroom for the top controls + a margin, so a long note
+        // scrolls internally instead of growing tall enough to reach them.
+        constraints.maxHeight - 96,
+      ),
+    );
+  }
 
-                  // Flash Toggle
-                  IconButton(
-                    icon: Icon(_getFlashIcon(), color: Colors.white, size: 30),
-                    onPressed: _toggleFlash,
-                  ),
-                ],
+  Widget _buildCameraStackContent(BuildContext context, double maxNoteHeight) {
+    return Stack(
+      children: [
+        // Camera Preview
+        Positioned.fill(child: Center(child: CameraPreview(_controller!))),
+
+        // Top Controls
+        Positioned(
+          top: 16,
+          left: 16,
+          right: 16,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Back Button
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () {
+                  if (_isRecording) {
+                    _stopRecording();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
               ),
-            ),
 
-            if (widget.isVideoMode && _isDetailsVisible && _hasOverlayContent)
-              Positioned(
-                bottom: 150,
-                left: 16,
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.5,
+              // Recording Timer
+              if (_isRecording)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black26, blurRadius: 4),
-                    ],
+                    color: Colors.red.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      if (_hasGiftCardInfo) ...[
-                        if (widget.giftCardSenderName != null &&
-                            widget.giftCardSenderName!.isNotEmpty)
-                          Text(
-                            '${AppLocalizations.of(context)!.senderName}: ${widget.giftCardSenderName}',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        if (widget.giftCardRecipientName != null &&
-                            widget.giftCardRecipientName!.isNotEmpty)
-                          Text(
-                            '${AppLocalizations.of(context)!.recipientName}: ${widget.giftCardRecipientName}',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        const SizedBox(height: 3),
-                      ] else if (widget.customerName != null) ...[
-                        Text(
-                          widget.customerName!,
-                          style: const TextStyle(fontSize: 14),
+                      const Icon(
+                        Icons.fiber_manual_record,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDuration(_recordingSeconds),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 3),
-                      ],
-                      if (widget.quantity != null) ...[
-                        Text(
-                          "${widget.quantity} ${widget.productName ?? ""} ${widget.date ?? ""}",
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
-
-                      if (widget.customerNote != null &&
-                          widget.customerNote!.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          widget.customerNote!,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      if (widget.customerServiceNotes != null &&
-                          widget.customerServiceNotes!.isNotEmpty) ...[
-                        Text(
-                          widget.customerServiceNotes!.join(', '),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-              ),
 
-            // Bottom Controls
-            Positioned(
-              bottom: 30,
-              left: 0,
-              right: 0,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: (widget.isVideoMode && _hasOverlayContent)
-                        ? Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 90),
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.description_outlined,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isDetailsVisible = !_isDetailsVisible;
-                                  });
-                                },
-                              ),
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                  GestureDetector(
-                    onTap: widget.isVideoMode
-                        ? (_isRecording ? _stopRecording : _startRecording)
-                        : _takePicture,
+              // Flash Toggle
+              IconButton(
+                icon: Icon(_getFlashIcon(), color: Colors.white, size: 30),
+                onPressed: _toggleFlash,
+              ),
+            ],
+          ),
+        ),
+
+        // Note overlay + helper text share this bottom-anchored Column, so
+        // they stack top-to-bottom in sequence and can never overlap each
+        // other — same non-overlap guarantee as the camera area vs. the
+        // bottom controls bar above.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.isVideoMode && _isDetailsVisible && _hasOverlayContent)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 16,
+                      bottom: 8,
+                    ),
                     child: Container(
-                      height: 80,
-                      width: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.5,
+                        maxHeight: maxNoteHeight > 0 ? maxNoteHeight : 0,
                       ),
-                      child: Center(
-                        child: Container(
-                          height: widget.isVideoMode
-                              ? (_isRecording ? 30 : 60)
-                              : 60,
-                          width: widget.isVideoMode
-                              ? (_isRecording ? 30 : 60)
-                              : 60,
-                          decoration: BoxDecoration(
-                            color: widget.isVideoMode
-                                ? Colors.red
-                                : Colors.white,
-                            borderRadius: widget.isVideoMode && _isRecording
-                                ? BorderRadius.circular(8)
-                                : BorderRadius.circular(30),
-                          ),
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, blurRadius: 4),
+                        ],
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_hasGiftCardInfo) ...[
+                              if (widget.giftCardSenderName != null &&
+                                  widget.giftCardSenderName!.isNotEmpty)
+                                Text(
+                                  '${AppLocalizations.of(context)!.senderName}: ${widget.giftCardSenderName}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              if (widget.giftCardRecipientName != null &&
+                                  widget.giftCardRecipientName!.isNotEmpty)
+                                Text(
+                                  '${AppLocalizations.of(context)!.recipientName}: ${widget.giftCardRecipientName}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              const SizedBox(height: 3),
+                            ] else if (widget.customerName != null) ...[
+                              Text(
+                                widget.customerName!,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 3),
+                            ],
+                            if (widget.quantity != null) ...[
+                              Text(
+                                "${widget.quantity} ${widget.productName ?? ""} ${widget.date ?? ""}",
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ],
+
+                            if (widget.customerNote != null &&
+                                widget.customerNote!.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                widget.customerNote!,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                            if (widget.customerServiceNotes != null &&
+                                widget.customerServiceNotes!.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                widget.customerServiceNotes!.join(', '),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  const Expanded(child: SizedBox()),
-                ],
-              ),
-            ),
+                ),
 
-            // Helper Text
-            if (!_isRecording)
-              Positioned(
-                bottom: 120,
-                left: 0,
-                right: 0,
-                child: Text(
+              // Helper Text
+              if (!_isRecording)
+                Text(
                   widget.isVideoMode
                       ? 'Tap to record (Max ${widget.maxDurationSeconds}s)'
                       : 'Tap to take picture',
@@ -452,9 +444,70 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                     shadows: [Shadow(color: Colors.black, blurRadius: 4)],
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  // Lives outside the camera Stack, as its own fixed-height row below the
+  // Expanded camera area — so it can never be overlapped by the note
+  // overlay or helper text above it, on any screen size.
+  Widget _buildBottomControls() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 24),
+      child: Row(
+        children: [
+          Expanded(
+            child: (widget.isVideoMode && _hasOverlayContent)
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 90),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.description_outlined,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isDetailsVisible = !_isDetailsVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+          ),
+          GestureDetector(
+            onTap: widget.isVideoMode
+                ? (_isRecording ? _stopRecording : _startRecording)
+                : _takePicture,
+            child: Container(
+              height: 80,
+              width: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 4),
+              ),
+              child: Center(
+                child: Container(
+                  height: widget.isVideoMode ? (_isRecording ? 30 : 60) : 60,
+                  width: widget.isVideoMode ? (_isRecording ? 30 : 60) : 60,
+                  decoration: BoxDecoration(
+                    color: widget.isVideoMode ? Colors.red : Colors.white,
+                    borderRadius: widget.isVideoMode && _isRecording
+                        ? BorderRadius.circular(8)
+                        : BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const Expanded(child: SizedBox()),
+        ],
       ),
     );
   }

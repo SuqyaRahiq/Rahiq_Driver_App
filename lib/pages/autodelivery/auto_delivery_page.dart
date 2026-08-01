@@ -61,15 +61,18 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
 
   Future<void> _fetchMoreItems() async {
     if (_isFetchingMore || !_hasMore) return;
-    
+
     setState(() {
       _isFetchingMore = true;
     });
-    
+
     try {
       final nextPage = _currentPage + 1;
-      final newItems = await _deliveriesApi.getAutoDeliveries(page: nextPage, limit: 30);
-      
+      final newItems = await _deliveriesApi.getAutoDeliveries(
+        page: nextPage,
+        limit: 30,
+      );
+
       if (mounted) {
         setState(() {
           _currentPage = nextPage;
@@ -98,92 +101,96 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
         color: AppColors.buttonBlueDark,
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
-            if (!_isLoading && !_isFetchingMore && _hasMore && scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+            if (!_isLoading &&
+                !_isFetchingMore &&
+                _hasMore &&
+                scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200) {
               _fetchMoreItems();
             }
             return false;
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // ── Header ──────────────────────────────────────────────────────
-              Container(
-                width: double.infinity,
-                color: AppColors.buttonBlueDark,
-                child: SafeArea(
-                  bottom: false,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          16,
-                          16,
-                          16,
-                          12,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context)!.autodelivery,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.viewAndManageAssignedOrders,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Rounded white body ───────────────────────────────────────────
-              Stack(
-                children: [
-                  Container(height: 50, color: AppColors.buttonBlueDark),
-                  Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
+            child: Column(
+              children: [
+                // ── Header ──────────────────────────────────────────────────────
+                Container(
+                  width: double.infinity,
+                  color: AppColors.buttonBlueDark,
+                  child: SafeArea(
+                    bottom: false,
                     child: Column(
                       children: [
-                        const SizedBox(height: 12),
-                        _isLoading
-                            ? const ListShimmerLoader(itemCount: 10)
-                            : _error != null
-                            ? _buildErrorState()
-                            : _buildContent(),
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16,
+                            16,
+                            16,
+                            12,
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)!.autodelivery,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.viewAndManageAssignedOrders,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+
+                // ── Rounded white body ───────────────────────────────────────────
+                Stack(
+                  children: [
+                    Container(height: 50, color: AppColors.buttonBlueDark),
+                    Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 12),
+                          _isLoading
+                              ? const ListShimmerLoader(itemCount: 10)
+                              : _error != null
+                              ? _buildErrorState()
+                              : _buildContent(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -219,19 +226,21 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                return ProofSubmissionPage(
-                  autoDelivery: order,
-                  orderId: order.id,
-                  isAutoOrder: false,
-                  isAutoDelivery: true,
-                  subOrders: [],
-                );
-              },
-            ),
-          );
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return ProofSubmissionPage(
+                      autoDelivery: order,
+                      orderId: order.id,
+                      isAutoOrder: false,
+                      isAutoDelivery: true,
+                      subOrders: [],
+                    );
+                  },
+                ),
+              )
+              .then((_) => _fetchItems());
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

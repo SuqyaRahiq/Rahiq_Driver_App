@@ -21,6 +21,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
+import 'package:rahiq_driver/pages/shared/image_preview_page.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final String orderId;
@@ -1422,12 +1423,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   decoration:
                                                       const BoxDecoration(
                                                         color: Colors.white,
-                                                        shape:
-                                                            BoxShape.circle,
+                                                        shape: BoxShape.circle,
                                                       ),
                                                   child: Stack(
-                                                    alignment:
-                                                        Alignment.center,
+                                                    alignment: Alignment.center,
                                                     children: [
                                                       const Icon(
                                                         Icons.card_giftcard,
@@ -1442,8 +1441,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                         child:
                                                             const CircleAvatar(
                                                               backgroundColor:
-                                                                  Colors
-                                                                      .orange,
+                                                                  Colors.orange,
                                                               radius: 4,
                                                             ),
                                                       ),
@@ -2060,7 +2058,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                     source,
                                   );
                                   setSheetState(
-                                    () => _isCompressingBatchInsideImage = false,
+                                    () =>
+                                        _isCompressingBatchInsideImage = false,
                                   );
                                   if (file != null) {
                                     debugPrint(
@@ -2214,9 +2213,16 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     required Function(ImageSource) onPick,
     bool isLoading = false,
   }) {
+    final hasMedia = path != null && !isLoading;
     return Expanded(
       child: GestureDetector(
         onTap: () => _showSourceBottomSheet(context, onPick),
+        onLongPress: hasMedia
+            ? () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ImagePreviewPage(path: path)),
+              )
+            : null,
         child: Column(
           children: [
             DottedBorder(
@@ -2481,5 +2487,4 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       ),
     );
   }
-
 }

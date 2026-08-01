@@ -377,6 +377,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get proofsUploaded => 'تم رفع الإثباتات بنجاح!';
 
   @override
+  String get orderDeliveredTitle => 'تم التوصيل بنجاح!';
+
+  @override
+  String get orderDeliveredMessage => 'تم تأكيد التوصيل بنجاح.';
+
+  @override
   String get completeOrders => 'إكمال الطلبات';
 
   @override

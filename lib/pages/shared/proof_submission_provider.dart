@@ -220,6 +220,16 @@ class ProofSubmissionProvider extends ChangeNotifier {
     return null;
   }
 
+  void removeSubOrderVideo(String subOrderId) {
+    try {
+      final proof = _proofs.firstWhere((p) => p.subOrderId == subOrderId);
+      proof.proofVideo = null;
+      notifyListeners();
+    } catch (e) {
+      // SubOrder proof not found
+    }
+  }
+
   bool get canSubmit {
     // For multi-select / shared mode: allow flexible mix of global + per-suborder images.
     // Each of the 4 required images can come from either global or suborder-specific source.
@@ -248,8 +258,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
         }
 
         if (isChillerProduct &&
-            (p.deliveredLocationId == null ||
-                p.deliveredLocationId!.isEmpty)) {
+            (p.deliveredLocationId == null || p.deliveredLocationId!.isEmpty)) {
           return false;
         }
       }
@@ -295,8 +304,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
         }
 
         if (isChillerProduct &&
-            (p.deliveredLocationId == null ||
-                p.deliveredLocationId!.isEmpty)) {
+            (p.deliveredLocationId == null || p.deliveredLocationId!.isEmpty)) {
           return 'missing_delivered_location_for_${p.subOrderId}';
         }
       }
@@ -314,8 +322,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
         return 'missing_different_mosque_reason';
       }
       if (isChillerProduct &&
-          (p.deliveredLocationId == null ||
-              p.deliveredLocationId!.isEmpty)) {
+          (p.deliveredLocationId == null || p.deliveredLocationId!.isEmpty)) {
         return 'missing_delivered_location';
       }
       return null;

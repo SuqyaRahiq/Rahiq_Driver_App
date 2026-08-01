@@ -172,6 +172,8 @@
   "submitDeliveryProof": "Submit Delivery Proof",
   "imagesInstructions": "Images (Please take three correct images)",
   "proofsUploaded": "Proofs uploaded successfully!",
+  "orderDeliveredTitle": "Order Delivered!",
+  "orderDeliveredMessage": "The delivery has been confirmed successfully.",
   "completeOrders": "Complete orders",
   "selectSource": "Select Source",
   "requiredField": "Required",

@@ -378,6 +378,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proofsUploaded => 'Proofs uploaded successfully!';
 
   @override
+  String get orderDeliveredTitle => 'Order Delivered!';
+
+  @override
+  String get orderDeliveredMessage =>
+      'The delivery has been confirmed successfully.';
+
+  @override
   String get completeOrders => 'Complete orders';
 
   @override

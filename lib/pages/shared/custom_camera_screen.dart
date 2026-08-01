@@ -45,6 +45,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
   FlashMode _flashMode = FlashMode.off;
   bool _isDetailsVisible = true;
 
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _currentZoom = 1.0;
+  double _baseZoom = 1.0;
+
+  final GlobalKey _previewKey = GlobalKey();
+  Offset? _focusIndicatorPosition;
+  Timer? _focusIndicatorTimer;
+
   bool get _hasGiftCardInfo =>
       (widget.giftCardSenderName != null &&
           widget.giftCardSenderName!.isNotEmpty) ||
@@ -83,10 +92,14 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
               ? ResolutionPreset.medium
               : ResolutionPreset.veryHigh,
           enableAudio: widget.isVideoMode,
+          fps: widget.isVideoMode ? 30 : null,
         );
 
         await _controller!.initialize();
         await _controller!.setFlashMode(_flashMode);
+        _minZoom = await _controller!.getMinZoomLevel();
+        _maxZoom = await _controller!.getMaxZoomLevel();
+        _currentZoom = _minZoom;
 
         if (mounted) {
           setState(() {
@@ -106,8 +119,64 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     // to lift the restriction set above rather than re-locking to portrait).
     SystemChrome.setPreferredOrientations([]);
     _timer?.cancel();
+    _focusIndicatorTimer?.cancel();
     _controller?.dispose();
     super.dispose();
+  }
+
+  void _onScaleStart(ScaleStartDetails details) {
+    _baseZoom = _currentZoom;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) async {
+    if (_controller == null || !_isInitialized) return;
+    final zoom = (_baseZoom * details.scale).clamp(_minZoom, _maxZoom);
+    if (zoom == _currentZoom) return;
+    _currentZoom = zoom;
+    await _controller!.setZoomLevel(_currentZoom);
+  }
+
+  // Tap-to-focus, for both photo and video. The RenderBox is looked up via
+  // _previewKey (attached to the Stack directly wrapping CameraPreview, see
+  // _buildCameraStackContent) rather than the full-bleed GestureDetector,
+  // since that Stack's bounds match the actual rendered preview exactly —
+  // using the outer detector's bounds would drift the focus point whenever
+  // the preview is letterboxed.
+  void _onTapToFocus(TapUpDetails details) async {
+    if (_controller == null || !_isInitialized) return;
+
+    final renderBox =
+        _previewKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final localPosition = renderBox.globalToLocal(details.globalPosition);
+    final size = renderBox.size;
+    if (localPosition.dx < 0 ||
+        localPosition.dx > size.width ||
+        localPosition.dy < 0 ||
+        localPosition.dy > size.height) {
+      return; // Tap landed outside the actual preview (e.g. letterboxing).
+    }
+
+    final normalized = Offset(
+      (localPosition.dx / size.width).clamp(0.0, 1.0),
+      (localPosition.dy / size.height).clamp(0.0, 1.0),
+    );
+
+    setState(() => _focusIndicatorPosition = localPosition);
+    _focusIndicatorTimer?.cancel();
+    _focusIndicatorTimer = Timer(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _focusIndicatorPosition = null);
+    });
+
+    try {
+      await _controller!.setFocusPoint(normalized);
+      await _controller!.setExposurePoint(normalized);
+      await _controller!.setFocusMode(FocusMode.auto);
+      await _controller!.setExposureMode(ExposureMode.auto);
+    } catch (e) {
+      debugPrint('Error setting focus point: $e');
+    }
   }
 
   void _toggleFlash() async {
@@ -277,11 +346,87 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     );
   }
 
+  // Photo mode uses a custom 4:3 viewfinder: the sensor's native preview
+  // stream (whatever ratio ResolutionPreset.veryHigh yields — commonly
+  // wider than 4:3) is cropped to a 4:3 box via FittedBox(cover) + ClipRect
+  // so what's framed on screen is what gets captured, rather than taking
+  // the native-ratio photo and cropping the file afterward. Video mode is
+  // left at its native ratio, unchanged.
+  Widget _buildCameraPreview() {
+    if (widget.isVideoMode) {
+      return CameraPreview(_controller!);
+    }
+
+    // CameraPreview reports/renders `previewSize` in the sensor's landscape
+    // orientation but displays upright (rotated) for the current device
+    // orientation, so the on-screen box is previewSize flipped: width =
+    // previewSize.height, height = previewSize.width.
+    final previewSize = _controller!.value.previewSize;
+    if (previewSize == null) {
+      return CameraPreview(_controller!);
+    }
+
+    return AspectRatio(
+      aspectRatio: 3 / 4,
+      child: ClipRect(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: previewSize.height,
+            height: previewSize.width,
+            child: CameraPreview(_controller!),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFocusRing() {
+    return IgnorePointer(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 1.4, end: 1.0),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white, width: 1.5),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCameraStackContent(BuildContext context, double maxNoteHeight) {
     return Stack(
       children: [
         // Camera Preview
-        Positioned.fill(child: Center(child: CameraPreview(_controller!))),
+        Positioned.fill(
+          child: GestureDetector(
+            onScaleStart: _onScaleStart,
+            onScaleUpdate: _onScaleUpdate,
+            onTapUp: _onTapToFocus,
+            child: Center(
+              child: Stack(
+                key: _previewKey,
+                alignment: Alignment.center,
+                children: [
+                  _buildCameraPreview(),
+                  if (_focusIndicatorPosition != null)
+                    Positioned(
+                      left: _focusIndicatorPosition!.dx - 32,
+                      top: _focusIndicatorPosition!.dy - 32,
+                      child: _buildFocusRing(),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
 
         // Top Controls
         Positioned(
@@ -431,17 +576,28 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                   ),
                 ),
 
-              // Helper Text
+              // Helper Text — given its own background (rather than relying
+              // on the camera preview's letterboxing) so it looks the same
+              // whether the live preview happens to reach behind it or not;
+              // photo mode's ResolutionPreset (veryHigh) has a different
+              // aspect ratio than video's (medium), so the letterboxing
+              // isn't always there.
               if (!_isRecording)
-                Text(
-                  widget.isVideoMode
-                      ? 'Tap to record (Max ${widget.maxDurationSeconds}s)'
-                      : 'Tap to take picture',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black45,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    widget.isVideoMode
+                        ? 'Tap to record (Max ${widget.maxDurationSeconds}s)'
+                        : 'Tap to take picture',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
             ],

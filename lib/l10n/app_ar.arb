@@ -172,6 +172,8 @@
   "submitDeliveryProof": "إرسال إثبات التوصيل",
   "imagesInstructions": "الصور (يرجى التقاط ثلاث صور صحيحة)",
   "proofsUploaded": "تم رفع الإثباتات بنجاح!",
+  "orderDeliveredTitle": "تم التوصيل بنجاح!",
+  "orderDeliveredMessage": "تم تأكيد التوصيل بنجاح.",
   "completeOrders": "إكمال الطلبات",
   "selectSource": "اختر المصدر",
   "requiredField": "مطلوب",

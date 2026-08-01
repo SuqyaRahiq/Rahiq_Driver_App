@@ -11,6 +11,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
+import 'package:rahiq_driver/pages/shared/order_delivered_page.dart';
+import 'package:rahiq_driver/pages/shared/image_preview_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
 import 'package:rahiq_driver/utils/rtl_helpers.dart';
@@ -311,8 +313,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                 widget.autoDelivery!,
                               ),
                               const SizedBox(height: 12),
-                            ] else if (widget.singleCustomerData !=
-                                null) ...[
+                            ] else if (widget.singleCustomerData != null) ...[
                               _isCustomerCardLoading
                                   ? _buildCustomerCardLoader()
                                   : _buildCustomerCard(
@@ -344,12 +345,16 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                             try {
                                               await provider.submitProofs();
                                               if (context.mounted) {
-                                                CustomSnackbar.show(
-                                                  context: context,
-                                                  message: AppLocalizations.of(
-                                                    context,
-                                                  )!.proofsUploaded,
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const OrderDeliveredPage(),
+                                                    fullscreenDialog: true,
+                                                  ),
                                                 );
+                                              }
+                                              if (context.mounted) {
                                                 Navigator.pop(context, true);
                                               }
                                             } catch (e) {
@@ -365,18 +370,22 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                                       AppLocalizations.of(
                                                         context,
                                                       )!.missingDeliveredLocationError;
-                                                } else if (e.toString().contains(
-                                                  'missing_',
-                                                )) {
-                                                  errorMessage = AppLocalizations.of(
-                                                    context,
-                                                  )!.missingMediaError;
+                                                } else if (e
+                                                    .toString()
+                                                    .contains('missing_')) {
+                                                  errorMessage =
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.missingMediaError;
                                                 } else if (e is DioException &&
                                                     e.response?.data is Map &&
-                                                    e.response?.data['message'] !=
+                                                    e
+                                                            .response
+                                                            ?.data['message'] !=
                                                         null) {
-                                                  errorMessage =
-                                                      e.response!.data['message'];
+                                                  errorMessage = e
+                                                      .response!
+                                                      .data['message'];
                                                 }
                                                 CustomSnackbar.show(
                                                   context: context,
@@ -1149,6 +1158,8 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                     giftCardRecipientName: giftCardRecipientName,
                   ),
                   isLoading: provider.isCompressingVideo(proof.subOrderId),
+                  onRemove: () =>
+                      provider.removeSubOrderVideo(proof.subOrderId),
                 ),
               ],
             ),
@@ -1165,91 +1176,141 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
     required Function(ImageSource) onPick,
     bool isVideo = false,
     bool isLoading = false,
+    VoidCallback? onRemove,
   }) {
+    final hasMedia = path != null && !isLoading;
     return Expanded(
-      child: GestureDetector(
-        onTap: () => _selectSource(context, onPick, isVideo: isVideo),
-        child: Column(
-          children: [
-            DottedBorder(
-              options: RoundedRectDottedBorderOptions(
-                radius: Radius.circular(12),
-                color: Colors.grey.shade400,
-                strokeWidth: 1.5,
-                dashPattern: const [6, 4],
-              ),
-              child: Container(
-                padding: EdgeInsets.all(10),
-                height: 140,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+      child: Column(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onTap: hasMedia && isVideo
+                    ? () => _openVideoPreview(context, path)
+                    : () => _selectSource(context, onPick, isVideo: isVideo),
+                onLongPress: hasMedia && !isVideo
+                    ? () => _openImagePreview(context, path)
+                    : null,
+                child: DottedBorder(
+                  options: RoundedRectDottedBorderOptions(
+                    radius: Radius.circular(12),
+                    color: Colors.grey.shade400,
+                    strokeWidth: 1.5,
+                    dashPattern: const [6, 4],
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: isLoading
+                        ? const Center(
+                            child: WaterLoadingIndicator(
+                              waveColor1: AppColors.buttonBlueDark,
+                            ),
+                          )
+                        : path != null
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              isVideo
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: VideoThumbnailWidget(path: path),
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: path.startsWith('http')
+                                          ? CachedNetworkImage(
+                                              imageUrl: path,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey[300]!,
+                                                    highlightColor:
+                                                        Colors.grey[100]!,
+                                                    child: Container(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                            )
+                                          : Image.file(
+                                              File(path),
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                            ],
+                          )
+                        : Center(
+                            child: Icon(
+                              isVideo
+                                  ? Icons.videocam_outlined
+                                  : Icons.image_outlined,
+                              color: Colors.grey,
+                              size: 32,
+                            ),
+                          ),
+                  ),
                 ),
-                clipBehavior: Clip.hardEdge,
-                child: isLoading
-                    ? const Center(
-                        child: WaterLoadingIndicator(
-                          waveColor1: AppColors.buttonBlueDark,
-                        ),
-                      )
-                    : path != null
-                    ? Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          isVideo
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: VideoThumbnailWidget(path: path),
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: path.startsWith('http')
-                                      ? CachedNetworkImage(
-                                          imageUrl: path,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) =>
-                                              Shimmer.fromColors(
-                                                baseColor: Colors.grey[300]!,
-                                                highlightColor:
-                                                    Colors.grey[100]!,
-                                                child: Container(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                        )
-                                      : Image.file(
-                                          File(path),
-                                          fit: BoxFit.cover,
-                                        ),
-                                ),
+              ),
+              if (hasMedia && onRemove != null)
+                PositionedDirectional(
+                  top: -8,
+                  end: -8,
+                  child: GestureDetector(
+                    onTap: onRemove,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black26, blurRadius: 3),
                         ],
-                      )
-                    : Center(
-                        child: Icon(
-                          isVideo
-                              ? Icons.videocam_outlined
-                              : Icons.image_outlined,
-                          color: Colors.grey,
-                          size: 32,
-                        ),
                       ),
-              ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
+    );
+  }
+
+  void _openVideoPreview(BuildContext context, String path) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => _VideoPreviewPage(path: path)),
+    );
+  }
+
+  void _openImagePreview(BuildContext context, String path) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ImagePreviewPage(path: path)),
     );
   }
 
@@ -2642,6 +2703,106 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _VideoPreviewPage extends StatefulWidget {
+  final String path;
+
+  const _VideoPreviewPage({required this.path});
+
+  @override
+  State<_VideoPreviewPage> createState() => _VideoPreviewPageState();
+}
+
+class _VideoPreviewPageState extends State<_VideoPreviewPage> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.path.startsWith('http')
+        ? VideoPlayerController.networkUrl(Uri.parse(widget.path))
+        : VideoPlayerController.file(File(widget.path));
+    _controller.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _initialized = true);
+      _controller.setLooping(true);
+      _controller.play();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _togglePlayback() {
+    setState(() {
+      _controller.value.isPlaying ? _controller.pause() : _controller.play();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Center(
+              child: _initialized
+                  ? GestureDetector(
+                      onTap: _togglePlayback,
+                      child: AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      ),
+                    )
+                  : const WaterLoadingIndicator(waveColor1: Colors.white),
+            ),
+            if (_initialized && !_controller.value.isPlaying)
+              Center(
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Colors.black45,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 16,
+              left: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

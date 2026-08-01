@@ -794,6 +794,18 @@ abstract class AppLocalizations {
   /// **'Proofs uploaded successfully!'**
   String get proofsUploaded;
 
+  /// No description provided for @orderDeliveredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Delivered!'**
+  String get orderDeliveredTitle;
+
+  /// No description provided for @orderDeliveredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The delivery has been confirmed successfully.'**
+  String get orderDeliveredMessage;
+
   /// No description provided for @completeOrders.
   ///
   /// In en, this message translates to:

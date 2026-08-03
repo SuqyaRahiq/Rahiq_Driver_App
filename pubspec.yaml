@@ -64,6 +64,7 @@ dependencies:
   geocoding: ^5.0.0
   flutter_image_compress: ^2.5.0
   video_compress: ^3.1.4
+  freshchat_sdk: ^0.10.32
 dev_dependencies:
   flutter_test:
     sdk: flutter

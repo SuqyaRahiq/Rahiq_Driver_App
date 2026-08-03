@@ -133,4 +133,36 @@ class DriverAuthApi {
       ApiClient.handleDioError(e, fallbackError: 'Failed to update locale');
     }
   }
+
+  /// Generate Freshchat JWT Token
+  Future<Response> generateFreshchatToken(String freshchatUuid) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/driver/auth/freshchat-token',
+        data: {'freshchatUuid': freshchatUuid},
+      );
+      return response;
+    } on DioException catch (e) {
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to generate freshchat token',
+      );
+    }
+  }
+
+  /// Save Freshchat Restore ID
+  Future<Response> saveFreshchatRestoreId(String restoreId) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/driver/auth/freshchat-restore-id',
+        data: {'restoreId': restoreId},
+      );
+      return response;
+    } on DioException catch (e) {
+      ApiClient.handleDioError(
+        e,
+        fallbackError: 'Failed to save freshchat restore ID',
+      );
+    }
+  }
 }

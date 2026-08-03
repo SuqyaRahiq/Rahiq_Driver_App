@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
@@ -5,6 +7,7 @@ import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/services/freshchat_service.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/profile/my_account_page.dart';
@@ -24,6 +27,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   bool _isLoggingOut = false;
+  bool _isNavigating = false;
   int _unreadNotificationsCount = 0;
   DriverProfile? driver;
 
@@ -45,6 +49,55 @@ class _ProfileTabState extends State<ProfileTab> {
       }
     } catch (_) {
       // Fail silently
+    }
+  }
+
+  Future<void> _handleTap(
+    BuildContext context,
+    VoidCallback action, {
+    bool showLoader = false,
+  }) async {
+    if (_isNavigating) return;
+
+    setState(() {
+      _isNavigating = true;
+    });
+
+    if (showLoader) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black26,
+        builder: (context) => Center(
+          child: Container(
+            height: 100,
+            width: 100,
+            padding: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: WaterLoadingIndicator(size: 20),
+          ),
+        ),
+      );
+      // Give the loader a brief moment to render before executing heavy intent
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
+    action();
+
+    // Wait for external navigation (like Freshchat SDK) to take over
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted && showLoader) {
+      Navigator.pop(context); // Dismiss loader
+    }
+
+    if (mounted) {
+      setState(() {
+        _isNavigating = false;
+      });
     }
   }
 
@@ -272,6 +325,24 @@ class _ProfileTabState extends State<ProfileTab> {
                               },
                             ),
                             const SizedBox(height: 12),
+                            _buildStandaloneTile(
+                              icon: Icons.contact_support_outlined,
+                              title: l10n.talkWithManagers,
+                              onTap: () {
+                                _handleTap(context, () {
+                                  log(
+                                    "Attempting to open Freshchat conversations with tags: ['talk_with_managers'] and title: 'Talk with Managers'",
+                                    name: "FreshchatService",
+                                  );
+                                  FreshchatService.showConversations(
+                                    context,
+                                    tags: const ["talk_with_managers"],
+                                    filteredViewTitle: "Talk with Managers",
+                                  );
+                                }, showLoader: true);
+                              },
+                            ),
+                            const SizedBox(height: 12),
                             // ── Notifications Section ──────────────────────────
                             _buildStandaloneTile(
                               icon: Icons.notifications_none_rounded,
@@ -293,7 +364,14 @@ class _ProfileTabState extends State<ProfileTab> {
                               const SizedBox(height: 12),
                               _buildStandaloneTile(
                                 icon: Icons.history_rounded,
-                                title: AppLocalizations.of(context)?.pastOrders ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'الطلبات السابقة' : 'Past Orders'),
+                                title:
+                                    AppLocalizations.of(context)?.pastOrders ??
+                                    (Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ar'
+                                        ? 'الطلبات السابقة'
+                                        : 'Past Orders'),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -303,20 +381,19 @@ class _ProfileTabState extends State<ProfileTab> {
                                   );
                                 },
                               ),
-                             
                             },
                             const SizedBox(height: 12),
-                              _buildStandaloneTile(
-                                icon: Icons.settings_outlined,
-                                title: l10n.appSettings,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const AppSettingsPage(),
-                                    ),
-                                  );
-                                },
+                            _buildStandaloneTile(
+                              icon: Icons.settings_outlined,
+                              title: l10n.appSettings,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AppSettingsPage(),
+                                  ),
+                                );
+                              },
                             ),
 
                             const SizedBox(height: 12),
@@ -447,9 +524,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.buttonBlueDark.withValues(
-                          alpha: 0.08,
-                        ),
+                        color: AppColors.buttonBlueDark.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(

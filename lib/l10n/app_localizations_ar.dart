@@ -33,7 +33,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pastOrders => 'الطلبات السابقة';
 
   @override
+  String get talkWithManagers => 'تحدث مع المديرين';
+
+  @override
   String get supplier => 'المُوَرِّد';
+
+  @override
+  String get noAutodeliveryOrders => 'لا توجد طلبات توصيل تلقائي';
 
   @override
   String get selectDeliveredLocationOptional =>

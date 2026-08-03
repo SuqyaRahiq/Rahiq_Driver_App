@@ -436,7 +436,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.noOrders(tabLabel),
+              AppLocalizations.of(context)!.noAutodeliveryOrders,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

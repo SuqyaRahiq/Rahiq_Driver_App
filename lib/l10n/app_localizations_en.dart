@@ -33,7 +33,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pastOrders => 'Past Orders';
 
   @override
+  String get talkWithManagers => 'Talk with Managers';
+
+  @override
   String get supplier => 'Supplier';
+
+  @override
+  String get noAutodeliveryOrders => 'No Autodelivery Orders';
 
   @override
   String get selectDeliveredLocationOptional =>

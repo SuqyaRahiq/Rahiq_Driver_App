@@ -146,11 +146,23 @@ abstract class AppLocalizations {
   /// **'Past Orders'**
   String get pastOrders;
 
+  /// No description provided for @talkWithManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk with Managers'**
+  String get talkWithManagers;
+
   /// No description provided for @supplier.
   ///
   /// In en, this message translates to:
   /// **'Supplier'**
   String get supplier;
+
+  /// No description provided for @noAutodeliveryOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No Autodelivery Orders'**
+  String get noAutodeliveryOrders;
 
   /// No description provided for @selectDeliveredLocationOptional.
   ///

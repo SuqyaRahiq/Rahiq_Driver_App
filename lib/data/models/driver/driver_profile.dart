@@ -29,6 +29,7 @@ class DriverProfile {
   final bool canViewContact;
   final bool canUploadFromGallery;
   final bool canViewPastOrders;
+  final String? freshchatRestoreId;
 
   DriverProfile({
     required this.id,
@@ -57,6 +58,7 @@ class DriverProfile {
     this.canViewContact = false,
     this.canUploadFromGallery = false,
     this.canViewPastOrders = false,
+    this.freshchatRestoreId,
   });
 
   factory DriverProfile.fromJson(Map<String, dynamic> json) {
@@ -97,6 +99,7 @@ class DriverProfile {
       canViewContact: json['canViewContact'] ?? false,
       canUploadFromGallery: json['canUploadFromGallery'] ?? false,
       canViewPastOrders: json['canViewPastOrders'] ?? false,
+      freshchatRestoreId: json['freshchatRestoreId'] as String?,
     );
   }
 
@@ -128,6 +131,7 @@ class DriverProfile {
       'canViewContact': canViewContact,
       'canUploadFromGallery': canUploadFromGallery,
       'canViewPastOrders': canViewPastOrders,
+      'freshchatRestoreId': freshchatRestoreId,
     };
   }
 }

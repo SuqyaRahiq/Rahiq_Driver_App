@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:freshchat_sdk/freshchat_sdk.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/services/freshchat_service.dart';
 import 'package:rahiq_driver/splash_page.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
@@ -47,6 +49,36 @@ void main() async {
     await NotificationService().init();
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
+  }
+
+  final freshchatAppId = dotenv.env['FRESHCHAT_APP_ID'];
+  final freshchatAppKey = dotenv.env['FRESHCHAT_APP_KEY'];
+  final freshchatDomain = dotenv.env['FRESHCHAT_DOMAIN'];
+
+  if (freshchatAppId != null &&
+      freshchatAppId.isNotEmpty &&
+      freshchatAppKey != null &&
+      freshchatAppKey.isNotEmpty &&
+      freshchatDomain != null &&
+      freshchatDomain.isNotEmpty) {
+    Freshchat.init(freshchatAppId, freshchatAppKey, freshchatDomain);
+
+    // Initialize Freshchat service listeners
+    FreshchatService.init();
+
+    // Register this device's FCM token with Freshchat so it can deliver
+    // push notifications for chat messages.
+    await FreshchatService.registerPushToken();
+
+    // Set user info if session exists
+    try {
+      final driver = AuthStorage.getUserData();
+      if (driver != null) {
+        await FreshchatService.identifyUser(driver);
+      }
+    } catch (e) {
+      debugPrint('Failed to set Freshchat user: $e');
+    }
   }
 
   runApp(const MyApp());

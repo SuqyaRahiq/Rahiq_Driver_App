@@ -326,7 +326,7 @@ class _ProfileTabState extends State<ProfileTab> {
                             ),
                             const SizedBox(height: 12),
                             _buildStandaloneTile(
-                              icon: Icons.contact_support_outlined,
+                              icon: Icons.support_agent_outlined,
                               title: l10n.talkWithManagers,
                               onTap: () {
                                 _handleTap(context, () {
@@ -553,7 +553,7 @@ class _ProfileTabState extends State<ProfileTab> {
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: 8,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

@@ -13,6 +13,7 @@ import '../../data/models/driver/orphanage.dart';
 import '../../data/models/driver/place.dart';
 import '../../utils/colors.dart';
 import 'package:rahiq_driver/utils/map_marker_icon.dart';
+import 'package:rahiq_driver/utils/location_permission_utils.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
 class SpecificMosquePage extends StatefulWidget {
@@ -381,6 +382,7 @@ class _SpecificMosquePageState extends State<SpecificMosquePage>
       return null;
     }
 
+    await maybeRequestPreciseLocation();
     return await Geolocator.getCurrentPosition();
   }
 

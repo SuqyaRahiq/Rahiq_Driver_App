@@ -15,6 +15,7 @@ import 'package:rahiq_driver/utils/map_marker_icon.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
+import 'package:rahiq_driver/utils/location_permission_utils.dart';
 import 'package:rahiq_driver/data/models/driver/driver_dashboard_stats.dart';
 
 class OrderListItem {
@@ -153,8 +154,11 @@ class _OrdersPageState extends State<OrdersPage>
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
-    return permission == LocationPermission.always ||
+
+    final granted = permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
+    if (granted) await maybeRequestPreciseLocation();
+    return granted;
   }
 
   Future<void> _goToMyLocation({bool promptIfDisabled = true}) async {

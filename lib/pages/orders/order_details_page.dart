@@ -562,7 +562,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: Colors.black,
             ),
           ),
         ),
@@ -1320,10 +1320,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   ),
                                                   child: Stack(
                                                     children: [
-                                                      const Icon(
+                                                      Icon(
                                                         Symbols.note_stack,
                                                         size: 20,
-                                                        color: Colors.grey,
+                                                        color: AppColors
+                                                            .buttonBlueDark,
                                                       ),
                                                       Positioned.directional(
                                                         textDirection:
@@ -1383,11 +1384,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                   ),
                                                   child: Stack(
                                                     children: [
-                                                      const Icon(
-                                                        Icons
-                                                            .support_agent_outlined,
+                                                      Icon(
+                                                        Symbols.support_agent,
                                                         size: 20,
-                                                        color: Colors.grey,
+                                                        color: AppColors
+                                                            .buttonBlueDark,
                                                       ),
                                                       Positioned.directional(
                                                         textDirection:
@@ -1425,28 +1426,20 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                         color: Colors.white,
                                                         shape: BoxShape.circle,
                                                       ),
-                                                  child: Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.card_giftcard,
+                                                  child: Icon(
+                                                    Symbols
+                                                        .featured_seasonal_and_gifts,
                                                         size: 20,
-                                                        color: Colors.grey,
-                                                      ),
-                                                      Positioned.directional(
-                                                        textDirection:
-                                                            TextDirection.ltr,
-                                                        top: 6,
-                                                        end: 6,
-                                                        child:
-                                                            const CircleAvatar(
-                                                              backgroundColor:
-                                                                  Colors.orange,
-                                                              radius: 4,
-                                                            ),
-                                                      ),
-                                                    ],
+                                                    color: const Color.fromARGB(
+                                                      255,
+                                                      162,
+                                                      38,
+                                                      29,
+                                                    ),
                                                   ),
+                                                    
+                                                  
+                                                
                                                 ),
                                               ],
                                             ],

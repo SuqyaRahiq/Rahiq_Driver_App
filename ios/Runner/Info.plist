@@ -81,5 +81,10 @@
 		<string>This app needs access to your location to show it on the map and find the nearest delivery locations.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>This app requires access to your location in the background to show it on the map and track your delivery route.</string>
+		<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+		<dict>
+			<key>PreciseLocationUsage</key>
+			<string>Precise location helps us pinpoint your exact delivery location and improve navigation accuracy.</string>
+		</dict>
 	</dict>
 </plist>

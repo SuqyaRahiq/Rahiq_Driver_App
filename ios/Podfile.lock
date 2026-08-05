@@ -42,6 +42,10 @@ PODS:
     - SDWebImageWebPCoder
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - freshchat_sdk (0.10.33):
+    - Flutter
+    - FreshchatSDK (= 6.4.9)
+  - FreshchatSDK (6.4.9)
   - geocoding_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -136,6 +140,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - freshchat_sdk (from `.symlinks/plugins/freshchat_sdk/ios`)
   - geocoding_darwin (from `.symlinks/plugins/geocoding_darwin/darwin`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
@@ -155,6 +160,7 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseInstallations
     - FirebaseMessaging
+    - FreshchatSDK
     - Google-Maps-iOS-Utils
     - GoogleDataTransport
     - GoogleMaps
@@ -180,6 +186,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_image_compress_common/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  freshchat_sdk:
+    :path: ".symlinks/plugins/freshchat_sdk/ios"
   geocoding_darwin:
     :path: ".symlinks/plugins/geocoding_darwin/darwin"
   geolocator_apple:
@@ -216,6 +224,8 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_image_compress_common: 11d5dcfb36f4ded92320bfa896261813a073240e
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
+  freshchat_sdk: 54338596fa253edc6f3360bf1e4f1bbf65977a05
+  FreshchatSDK: 2e4e8398e2663bc7ab8b9300226cbd00799a678c
   geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   Google-Maps-iOS-Utils: 0a484b05ed21d88c9f9ebbacb007956edd508a96

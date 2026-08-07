@@ -52,6 +52,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _subOrders = [];
+  bool _allOrdersCompleted = false;
   bool _isMultiSelectMode = false;
   final Set<String> _selectedSubOrders = {};
   DriverProfile? driver;
@@ -191,16 +192,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           _subOrders = details.map((s) => s.toJson()).toList();
           _hasMore = details.length == 30;
           _isLoading = false;
+          _allOrdersCompleted = checkCompletion
+              ? _subOrders.every(
+                  (s) => s['status'] == 'DELIVERED' || s['status'] == 'COMPLETED',
+                )
+              : false;
         });
-
-        if (checkCompletion) {
-          final uncompleted = _subOrders.where(
-            (s) => s['status'] != 'DELIVERED' && s['status'] != 'COMPLETED',
-          );
-          if (uncompleted.isEmpty) {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          }
-        }
       }
     } catch (e) {
       if (mounted) {
@@ -514,11 +511,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 ),
                               ),
 
-                            (!_isLoading && _subOrders.isEmpty)
+                            (!_isLoading &&
+                                    (_subOrders.isEmpty || _allOrdersCompleted))
                                 ? Expanded(child: _buildSubOrdersSection())
                                 : _buildSubOrdersSection(),
 
-                            if (_isLoading || _subOrders.isNotEmpty)
+                            if (_isLoading ||
+                                (_subOrders.isNotEmpty && !_allOrdersCompleted))
                               const Spacer(),
                             const SizedBox(height: 24),
                           ],
@@ -963,6 +962,47 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               );
             }
             final sortedList = _subOrders;
+            if (_allOrdersCompleted) {
+              final isAr = Localizations.localeOf(context).languageCode == 'ar';
+              return Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline_rounded,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        isAr ? 'لا توجد طلبات متاحة' : 'No orders available',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          _fetchDetails(checkCompletion: true);
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: Text(isAr ? 'إعادة المحاولة' : 'Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonBlueDark,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
             if (sortedList.isEmpty) {
               final isAr = Localizations.localeOf(context).languageCode == 'ar';
               return Expanded(

@@ -547,9 +547,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
                             ],
                             if (widget.quantity != null) ...[
                               Text(
-                                "${widget.quantity} ${widget.productName ?? ""} ${widget.date ?? ""}",
+                                "${widget.quantity} ${widget.productName ?? ""}",
                                 style: const TextStyle(fontSize: 14),
                               ),
+                              if (widget.date != null &&
+                                  widget.date!.isNotEmpty)
+                                Text(
+                                  widget.date!,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
                             ],
 
                             if (widget.customerNote != null &&

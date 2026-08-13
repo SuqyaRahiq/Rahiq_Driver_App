@@ -240,7 +240,9 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
                   },
                 ),
               )
-              .then((_) => _fetchItems());
+              .then((_) {
+                if (mounted) _fetchItems();
+              });
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

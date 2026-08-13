@@ -7,8 +7,15 @@ import 'package:rahiq_driver/pages/profile/profile_tab.dart';
 import 'package:rahiq_driver/pages/shared/custom_bottom_nav.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 
+/// Tabs the home page can open on. The auto delivery tab only exists for
+/// drivers with auto delivery enabled — asking for it otherwise falls back
+/// to orders.
+enum HomeTab { orders, autoDelivery, profile }
+
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final HomeTab initialTab;
+
+  const HomePage({super.key, this.initialTab = HomeTab.orders});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,6 +26,8 @@ class _HomePageState extends State<HomePage> {
   bool _hideNavBar = false;
   DriverProfile? driver;
   late List<Widget> _pages;
+  late List<HomeTab> _tabs;
+  bool _initialTabApplied = false;
   @override
   void initState() {
     driver = AuthStorage.getUserData();
@@ -28,6 +37,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _tabs = [
+      HomeTab.orders,
+      if (driver!.isAutoDeliveryEnabled) HomeTab.autoDelivery,
+      HomeTab.profile,
+    ];
     _pages = [
       OrdersPage(
         onMapModeChanged: (isMapMode) {
@@ -40,6 +54,12 @@ class _HomePageState extends State<HomePage> {
 
       const ProfileTab(),
     ];
+
+    if (!_initialTabApplied) {
+      _initialTabApplied = true;
+      final index = _tabs.indexOf(widget.initialTab);
+      if (index != -1) _currentIndex = index;
+    }
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/pages/shared/order_delivered_page.dart';
 import 'package:rahiq_driver/pages/shared/image_preview_page.dart';
@@ -349,12 +350,34 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                                   context,
                                                   MaterialPageRoute(
                                                     builder: (_) =>
-                                                        const OrderDeliveredPage(),
+                                                        OrderDeliveredPage(
+                                                          returnsHome: widget
+                                                              .isAutoDelivery,
+                                                        ),
                                                     fullscreenDialog: true,
                                                   ),
                                                 );
                                               }
-                                              if (context.mounted) {
+                                              if (!context.mounted) return;
+                                              if (widget.isAutoDelivery) {
+                                                // Auto delivery has no order
+                                                // listing to fall back to —
+                                                // land on the home page's
+                                                // auto delivery tab.
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const HomePage(
+                                                          initialTab: HomeTab
+                                                              .autoDelivery,
+                                                        ),
+                                                  ),
+                                                  (route) => false,
+                                                );
+                                              } else {
+                                                // Back to the order listing,
+                                                // which refreshes on `true`.
                                                 Navigator.pop(context, true);
                                               }
                                             } catch (e) {

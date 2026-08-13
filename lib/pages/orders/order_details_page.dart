@@ -146,7 +146,18 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     driver = AuthStorage.getUserData();
   }
 
-  Future<void> _fetchDetails({bool checkCompletion = false}) async {
+  /// True once every sub-order the driver can see has been delivered, i.e.
+  /// there is nothing left to deliver in this order. Only trustworthy when the
+  /// whole list has been loaded, otherwise a page of delivered sub-orders would
+  /// hide the pending ones still waiting on the next page.
+  bool get _nothingLeftToDeliver =>
+      _subOrders.isNotEmpty &&
+      !_hasMore &&
+      _subOrders.every(
+        (s) => s['status'] == 'DELIVERED' || s['status'] == 'COMPLETED',
+      );
+
+  Future<void> _fetchDetails() async {
     try {
       setState(() {
         _isLoading = true;
@@ -192,11 +203,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           _subOrders = details.map((s) => s.toJson()).toList();
           _hasMore = details.length == 30;
           _isLoading = false;
-          _allOrdersCompleted = checkCompletion
-              ? _subOrders.every(
-                  (s) => s['status'] == 'DELIVERED' || s['status'] == 'COMPLETED',
-                )
-              : false;
+          _allOrdersCompleted = _nothingLeftToDeliver;
         });
       }
     } catch (e) {
@@ -258,6 +265,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             _hasMore = false;
           }
           _isFetchingMore = false;
+          _allOrdersCompleted = _nothingLeftToDeliver;
         });
       }
     } catch (e) {
@@ -327,12 +335,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         ),
       );
 
-      if (submitted == true) {
+      if (submitted == true && mounted) {
         setState(() {
           _isMultiSelectMode = false;
           _selectedSubOrders.clear();
         });
-        _fetchDetails(checkCompletion: true);
+        _fetchDetails();
       }
     } catch (e) {
       if (mounted) {
@@ -962,7 +970,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               );
             }
             final sortedList = _subOrders;
-            if (_allOrdersCompleted) {
+            // An empty list with no search/filter narrowing it down means the
+            // order is done, not that the driver filtered everything out.
+            final bool isNarrowedDown =
+                _searchQuery.isNotEmpty || _showOnlyWithNotes;
+            if (_allOrdersCompleted ||
+                (sortedList.isEmpty && !isNarrowedDown)) {
               final isAr = Localizations.localeOf(context).languageCode == 'ar';
               return Expanded(
                 child: Center(
@@ -989,7 +1002,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           setState(() {
                             _isLoading = true;
                           });
-                          _fetchDetails(checkCompletion: true);
+                          _fetchDetails();
                         },
                         icon: const Icon(Icons.refresh),
                         label: Text(isAr ? 'إعادة المحاولة' : 'Retry'),

@@ -178,6 +178,8 @@
   "proofsUploaded": "Proofs uploaded successfully!",
   "orderDeliveredTitle": "Order Delivered!",
   "orderDeliveredMessage": "The delivery has been confirmed successfully.",
+  "goToHome": "Go to Home",
+  "backToOrders": "Back to Orders",
   "completeOrders": "Complete orders",
   "selectSource": "Select Source",
   "requiredField": "Required",

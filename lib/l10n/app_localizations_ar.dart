@@ -395,6 +395,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get orderDeliveredMessage => 'تم تأكيد التوصيل بنجاح.';
 
   @override
+  String get goToHome => 'الذهاب إلى الرئيسية';
+
+  @override
+  String get backToOrders => 'العودة إلى الطلبات';
+
+  @override
   String get completeOrders => 'إكمال الطلبات';
 
   @override

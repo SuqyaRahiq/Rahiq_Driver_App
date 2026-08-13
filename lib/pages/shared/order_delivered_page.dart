@@ -4,10 +4,15 @@ import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 
 /// Full-screen success moment shown right after a delivery is confirmed.
-/// Auto-dismisses itself (or dismisses early on tap) so the caller's
-/// `await Navigator.push(...)` naturally continues once it's done.
+/// Dismisses itself automatically after 2s, or immediately when the action
+/// button (or the screen) is tapped, so the caller's `await Navigator.push(...)`
+/// continues and takes the driver to the next screen.
 class OrderDeliveredPage extends StatefulWidget {
-  const OrderDeliveredPage({super.key});
+  /// Whether the caller sends the driver home afterwards (auto delivery) or
+  /// back to the order listing. Only decides the button label.
+  final bool returnsHome;
+
+  const OrderDeliveredPage({super.key, this.returnsHome = false});
 
   @override
   State<OrderDeliveredPage> createState() => _OrderDeliveredPageState();
@@ -20,6 +25,7 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
   late final Animation<double> _ring;
   late final Animation<double> _fade;
   Timer? _autoCloseTimer;
+  bool _leaving = false;
 
   @override
   void initState() {
@@ -41,7 +47,7 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
       curve: const Interval(0.35, 1.0, curve: Curves.easeIn),
     );
 
-    _autoCloseTimer = Timer(const Duration(milliseconds: 2200), _dismiss);
+    _autoCloseTimer = Timer(const Duration(seconds: 2), _leave);
   }
 
   @override
@@ -51,9 +57,14 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
     super.dispose();
   }
 
-  void _dismiss() {
+  /// Hands control back to the caller, which decides where the driver lands.
+  /// Guarded so the auto-navigate timer can never fire on top of a tap that
+  /// already dismissed this screen.
+  void _leave() {
+    if (_leaving) return;
+    _leaving = true;
     _autoCloseTimer?.cancel();
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -64,7 +75,7 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
         backgroundColor: AppColors.buttonBlueDark,
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: _dismiss,
+          onTap: _leave,
           child: Center(
             child: AnimatedBuilder(
               animation: _controller,
@@ -138,6 +149,32 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          SizedBox(
+                            width: 220,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _leave,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.buttonBlueDark,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              child: Text(
+                                widget.returnsHome
+                                    ? AppLocalizations.of(context)!.goToHome
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.backToOrders,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),

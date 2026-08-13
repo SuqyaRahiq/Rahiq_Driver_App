@@ -397,6 +397,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The delivery has been confirmed successfully.';
 
   @override
+  String get goToHome => 'Go to Home';
+
+  @override
+  String get backToOrders => 'Back to Orders';
+
+  @override
   String get completeOrders => 'Complete orders';
 
   @override

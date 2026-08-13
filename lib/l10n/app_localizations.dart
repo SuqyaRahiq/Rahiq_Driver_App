@@ -830,6 +830,18 @@ abstract class AppLocalizations {
   /// **'The delivery has been confirmed successfully.'**
   String get orderDeliveredMessage;
 
+  /// No description provided for @goToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Home'**
+  String get goToHome;
+
+  /// No description provided for @backToOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Orders'**
+  String get backToOrders;
+
   /// No description provided for @completeOrders.
   ///
   /// In en, this message translates to:

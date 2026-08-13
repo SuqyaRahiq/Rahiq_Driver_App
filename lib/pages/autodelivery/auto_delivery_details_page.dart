@@ -415,6 +415,11 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                                                   ),
                                                 ),
                                               ).then((_) {
+                                                // Skipped when the delivery
+                                                // succeeded: that route sends
+                                                // the driver home and disposes
+                                                // this page.
+                                                if (!mounted) return;
                                                 setState(() {
                                                   _isMultiSelectMode = false;
                                                   _selectedSubOrders.clear();
@@ -806,7 +811,9 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                       );
                     },
                   ),
-                ).then((_) => _fetchDetails());
+                ).then((_) {
+                  if (mounted) _fetchDetails();
+                });
               }
             },
             child: Container(
@@ -1271,6 +1278,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
                                       ),
                                     ),
                                   ).then((_) {
+                                    if (!mounted) return;
                                     setState(() {
                                       _isMultiSelectMode = false;
                                       _selectedSubOrders.clear();

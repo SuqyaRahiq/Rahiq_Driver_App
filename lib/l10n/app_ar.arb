@@ -178,6 +178,8 @@
   "proofsUploaded": "تم رفع الإثباتات بنجاح!",
   "orderDeliveredTitle": "تم التوصيل بنجاح!",
   "orderDeliveredMessage": "تم تأكيد التوصيل بنجاح.",
+  "goToHome": "الذهاب إلى الرئيسية",
+  "backToOrders": "العودة إلى الطلبات",
   "completeOrders": "إكمال الطلبات",
   "selectSource": "اختر المصدر",
   "requiredField": "مطلوب",

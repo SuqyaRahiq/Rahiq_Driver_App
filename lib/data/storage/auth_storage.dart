@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:freshchat_sdk/freshchat_sdk.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -79,11 +81,12 @@ class AuthStorage {
   static Future<void> saveUserData(DriverProfile userData) async {
     await _box.put(_userDataKey, userData.toJson());
 
-    try {
-      await FreshchatService.identifyUser(userData);
-    } catch (e) {
-      debugPrint('Failed to set Freshchat user: $e');
-    }
+    // Deliberately not awaited. Callers await this method to know the profile
+    // is *persisted*; handing it to Freshchat is a side errand that must never
+    // hold up what comes next — login used to sit on a spinner here, waiting
+    // on a chat SDK that had no answer to give. identifyUser swallows and
+    // logs its own failures.
+    unawaited(FreshchatService.identifyUser(userData));
   }
 
   static DriverProfile? getUserData() {

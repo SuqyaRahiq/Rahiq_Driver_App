@@ -19,6 +19,50 @@ class ApiClient {
   bool _isRefreshing = false;
   final _pendingRequests = <Completer<bool>>[];
 
+  /// Endpoints that must NEVER go through the 401 → refresh → retry flow.
+  /// A 401 from these is the server's actual answer (bad credentials, a
+  /// blocked driver, a dead refresh token) — not an expired access token.
+  /// Refreshing and replaying them loops forever and swallows the real
+  /// error message the caller needs to show.
+  static const List<String> _authExemptPaths = [
+    '/driver/auth/login',
+    '/driver/auth/refresh-token',
+  ];
+
+  /// Per-request retry budget after a successful refresh, so a request that
+  /// keeps coming back 401 can never bounce between refresh and retry.
+  static const String _retryKey = '_retry_count';
+  static const int _maxRetryCount = 1;
+
+  bool _isAuthExempt(String path) =>
+      _authExemptPaths.any((exempt) => path.contains(exempt));
+
+  /// The language the app is currently rendered in — `en` or `ar` — for the
+  /// `Accept-Language` header, so the server's own messages come back in the
+  /// language the driver is reading.
+  ///
+  /// [localeNotifier] is the source of truth: the language switch writes it
+  /// before persisting, so it is never behind. The fallbacks cover callers
+  /// that reach the API before `main()` has set it up, or from an isolate
+  /// that never ran `main()` at all — a request must not die on a `late`
+  /// field over a header.
+  static String get appLanguageCode {
+    try {
+      return localeNotifier.value.languageCode;
+    } catch (_) {
+      // Notifier not initialized yet — fall back to what was persisted.
+    }
+    try {
+      return AuthStorage.getLanguage();
+    } catch (_) {
+      // Hive box not open in this isolate either.
+    }
+    return 'en';
+  }
+
+  int _retryCount(RequestOptions options) =>
+      (options.extra[_retryKey] ?? 0) as int;
+
   ApiClient._internal() {
     dio = Dio(
       BaseOptions(
@@ -43,6 +87,13 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          if (_isAuthExempt(options.path)) {
+            // Never queue login behind an in-flight refresh, and never send
+            // a stale bearer token with it.
+            options.headers['Accept-Language'] = appLanguageCode;
+            return handler.next(options);
+          }
+
           if (_isRefreshing) {
             final completer = Completer<bool>();
             _pendingRequests.add(completer);
@@ -60,8 +111,7 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          options.headers['Accept-Language'] =
-              localeNotifier.value.languageCode;
+          options.headers['Accept-Language'] = appLanguageCode;
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
@@ -78,7 +128,17 @@ class ApiClient {
           }
           e = customException;
 
-          if (e.response?.statusCode == 401) {
+          if (e.response?.statusCode == 401 &&
+              !_isAuthExempt(e.requestOptions.path)) {
+            if (_retryCount(e.requestOptions) >= _maxRetryCount) {
+              // Already refreshed once and this request still comes back
+              // 401 — the session is genuinely dead (revoked, blocked,
+              // deleted), so stop replaying it and send the user to login.
+              await AuthStorage.clearTokens();
+              _navigateToLogin();
+              return handler.next(e);
+            }
+
             if (!_isRefreshing) {
               _isRefreshing = true;
               bool refreshed;
@@ -106,6 +166,8 @@ class ApiClient {
                 try {
                   final token = AuthStorage.getAccessToken();
                   e.requestOptions.headers['Authorization'] = 'Bearer $token';
+                  e.requestOptions.extra[_retryKey] =
+                      _retryCount(e.requestOptions) + 1;
                   final cloneReq = await dio.fetch(e.requestOptions);
                   return handler.resolve(cloneReq);
                 } catch (retryError) {
@@ -128,6 +190,8 @@ class ApiClient {
                 try {
                   final token = AuthStorage.getAccessToken();
                   e.requestOptions.headers['Authorization'] = 'Bearer $token';
+                  e.requestOptions.extra[_retryKey] =
+                      _retryCount(e.requestOptions) + 1;
                   final cloneReq = await dio.fetch(e.requestOptions);
                   return handler.resolve(cloneReq);
                 } catch (retryError) {
@@ -145,6 +209,11 @@ class ApiClient {
   }
 
   void _navigateToLogin() {
+    // Already there. A background request that 401s while the driver is on
+    // the login screen must not push a second one over it — that rebuilds the
+    // page from scratch and wipes the username and password mid-typing.
+    if (LoginPage.isShowing) return;
+
     final context = navigatorKey.currentContext;
     if (context != null) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -159,7 +228,14 @@ class ApiClient {
     if (refreshToken == null) return false;
 
     try {
-      final dioRefresh = Dio(BaseOptions(baseUrl: baseUrl));
+      // A bare Dio on purpose — it must not run the interceptor below and
+      // recurse — so the header the interceptor would have added is set here.
+      final dioRefresh = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {'Accept-Language': appLanguageCode},
+        ),
+      );
       dioRefresh.interceptors.add(
         LogInterceptor(
           request: true,
@@ -230,12 +306,29 @@ class ApiClient {
   }
 
   /// Converts a [DioException] into a user-friendly [ApiException].
-  static Never handleDioError(DioException e, {String fallbackError = 'Request failed'}) {
+  ///
+  /// The server's own `message` wins — it is already localized via the
+  /// `Accept-Language` header. Dio's own `e.message` is never surfaced: on a
+  /// bad response it is a multi-line explanation of HTTP status codes, which
+  /// is not something to put in a snackbar.
+  static Never handleDioError(
+    DioException e, {
+    String fallbackError = 'Request failed',
+  }) {
+    final data = e.response?.data;
+    final apiMessage = data is Map ? data['message']?.toString() : null;
+
+    const networkTypes = {
+      DioExceptionType.connectionError,
+      DioExceptionType.connectionTimeout,
+      DioExceptionType.sendTimeout,
+      DioExceptionType.receiveTimeout,
+    };
+
     throw ApiException(
-      (e.response?.data is Map ? e.response?.data['message'] : null) ??
-          e.message ??
-          fallbackError,
+      apiMessage ?? fallbackError,
       statusCode: e.response?.statusCode,
+      isNetworkError: networkTypes.contains(e.type),
     );
   }
 }

@@ -20,11 +20,20 @@ import 'package:rahiq_driver/utils/water_loading.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
+  /// True while a login screen is on screen.
+  ///
+  /// [ApiClient] checks this before routing a dead session to login: pushing
+  /// a second login page over this one destroys its state, taking whatever
+  /// the driver has typed with it.
+  static bool get isShowing => _LoginPageState._mountedCount > 0;
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static int _mountedCount = 0;
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -45,7 +54,13 @@ class _LoginPageState extends State<LoginPage> {
 
       String? fcmToken;
       try {
-        fcmToken = await NotificationService().getToken();
+        // Bounded: on a device with a sick Play Services install this call can
+        // stall for minutes, and login is not worth blocking on it — the
+        // request falls back to a placeholder token below, and the real one is
+        // pushed later via the device-token endpoint.
+        fcmToken = await NotificationService().getToken().timeout(
+          const Duration(seconds: 10),
+        );
       } catch (e) {
         debugPrint('Failed to get FCM token: $e');
       }
@@ -94,9 +109,16 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        final errorMessage = e is ApiException
-            ? e.message
-            : AppLocalizations.of(context)!.somethingWentWrong;
+        final l10n = AppLocalizations.of(context)!;
+        final String errorMessage;
+        if (e is! ApiException) {
+          errorMessage = l10n.somethingWentWrong;
+        } else if (e.isNetworkError) {
+          errorMessage = l10n.connectionError;
+        } else {
+          // Server-sent message: wrong credentials, blocked account, etc.
+          errorMessage = e.message;
+        }
         CustomSnackbar.show(
           context: context,
           message: errorMessage,
@@ -107,7 +129,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _mountedCount++;
+  }
+
+  @override
   void dispose() {
+    _mountedCount--;
     _usernameController.dispose();
     _passwordController.dispose();
     _termsTapRecognizer.dispose();

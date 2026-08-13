@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/services.dart';
 import 'dart:io';
@@ -85,11 +86,12 @@ void main() async {
     // push notifications for chat messages.
     await FreshchatService.registerPushToken();
 
-    // Set user info if session exists
+    // Set user info if session exists. Not awaited: the first frame must not
+    // wait on the chat SDK answering, and identifyUser logs its own failures.
     try {
       final driver = AuthStorage.getUserData();
       if (driver != null) {
-        await FreshchatService.identifyUser(driver);
+        unawaited(FreshchatService.identifyUser(driver));
       }
     } catch (e) {
       debugPrint('Failed to set Freshchat user: $e');

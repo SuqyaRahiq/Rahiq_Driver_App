@@ -16,6 +16,17 @@ class FreshchatService {
   /// managers channel rather than a channel list.
   static const List<String> supportTags = ["talk_with_managers"];
 
+  /// Ceiling on any single call into the native SDK.
+  ///
+  /// The plugin's async getters complete their platform-channel result only
+  /// from inside a Freshchat callback, with no error path — so an SDK that
+  /// never answers (misconfigured, not initialized, offline mid-handshake)
+  /// leaves the Dart future pending *forever*. A `try`/`catch` cannot rescue
+  /// a future that never settles; only a timeout can. Every `await` on the
+  /// SDK below carries one, so support chat degrades instead of freezing
+  /// whatever screen is waiting on it.
+  static const Duration _nativeCallTimeout = Duration(seconds: 8);
+
   /// Unread support messages, for the profile tile's badge. A notifier rather
   /// than screen state because the count changes from the SDK's own events —
   /// a push arriving, or the driver reading the thread on the native chat
@@ -33,7 +44,9 @@ class FreshchatService {
   /// every unread message it can receive is a managers message anyway.
   static Future<void> refreshUnreadCount() async {
     try {
-      final result = await Freshchat.getUnreadCountAsync;
+      final result = await Freshchat.getUnreadCountAsync.timeout(
+        _nativeCallTimeout,
+      );
       log("Freshchat unread lookup: $result", name: "FreshchatService");
 
       // Both platforms answer with {status, count}. A failed lookup still
@@ -103,8 +116,22 @@ class FreshchatService {
         name: "FreshchatService",
       );
       if (event == true) {
-        FreshchatUser freshchatUser = await Freshchat.getUser;
-        final restoreId = freshchatUser.getRestoreId();
+        final String? restoreId;
+        try {
+          final freshchatUser = await Freshchat.getUser.timeout(
+            _nativeCallTimeout,
+          );
+          restoreId = freshchatUser.getRestoreId();
+        } catch (e) {
+          // Nothing above this listener can catch a throw, so it has to end
+          // here rather than surface as an unhandled async error.
+          log(
+            "Could not read Freshchat user for restore ID: $e",
+            name: "FreshchatService",
+            error: e,
+          );
+          return;
+        }
 
         if (restoreId != null && restoreId.isNotEmpty) {
           log(
@@ -209,7 +236,9 @@ class FreshchatService {
     }
 
     try {
-      final freshchatUuid = await Freshchat.getFreshchatUserId;
+      final freshchatUuid = await Freshchat.getFreshchatUserId.timeout(
+        _nativeCallTimeout,
+      );
       if (freshchatUuid.isNotEmpty) {
         log(
           "Generating Freshchat Token from backend...",
@@ -282,7 +311,9 @@ class FreshchatService {
       final restoreId = driver.freshchatRestoreId ?? "";
       Freshchat.identifyUser(externalId: driver.id, restoreId: restoreId);
 
-      FreshchatUser freshchatUser = await Freshchat.getUser;
+      FreshchatUser freshchatUser = await Freshchat.getUser.timeout(
+        _nativeCallTimeout,
+      );
       final nameParts = driver.fullName.trim().split(RegExp(r'\s+'));
       final firstName = nameParts.isNotEmpty ? nameParts.first : driver.fullName;
       final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';

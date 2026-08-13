@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +12,49 @@ import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 
 class FreshchatService {
-  /// The welcome message is the bot flow's own first entry, so re-fires
-  /// count as "fresh" once this much time has passed since the chat screen
-  /// was last opened — matches the product's 20 minute session window.
-  static const _welcomeStaleAfter = Duration(minutes: 20);
+  /// The support channel every entry point into the chat filters on. The
+  /// unread badge counts this channel alone, so it has to be the same tag the
+  /// driver actually lands in.
+  static const List<String> supportTags = ["talk_with_managers"];
+
+  /// Unread support messages, for the profile tile's badge. A notifier rather
+  /// than screen state because the count changes from the SDK's own events —
+  /// a push arriving, or the driver reading the thread on the native chat
+  /// screen — not from anything the Flutter side does.
+  static final ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
+
+  /// Re-reads the unread count from the SDK. Safe to call often; it is a
+  /// local lookup, not a network round trip.
+  static Future<void> refreshUnreadCount() async {
+    try {
+      final result = await Freshchat.getUnreadCountAsyncForTags(supportTags);
+
+      // Both platforms answer with {status, count}. A failed lookup still
+      // carries a count — 0 on iOS — so trusting it would clear a badge that
+      // should have stayed on.
+      final status = result['status']?.toString().toUpperCase() ?? '';
+      if (!status.contains('SUCCESS')) {
+        log(
+          "Skipping Freshchat unread count, status: $status",
+          name: "FreshchatService",
+        );
+        return;
+      }
+
+      final raw = result['count'];
+      final count = raw is int ? raw : int.tryParse('$raw') ?? 0;
+      if (count != unreadCount.value) {
+        log("Freshchat unread count: $count", name: "FreshchatService");
+        unreadCount.value = count;
+      }
+    } catch (e) {
+      log(
+        "Failed to read Freshchat unread count: $e",
+        name: "FreshchatService",
+        error: e,
+      );
+    }
+  }
 
   static void init() {
     log(
@@ -36,17 +76,25 @@ class FreshchatService {
       }
     });
 
+    // Fires whenever the SDK's message count changes — a new message pushed
+    // in, or the driver reading the thread on the native chat screen, which is
+    // what clears the badge again.
+    Freshchat.onMessageCountUpdate.listen((_) => refreshUnreadCount());
+    refreshUnreadCount();
+
     // FCM tokens rotate (app reinstall, data clear, backup restore, etc.);
     // Freshchat only ever pushes to whatever token was last handed to it via
     // setPushRegistrationToken, so it has to be re-sent on every refresh, not
     // just once at startup.
-    FirebaseMessaging.instance.onTokenRefresh.listen((token) {
-      Freshchat.setPushRegistrationToken(token);
-      log(
-        "Freshchat push registration token refreshed.",
-        name: "FreshchatService",
-      );
-    });
+    if (Platform.isAndroid) {
+      FirebaseMessaging.instance.onTokenRefresh.listen((token) {
+        Freshchat.setPushRegistrationToken(token);
+        log(
+          "Freshchat push registration token refreshed.",
+          name: "FreshchatService",
+        );
+      });
+    }
 
     // Listen for the restore ID generation when the user sends their first message
     Freshchat.onRestoreIdGenerated.listen((event) async {
@@ -94,7 +142,14 @@ class FreshchatService {
 
   /// Hands the current FCM token to Freshchat so it knows where to deliver
   /// push notifications for this device.
+  ///
+  /// Android only. The plugin's iOS `setPushRegistrationToken` takes the raw
+  /// APNs token as `NSData`, which an FCM token string is not — that side is
+  /// registered from `AppDelegate.didRegisterForRemoteNotifications`, the only
+  /// place the real token exists.
   static Future<void> registerPushToken() async {
+    if (!Platform.isAndroid) return;
+
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
@@ -196,26 +251,30 @@ class FreshchatService {
     );
   }
 
-  /// Nudges the bot's welcome flow when the chat screen is opened after a
-  /// conversation was resolved, or after a long enough gap that it should
-  /// feel like a fresh session — without touching the conversation itself,
-  /// since [Freshchat.sendMessage] appends to the existing thread rather
-  /// than resetting it.
+  /// Nudges the bot's welcome flow when the chat screen is opened on a
+  /// conversation Freshchat has told us it resolved.
+  ///
+  /// [Freshchat.sendMessage] posts a real message on the driver's behalf — the
+  /// SDK has no silent variant. It is taken up by the bot's own flow only
+  /// when it lands on a resolved conversation, because that starts a new one
+  /// for the bot to take over; sent into a conversation that is still open it
+  /// just sits in the thread as a stray "Hello" from the driver. So the
+  /// greeting goes out on Freshchat's own resolve event and nothing else — a
+  /// guess at when the conversation *might* have ended server-side is exactly
+  /// what used to leave it visible.
+  ///
+  /// The cost is that a conversation auto-resolved server-side while the app
+  /// was closed goes unnoticed: the driver lands back in it with no greeting,
+  /// and whatever they type triggers the bot the same way this would have.
   static Future<void> _maybeTriggerWelcomeBot(String tag) async {
-    final now = DateTime.now();
-    final lastOpened = AuthStorage.chatLastOpenedAt;
-    final isStale =
-        lastOpened == null || now.difference(lastOpened) > _welcomeStaleAfter;
+    if (!AuthStorage.chatNeedsWelcome) return;
 
-    if (AuthStorage.chatNeedsWelcome || isStale) {
-      log(
-        "Triggering Freshchat welcome bot for tag '$tag'.",
-        name: "FreshchatService",
-      );
-      Freshchat.sendMessage(tag, "Hello");
-      await AuthStorage.setChatNeedsWelcome(false);
-    }
-    await AuthStorage.saveChatLastOpenedAt(now);
+    log(
+      "Triggering Freshchat welcome bot for tag '$tag'.",
+      name: "FreshchatService",
+    );
+    Freshchat.sendMessage(tag, "Hello");
+    await AuthStorage.setChatNeedsWelcome(false);
   }
 
   static Future<void> identifyUser(DriverProfile driver) async {
@@ -234,6 +293,10 @@ class FreshchatService {
       }
       freshchatUser.setPhone(driver.countryCode, driver.phoneNumber);
       Freshchat.setUser(freshchatUser);
+
+      // The count read at startup belonged to whoever the SDK had before this
+      // driver was restored, so take it again now that it means something.
+      await refreshUnreadCount();
     } catch (e) {
       log(
         "Failed to identify Freshchat user: $e",

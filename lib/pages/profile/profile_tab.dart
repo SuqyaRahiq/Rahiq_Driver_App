@@ -25,7 +25,7 @@ class ProfileTab extends StatefulWidget {
   State<ProfileTab> createState() => _ProfileTabState();
 }
 
-class _ProfileTabState extends State<ProfileTab> {
+class _ProfileTabState extends State<ProfileTab> with WidgetsBindingObserver {
   bool _isLoggingOut = false;
   bool _isNavigating = false;
   int _unreadNotificationsCount = 0;
@@ -36,6 +36,24 @@ class _ProfileTabState extends State<ProfileTab> {
     super.initState();
     driver = AuthStorage.getUserData();
     _fetchUnreadNotificationsCount();
+    WidgetsBinding.instance.addObserver(this);
+    FreshchatService.refreshUnreadCount();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// The chat is a native screen, so reading it there never rebuilds anything
+  /// on this side. Coming back from it — or from the background after a chat
+  /// push — is the moment to take the count again.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      FreshchatService.refreshUnreadCount();
+    }
   }
 
   Future<void> _fetchUnreadNotificationsCount() async {
@@ -325,22 +343,28 @@ class _ProfileTabState extends State<ProfileTab> {
                               },
                             ),
                             const SizedBox(height: 12),
-                            _buildStandaloneTile(
-                              icon: Icons.support_agent_outlined,
-                              title: l10n.talkWithManagers,
-                              onTap: () {
-                                _handleTap(context, () {
-                                  log(
-                                    "Attempting to open Freshchat conversations with tags: ['talk_with_managers'] and title: 'Talk with Managers'",
-                                    name: "FreshchatService",
-                                  );
-                                  FreshchatService.showConversations(
-                                    context,
-                                    tags: const ["talk_with_managers"],
-                                    filteredViewTitle: "Talk with Managers",
-                                  );
-                                }, showLoader: true);
-                              },
+                            ValueListenableBuilder<int>(
+                              valueListenable: FreshchatService.unreadCount,
+                              builder: (context, unreadChats, _) =>
+                                  _buildStandaloneTile(
+                                    icon: Icons.support_agent_outlined,
+                                    title: l10n.talkWithManagers,
+                                    iconBadgeCount: unreadChats,
+                                    onTap: () {
+                                      _handleTap(context, () {
+                                        log(
+                                          "Attempting to open Freshchat conversations with tags: ${FreshchatService.supportTags} and title: 'Talk with Managers'",
+                                          name: "FreshchatService",
+                                        );
+                                        FreshchatService.showConversations(
+                                          context,
+                                          tags: FreshchatService.supportTags,
+                                          filteredViewTitle:
+                                              "Talk with Managers",
+                                        );
+                                      }, showLoader: true);
+                                    },
+                                  ),
                             ),
                             const SizedBox(height: 12),
                             // ── Notifications Section ──────────────────────────

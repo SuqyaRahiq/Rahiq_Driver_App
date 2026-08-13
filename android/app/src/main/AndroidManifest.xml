@@ -1,9 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- supportsRtl is off by default, which leaves every native screen
+         resolving start/end as left/right even on an Arabic device. Flutter
+         draws its own layouts and never noticed, but the Freshchat chat is a
+         native Activity: its RTL margins landed on the wrong side and pushed
+         the whole conversation into a narrow column with dead space beside
+         it. Turning it on lets those screens mirror properly. -->
     <application
         android:label="Rahiq Driver"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

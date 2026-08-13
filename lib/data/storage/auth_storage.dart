@@ -13,7 +13,6 @@ class AuthStorage {
   static const String _userDataKey = 'userData';
 
   static const String _freshchatTokenKey = 'freshchatToken';
-  static const String _chatLastOpenedAtKey = 'chatLastOpenedAt';
   static const String _chatNeedsWelcomeKey = 'chatNeedsWelcome';
 
   static Future<void> init() async {
@@ -57,22 +56,15 @@ class AuthStorage {
 
   static String? get freshchatToken => _box.get(_freshchatTokenKey);
 
-  static Future<void> saveChatLastOpenedAt(DateTime time) async {
-    await _box.put(_chatLastOpenedAtKey, time.toIso8601String());
-  }
-
-  static DateTime? get chatLastOpenedAt {
-    final raw = _box.get(_chatLastOpenedAtKey) as String?;
-    if (raw == null) return null;
-    return DateTime.tryParse(raw);
-  }
-
   static Future<void> setChatNeedsWelcome(bool value) async {
     await _box.put(_chatNeedsWelcomeKey, value);
   }
 
+  /// Defaults to true so a driver who has never opened the chat still gets the
+  /// bot's welcome flow on their first visit — there is no conversation yet
+  /// for Freshchat to report as resolved.
   static bool get chatNeedsWelcome =>
-      _box.get(_chatNeedsWelcomeKey, defaultValue: false) as bool;
+      _box.get(_chatNeedsWelcomeKey, defaultValue: true) as bool;
 
   static bool get isLoggedIn => getAccessToken() != null;
 

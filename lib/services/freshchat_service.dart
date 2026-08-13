@@ -36,12 +36,11 @@ class FreshchatService {
   /// Re-reads the unread count from the SDK. Safe to call often; it is a
   /// local lookup, not a network round trip.
   ///
-  /// Counts every channel rather than filtering on [supportTags]. The tag
-  /// filter matches channels tagged that way *in the Freshchat dashboard*, and
-  /// a tag that matches nothing there counts zero — while `showConversations`
-  /// quietly falls back to showing all channels, so the chat works and only
-  /// the badge stays dark. The app has a single entry into Freshchat, so
-  /// every unread message it can receive is a managers message anyway.
+  /// Counts every channel rather than filtering on [supportTags], which the
+  /// topic does carry in the Freshchat dashboard. Both reads return the same
+  /// number — the app has a single entry into Freshchat, so every unread
+  /// message it can receive is a managers message — and the unfiltered read
+  /// cannot silently go dark if that tag is ever renamed or removed there.
   static Future<void> refreshUnreadCount() async {
     try {
       final result = await Freshchat.getUnreadCountAsync.timeout(

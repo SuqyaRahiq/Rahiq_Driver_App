@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
@@ -13,6 +12,7 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class MyAccountPage extends StatefulWidget {
   const MyAccountPage({super.key});
@@ -1368,10 +1368,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
   }
 
-  String _formatDate(DateTime dt) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return DateFormat.yMMMd(locale).format(dt);
-  }
+  String _formatDate(DateTime dt) => Formatters.formatDate(context, dt);
 }
 
 class _FieldData {

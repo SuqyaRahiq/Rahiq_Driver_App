@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
@@ -8,6 +7,7 @@ import 'package:rahiq_driver/data/models/driver/driver_notification.dart';
 import 'package:rahiq_driver/data/api/api_exception.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -513,15 +513,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
   String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final locale = isRtl ? 'ar' : Localizations.localeOf(context).toString();
 
     if (difference.inDays == 0) {
-      return DateFormat.jm(locale).format(date); // e.g., ٥:٣٠ م
+      return Formatters.formatTime(context, date); // e.g., 5:30 م
     } else if (difference.inDays < 7) {
-      return DateFormat.E(locale).format(date); // e.g., الإثنين
+      return Formatters.formatWeekday(context, date); // e.g., الإثنين
     } else {
-      return DateFormat.MMMd(locale).format(date); // e.g., ٦ يونيو
+      return Formatters.formatDate(context, date); // e.g., 6 يونيو 2026
     }
   }
 }

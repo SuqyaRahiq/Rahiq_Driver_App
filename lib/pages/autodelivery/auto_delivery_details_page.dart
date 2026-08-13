@@ -1,6 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
@@ -18,6 +17,7 @@ import 'package:rahiq_driver/pages/shared/custom_camera_screen.dart';
 import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class AutoDeliveryDetailsPage extends StatefulWidget {
   final DriverAutoDelivery item;
@@ -1113,8 +1113,7 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
     if (dateStr == null) return '';
     try {
       final dt = DateTime.parse(dateStr.toString()).toLocal();
-      final locale = Localizations.localeOf(context).languageCode;
-      return DateFormat.yMMMd(locale).add_jm().format(dt);
+      return Formatters.formatDateTime(context, dt);
     } catch (_) {
       return dateStr.toString().length > 10
           ? dateStr.toString().substring(0, 10)

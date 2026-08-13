@@ -7,8 +7,8 @@ import 'package:rahiq_driver/utils/colors.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 import 'package:video_player/video_player.dart';
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class PastOrderDetailsPage extends StatefulWidget {
   final NormalSubOrder order;
@@ -309,8 +309,7 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
   String _formatDate(String isoDate, BuildContext context) {
     final date = DateTime.tryParse(isoDate)?.toLocal();
     if (date == null) return isoDate;
-    final locale = Localizations.localeOf(context).languageCode;
-    return DateFormat('MMM d, yyyy - h:mm a', locale).format(date);
+    return Formatters.formatDateTime(context, date);
   }
 
   Widget _buildSection({required String title, required Widget child}) {

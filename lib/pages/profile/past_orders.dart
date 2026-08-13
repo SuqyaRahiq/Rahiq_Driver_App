@@ -11,6 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:rahiq_driver/pages/profile/past_order_details.dart';
 import 'dart:async';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class PastOrdersPage extends StatefulWidget {
   const PastOrdersPage({super.key});
@@ -420,7 +421,7 @@ class _PastOrdersPageState extends State<PastOrdersPage> {
                   const SizedBox(width: 6),
                   Text(
                     _selectedDate != null
-                        ? DateFormat('MMM d, yyyy').format(_selectedDate!)
+                        ? Formatters.formatDate(context, _selectedDate!)
                         : (isAr ? 'التاريخ' : 'Date'),
                     style: const TextStyle(
                       color: Colors.white,
@@ -673,10 +674,10 @@ class _PastOrdersPageState extends State<PastOrdersPage> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            DateFormat(
-                                              'MMM d, yyyy - h:mm a',
-                                              Localizations.localeOf(context).languageCode,
-                                            ).format(date),
+                                            Formatters.formatDateTime(
+                                              context,
+                                              date,
+                                            ),
                                             style: const TextStyle(
                                               fontSize: 11,
                                               color: Colors.grey,

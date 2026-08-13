@@ -2,7 +2,6 @@ import 'dart:async' show Timer;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
@@ -30,6 +29,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
 import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
+import 'package:rahiq_driver/utils/formatters.dart';
 
 class ProofSubmissionPage extends StatefulWidget {
   final String orderId;
@@ -1026,10 +1026,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
 
     final quantity = customer?['quantity'];
     final today = DateTime.now();
-    final todayDate = DateFormat(
-      'd MMMM y',
-      Localizations.localeOf(context).languageCode,
-    ).format(today.toLocal());
+    final todayDate = Formatters.formatDate(context, today);
 
     cName = name;
     if (cName.isEmpty) cName = null;

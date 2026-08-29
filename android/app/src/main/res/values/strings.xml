@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rahiq Driver</string>
+
+    <!--
+      Overrides the empty string Freshchat's AAR declares. The SDK reads its
+      FileProvider authority from here at runtime rather than assuming one, so
+      leaving the AAR's blank value in place is what produced
+
+        Missing/Bad FileProvider for Freshchat. Camera capture will fail in
+        devices running Nougat or later versions of OS
+
+      Must stay identical to android:authorities on the FileProvider in
+      AndroidManifest.xml. That side writes it as ${applicationId}.provider;
+      a resource cannot use that placeholder, so the value is spelled out and
+      the two have to be changed together if applicationId ever does.
+    -->
+    <string name="freshchat_file_provider_authority" translatable="false">com.rahiq.driver.provider</string>
+</resources>

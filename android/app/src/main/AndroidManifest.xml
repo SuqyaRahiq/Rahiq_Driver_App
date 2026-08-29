@@ -50,7 +50,33 @@ android:value="AIzaSyB___mbW9IyVrmRpxFN1sYXwPjtZVhZ-x0"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
+
+        <!-- Freshchat hands the camera app a content:// URI to write the capture
+             into, which needs a FileProvider the app declares — the SDK's own
+             AAR deliberately does not, so that the authority stays unique to
+             whichever app embeds it. Without this the SDK logs
+             "Missing/Bad FileProvider for Freshchat" at startup and camera
+             attachments fail on Android 7 and later.
+
+             The authority must also be repeated in @string/freshchat_file_provider_authority,
+             which is how the SDK looks it up; the paths file is the SDK's own,
+             merged in from its AAR, and already covers the directories it writes
+             to. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/freshchat_file_provider_paths" />
+        </provider>
     </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

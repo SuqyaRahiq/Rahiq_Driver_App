@@ -126,8 +126,12 @@ class NotificationService {
     });
 
     // Handle messages when app is opened from background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       debugPrint('A new onMessageOpenedApp event was published!');
+      if (await Freshchat.isFreshchatNotification(message.data)) {
+        Freshchat.handlePushNotification(message.data);
+        return;
+      }
       _handleNotificationClick(message.toMap());
     });
 
@@ -135,7 +139,11 @@ class NotificationService {
     RemoteMessage? initialMessage = await _firebaseMessaging
         .getInitialMessage();
     if (initialMessage != null) {
-      _handleNotificationClick(initialMessage.toMap());
+      if (await Freshchat.isFreshchatNotification(initialMessage.data)) {
+        Freshchat.handlePushNotification(initialMessage.data);
+      } else {
+        _handleNotificationClick(initialMessage.toMap());
+      }
     }
 
     _firebaseMessaging.onTokenRefresh.listen((fcmToken) async {

@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:freshchat_sdk/freshchat_sdk.dart';
+
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
@@ -237,6 +239,9 @@ class _ProfileTabState extends State<ProfileTab> with WidgetsBindingObserver {
       } catch (_) {
         // Fail silently — clear storage regardless
       } finally {
+        // Reset Freshchat user so a new login starts with a clean conversation.
+        Freshchat.resetUser();
+
         await AuthStorage.clearTokens();
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(

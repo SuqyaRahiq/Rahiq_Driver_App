@@ -211,6 +211,7 @@
   "saveImages": "Save Images",
   "uploadBatchImages": "Upload Batch Images",
   "completed": "Completed",
+  "chillerRefill": "Refill",
   "cancelled": "Cancelled",
   "rejected": "Rejected",
   "inTransit": "In Transit",

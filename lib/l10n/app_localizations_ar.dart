@@ -496,6 +496,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get completed => 'مكتمل';
 
   @override
+  String get chillerRefill => 'إعادة تعبئة';
+
+  @override
   String get cancelled => 'ملغى';
 
   @override

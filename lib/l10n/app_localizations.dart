@@ -1028,6 +1028,12 @@ abstract class AppLocalizations {
   /// **'Completed'**
   String get completed;
 
+  /// No description provided for @chillerRefill.
+  ///
+  /// In en, this message translates to:
+  /// **'Refill'**
+  String get chillerRefill;
+
   /// No description provided for @cancelled.
   ///
   /// In en, this message translates to:

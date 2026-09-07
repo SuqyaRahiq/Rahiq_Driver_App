@@ -9,6 +9,7 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
+import 'package:rahiq_driver/common_widgets/chiller_refill_badge.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
 import 'dart:io';
@@ -326,6 +327,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               'deliveryNotes': detailedSubOrder['deliveryNotes'],
               'csNotes': detailedSubOrder['csNotes'],
               'giftCard': detailedSubOrder['giftCard'],
+              'isChillerRefill': detailedSubOrder['isChillerRefill'] == true,
             },
             initialMosqueFrontImage: detailedSubOrder['mosqueFrontImage'],
             initialMosqueInsideImage: detailedSubOrder['mosqueInsideImage'],
@@ -1194,6 +1196,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                               ),
                                             ),
                                           ),
+                                          if (subOrder['isChillerRefill'] ==
+                                              true) ...[
+                                            const ChillerRefillBadge(
+                                              compact: true,
+                                            ),
+                                            const SizedBox(width: 6),
+                                          ],
                                           if (isCompleted)
                                             Container(
                                               padding:

@@ -498,6 +498,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get completed => 'Completed';
 
   @override
+  String get chillerRefill => 'Refill';
+
+  @override
   String get cancelled => 'Cancelled';
 
   @override

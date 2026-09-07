@@ -28,6 +28,7 @@ import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_locations_api.dart';
 import 'package:rahiq_driver/data/models/driver/locations_context_response.dart';
+import 'package:rahiq_driver/common_widgets/chiller_refill_badge.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/formatters.dart';
 
@@ -1623,6 +1624,10 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
             child: Row(
               children: [
                 Text(AppLocalizations.of(context)!.orderNumber(subOrderNumber)),
+                if (customer['isChillerRefill'] == true) ...[
+                  const Spacer(),
+                  const ChillerRefillBadge(compact: true),
+                ],
               ],
             ),
           ),

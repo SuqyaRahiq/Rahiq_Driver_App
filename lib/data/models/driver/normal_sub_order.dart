@@ -53,6 +53,11 @@ class NormalSubOrder {
   final bool? deliveredToDifferentMosque;
   final String? differentMosqueReason;
   final String? deliveredAt;
+
+  /// Whether this sub-order tops up a chiller the customer already owns,
+  /// rather than being a standalone water delivery. Absent on older payloads,
+  /// which is read as "not a refill".
+  final bool isChillerRefill;
   final Map<String, dynamic>? location;
   final Map<String, dynamic>? city;
   final dynamic giftCard;
@@ -74,6 +79,7 @@ class NormalSubOrder {
     this.deliveredToDifferentMosque,
     this.differentMosqueReason,
     this.deliveredAt,
+    this.isChillerRefill = false,
     this.location,
     this.city,
     this.giftCard,
@@ -99,6 +105,9 @@ class NormalSubOrder {
       deliveredToDifferentMosque: json['deliveredToDifferentMosque'],
       differentMosqueReason: json['differentMosqueReason'],
       deliveredAt: json['deliveredAt'],
+      // Compared rather than cast: the field is missing on orders placed
+      // before refills existed, and null there means false, not an error.
+      isChillerRefill: json['isChillerRefill'] == true,
       location: json['location'],
       city: json['city'],
       giftCard: json['giftCard'],
@@ -123,6 +132,7 @@ class NormalSubOrder {
       'deliveredToDifferentMosque': deliveredToDifferentMosque,
       'differentMosqueReason': differentMosqueReason,
       'deliveredAt': deliveredAt,
+      'isChillerRefill': isChillerRefill,
       'location': location,
       'city': city,
       'giftCard': giftCard,

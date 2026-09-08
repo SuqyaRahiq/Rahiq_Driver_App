@@ -147,19 +147,8 @@ class MyApp extends StatelessWidget {
       ]),
       builder: (context, child) {
         final Locale locale = localeNotifier.value;
-        final bool onSplash = isSplashVisible.value;
-        final bool onCamera = isCameraVisible.value;
-        final bool onOrderDelivered = isOrderDeliveredVisible.value;
-        // AppColors.buttonBlueDark is the background SplashPage and
-        // OrderDeliveredPage share, black is CustomCameraScreen's. All three
-        // are dark enough to want light system icons; every other screen is
-        // white and keeps dark ones.
-        final Color backdropColor = onCamera
-            ? Colors.black
-            : (onSplash || onOrderDelivered)
-            ? AppColors.buttonBlueDark
-            : AppColors.backdrop;
-        final bool onDarkBackdrop = onSplash || onCamera || onOrderDelivered;
+      
+       
 
         final double bottomPadding = MediaQueryData.fromView(
           View.of(context),
@@ -168,74 +157,60 @@ class MyApp extends StatelessWidget {
         log('isThickNavBar: $isThickNavBar');
         log('bottomPadding: $bottomPadding');
 
-        SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(
-            systemNavigationBarColor: backdropColor,
-            systemNavigationBarIconBrightness: onDarkBackdrop
-                ? Brightness.light
-                : Brightness.dark,
-          ),
-        );
+       
 
-        return Container(
-          height: double.infinity,
-          width: double.infinity,
-          color: backdropColor,
-          child: SafeArea(
-            bottom: Platform.isAndroid ? true : false,
-            top: false,
-            child: MaterialApp(
-              title: 'Rahiq Driver',
-              navigatorKey: navigatorKey,
-              builder: (context, child) {
-                final mediaQueryData = MediaQuery.of(context);
-                return MediaQuery(
-                  data: mediaQueryData.copyWith(
-                    textScaler: _ArabicTextScaler(
-                      mediaQueryData.textScaler,
-                      locale.languageCode == 'ar',
-                    ),
-                    boldText: true,
+        return SafeArea(
+          bottom: Platform.isAndroid ? true : false,
+          top: false,
+          child: MaterialApp(
+            title: 'Rahiq Driver',
+            navigatorKey: navigatorKey,
+            builder: (context, child) {
+              final mediaQueryData = MediaQuery.of(context);
+              return MediaQuery(
+                data: mediaQueryData.copyWith(
+                  textScaler: _ArabicTextScaler(
+                    mediaQueryData.textScaler,
+                    locale.languageCode == 'ar',
                   ),
-                  child: child!,
-                );
-              },
-              locale: locale,
-              debugShowCheckedModeBanner: false,
-              scrollBehavior: const MyScrollBehavior(),
-              theme: ThemeData(
-                fontFamily: _latinFontFamily,
-                // Arabic goes last so the riyal glyph and the existing Latin
-                // fallback keep resolving exactly as they did before; Arabic
-                // letters appear in none of those, so they fall through.
-                fontFamilyFallback: const [
-                  'SaudiRiyal',
-                  'SF Pro',
-                  _arabicFontFamily,
-                ],
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  elevation: 0,
+                  boldText: true,
                 ),
-                useMaterial3: true,
-                textSelectionTheme: TextSelectionThemeData(
-                  cursorColor: AppColors.buttonBlueDark,
-                  selectionHandleColor: AppColors.buttonBlueDark,
-                  selectionColor: AppColors.buttonBlueDark.withValues(
-                    alpha: 0.3,
-                  ),
-                ),
-              ),
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
+                child: child!,
+              );
+            },
+            locale: locale,
+            debugShowCheckedModeBanner: false,
+            scrollBehavior: const MyScrollBehavior(),
+            theme: ThemeData(
+              fontFamily: _latinFontFamily,
+              // Arabic goes last so the riyal glyph and the existing Latin
+              // fallback keep resolving exactly as they did before; Arabic
+              // letters appear in none of those, so they fall through.
+              fontFamilyFallback: const [
+                'SaudiRiyal',
+                'SF Pro',
+                _arabicFontFamily,
               ],
-              supportedLocales: const [Locale('en'), Locale('ar')],
-              home: const SplashPage(),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+              ),
+              useMaterial3: true,
+              textSelectionTheme: TextSelectionThemeData(
+                cursorColor: AppColors.buttonBlueDark,
+                selectionHandleColor: AppColors.buttonBlueDark,
+                selectionColor: AppColors.buttonBlueDark.withValues(alpha: 0.3),
+              ),
             ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ar')],
+            home: const SplashPage(),
           ),
         );
       },

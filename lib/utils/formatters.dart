@@ -1,12 +1,20 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+import 'digits.dart';
+
 /// One place for every user-facing date and time in the app, so both languages
 /// stay consistent. Mirrors the customer app's `Formatters`.
 class Formatters {
   /// Locales used for formatting. Both keep Western digits: intl follows CLDR,
-  /// where `ar` uses Latin digits and only translates the words, which is
-  /// exactly what the app wants — Arabic month names and ص/م, never ٠١٢.
+  /// where `ar` carries `ZERO_DIGIT: '0'` and only translates the words, which
+  /// is exactly what the app wants — Arabic month names and ص/م, never ٠١٢.
+  ///
+  /// Every result still goes through [Digits.toLatin]. That is a no-op today,
+  /// and deliberately kept: the numbering system CLDR ships for a locale is
+  /// data, not a guarantee, and a date silently turning into ٢٠ يونيو ٢٠٢٦
+  /// after a routine `intl` bump is not a regression anyone would catch in
+  /// review.
   static const String arabicLocale = 'ar';
   static const String englishLocale = 'en_US';
 
@@ -29,11 +37,15 @@ class Formatters {
 
   /// `20 June 2026` in English, `20 يونيو 2026` in Arabic.
   static String formatDate(BuildContext context, DateTime date) =>
-      DateFormat(_datePattern, localeOf(context)).format(date.toLocal());
+      Digits.toLatin(
+        DateFormat(_datePattern, localeOf(context)).format(date.toLocal()),
+      );
 
   /// `12:30 PM` in English, `12:30 م` in Arabic.
   static String formatTime(BuildContext context, DateTime date) =>
-      DateFormat(_timePattern, localeOf(context)).format(date.toLocal());
+      Digits.toLatin(
+        DateFormat(_timePattern, localeOf(context)).format(date.toLocal()),
+      );
 
   /// `20 June 2026, 12:30 PM` in English, `20 يونيو 2026، 12:30 م` in Arabic
   /// (the comma is the Arabic one, U+060C).
@@ -44,9 +56,11 @@ class Formatters {
 
   /// `June 2026` in English, `يونيو 2026` in Arabic.
   static String formatMonthYear(BuildContext context, DateTime date) =>
-      DateFormat(_monthYearPattern, localeOf(context)).format(date.toLocal());
+      Digits.toLatin(
+        DateFormat(_monthYearPattern, localeOf(context)).format(date.toLocal()),
+      );
 
   /// The weekday on its own, e.g. `Mon` / `الاثنين`.
   static String formatWeekday(BuildContext context, DateTime date) =>
-      DateFormat.E(localeOf(context)).format(date.toLocal());
+      Digits.toLatin(DateFormat.E(localeOf(context)).format(date.toLocal()));
 }

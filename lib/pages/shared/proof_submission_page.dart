@@ -9,12 +9,14 @@ import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/main.dart' show localeNotifier;
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/pages/shared/order_delivered_page.dart';
 import 'package:rahiq_driver/pages/shared/image_preview_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
+import 'package:rahiq_driver/utils/digits.dart';
 import 'package:rahiq_driver/utils/rtl_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
@@ -103,6 +105,15 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
       final placemarks = await geocoding.Geocoding().placemarkFromCoordinates(
         latitude,
         longitude,
+        // The app's language, not the handset's. Left unset, the OS geocoder
+        // follows the device locale, so a driver reading the app in English
+        // on an Arabic phone got the delivery address in Arabic.
+        //
+        // [localeNotifier] rather than `Localizations.localeOf`: this runs
+        // from initState, where an inherited-widget lookup is not allowed.
+        // It is the same source of truth the API client reads for
+        // `Accept-Language`.
+        locale: localeNotifier.value,
       );
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
@@ -114,7 +125,11 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
           place.country,
         ].where((value) => value != null && value.isNotEmpty).join(', ');
         if (resolvedAddress.isNotEmpty) {
-          address = resolvedAddress;
+          // Now that the app picks the locale, it owns the consequences of
+          // that choice: asked for `ar`, the OS numbers streets in Arabic-
+          // Indic digits (`شارع ١٢`). The words are what should follow the
+          // language — the digits stay Western, as everywhere else.
+          address = Digits.toLatin(resolvedAddress);
         }
       }
     } catch (_) {

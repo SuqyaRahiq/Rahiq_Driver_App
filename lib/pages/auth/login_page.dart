@@ -14,6 +14,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/digits.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -338,6 +339,9 @@ class _LoginPageState extends State<LoginPage> {
                                                         _usernameController,
                                                     keyboardType:
                                                         TextInputType.text,
+                                                    inputFormatters: const [
+                                                      LatinDigitsInputFormatter(),
+                                                    ],
                                                     decoration: InputDecoration(
                                                       hintText:
                                                           AppLocalizations.of(

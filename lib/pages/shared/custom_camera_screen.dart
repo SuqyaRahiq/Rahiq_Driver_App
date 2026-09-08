@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/main.dart' show isCameraVisible;
 import 'package:rahiq_driver/utils/water_loading.dart';
 
 class CustomCameraScreen extends StatefulWidget {
@@ -79,6 +80,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    // Take the app backdrop in main.dart black for as long as this screen is
+    // up, so the system navigation bar doesn't sit as a white band under the
+    // full-bleed viewfinder. Deferred to after this frame because notifying
+    // the listener from initState would mark MyApp dirty mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isCameraVisible.value = true;
+    });
     _initCamera();
   }
 
@@ -118,6 +126,11 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     // lock orientation anywhere else, so an empty list is the correct way
     // to lift the restriction set above rather than re-locking to portrait).
     SystemChrome.setPreferredOrientations([]);
+    // Hand the backdrop back to white, deferred for the same reason as above:
+    // dispose runs with the element tree locked.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isCameraVisible.value = false;
+    });
     _timer?.cancel();
     _focusIndicatorTimer?.cancel();
     _controller?.dispose();

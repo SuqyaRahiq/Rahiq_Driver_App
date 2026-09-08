@@ -319,7 +319,7 @@ class _PastOrdersPageState extends State<PastOrdersPage> {
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                      color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

@@ -719,7 +719,7 @@ class _OrdersPageState extends State<OrdersPage>
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.backdrop,
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
@@ -823,7 +823,7 @@ class _OrdersPageState extends State<OrdersPage>
                               Container(
                                 width: double.infinity,
                                 decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.backdrop,
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(30),
                                     topRight: Radius.circular(30),

@@ -310,7 +310,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                         minHeight: MediaQuery.of(context).size.height - 160,
                       ),
                       decoration: const BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.backdrop,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
@@ -359,29 +359,43 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                   child: ElevatedButton(
                                     onPressed: provider.canSubmit
                                         ? () async {
+                                            // Both captured before the awaits.
+                                            // `context` here belongs to the
+                                            // Consumer inside this page, and
+                                            // the delivered screen sits on top
+                                            // of it for two seconds — anything
+                                            // that tears this route down in
+                                            // that window leaves
+                                            // `context.mounted` false, and the
+                                            // early return that used to follow
+                                            // then stranded the driver on the
+                                            // proof form with no way home and
+                                            // no error. A NavigatorState
+                                            // belongs to the MaterialApp and
+                                            // outlives any one page.
+                                            final navigator = Navigator.of(
+                                              context,
+                                            );
+                                            final goesHome =
+                                                widget.isAutoDelivery;
                                             try {
                                               await provider.submitProofs();
-                                              if (context.mounted) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        OrderDeliveredPage(
-                                                          returnsHome: widget
-                                                              .isAutoDelivery,
-                                                        ),
-                                                    fullscreenDialog: true,
-                                                  ),
-                                                );
-                                              }
-                                              if (!context.mounted) return;
-                                              if (widget.isAutoDelivery) {
+                                              await navigator.push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      OrderDeliveredPage(
+                                                        returnsHome: goesHome,
+                                                      ),
+                                                  fullscreenDialog: true,
+                                                ),
+                                              );
+                                              if (!navigator.mounted) return;
+                                              if (goesHome) {
                                                 // Auto delivery has no order
                                                 // listing to fall back to —
                                                 // land on the home page's
                                                 // auto delivery tab.
-                                                Navigator.pushAndRemoveUntil(
-                                                  context,
+                                                navigator.pushAndRemoveUntil(
                                                   MaterialPageRoute(
                                                     builder: (_) =>
                                                         const HomePage(
@@ -394,7 +408,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                               } else {
                                                 // Back to the order listing,
                                                 // which refreshes on `true`.
-                                                Navigator.pop(context, true);
+                                                navigator.pop(true);
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
@@ -1473,7 +1487,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                 ),
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

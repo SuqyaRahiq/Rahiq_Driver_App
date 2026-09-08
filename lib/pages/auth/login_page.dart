@@ -154,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildTermsNotice(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFB),
+      backgroundColor: AppColors.backdrop,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.buttonBlueDark,

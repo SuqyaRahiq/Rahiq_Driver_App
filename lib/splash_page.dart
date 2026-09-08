@@ -3,6 +3,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/main.dart' show isSplashVisible;
 import 'package:rahiq_driver/pages/auth/login_page.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
@@ -23,6 +24,18 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     _navigateAfterSplash();
+  }
+
+  @override
+  void dispose() {
+    // Hand the app backdrop in main.dart back to white now that the splash is
+    // off screen. Deferred to after this frame: dispose runs inside
+    // finalizeTree with the element tree locked, so notifying the listener
+    // there would try to rebuild MyApp mid-teardown and assert.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isSplashVisible.value = false;
+    });
+    super.dispose();
   }
 
   Future<void> _navigateAfterSplash() async {

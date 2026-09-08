@@ -496,8 +496,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   Expanded(
                     child: Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF5F7FA),
+                      decoration: BoxDecoration(
+                        color: AppColors.backdrop,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
@@ -2018,7 +2018,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     child: Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.backdrop,
 
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(20),

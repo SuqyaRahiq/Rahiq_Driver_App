@@ -23,6 +23,27 @@ import 'package:rahiq_driver/utils/colors.dart';
 late ValueNotifier<Locale> localeNotifier;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+// True while [SplashPage] is on screen. The app backdrop below - the strip the
+// bottom [SafeArea] leaves on Android, and the system navigation bar painted
+// over it - follows the splash's own background rather than sitting as a white
+// band under the splash art. Every screen after the splash is white, bar the
+// camera below.
+// [SplashPage] clears this from its dispose, so the backdrop stays with the
+// splash for the whole replace transition instead of turning white under it.
+final ValueNotifier<bool> isSplashVisible = ValueNotifier<bool>(true);
+
+// True while [CustomCameraScreen] is on screen, in photo mode and video mode
+// alike. That screen is full-bleed black, so the backdrop above goes black
+// with it rather than leaving a white band under the viewfinder.
+// [CustomCameraScreen] clears this from its dispose.
+final ValueNotifier<bool> isCameraVisible = ValueNotifier<bool>(false);
+
+// True while [OrderDeliveredPage] is on screen. It fills the screen with
+// AppColors.buttonBlueDark, the same colour the splash uses, so the backdrop
+// follows it for the same reason. [OrderDeliveredPage] clears this from its
+// dispose.
+final ValueNotifier<bool> isOrderDeliveredVisible = ValueNotifier<bool>(false);
+
 // The whole app renders at w700. Two things are needed and both are load-
 // bearing:
 //
@@ -117,9 +138,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: localeNotifier,
-      builder: (context, locale, child) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        localeNotifier,
+        isSplashVisible,
+        isCameraVisible,
+        isOrderDeliveredVisible,
+      ]),
+      builder: (context, child) {
+        final Locale locale = localeNotifier.value;
+        final bool onSplash = isSplashVisible.value;
+        final bool onCamera = isCameraVisible.value;
+        final bool onOrderDelivered = isOrderDeliveredVisible.value;
+        // AppColors.buttonBlueDark is the background SplashPage and
+        // OrderDeliveredPage share, black is CustomCameraScreen's. All three
+        // are dark enough to want light system icons; every other screen is
+        // white and keeps dark ones.
+        final Color backdropColor = onCamera
+            ? Colors.black
+            : (onSplash || onOrderDelivered)
+            ? AppColors.buttonBlueDark
+            : AppColors.backdrop;
+        final bool onDarkBackdrop = onSplash || onCamera || onOrderDelivered;
+
         final double bottomPadding = MediaQueryData.fromView(
           View.of(context),
         ).padding.bottom;
@@ -127,31 +168,42 @@ class MyApp extends StatelessWidget {
         log('isThickNavBar: $isThickNavBar');
         log('bottomPadding: $bottomPadding');
 
-        return SafeArea(
-          minimum: EdgeInsets.zero,
-          bottom: Platform.isAndroid ? isThickNavBar : false,
-          top: false,
-          child: MaterialApp(
-            title: 'Rahiq Driver',
-            navigatorKey: navigatorKey,
-            builder: (context, child) {
-              final mediaQueryData = MediaQuery.of(context);
-              return MediaQuery(
-                data: mediaQueryData.copyWith(
-                  textScaler: _ArabicTextScaler(
-                    mediaQueryData.textScaler,
-                    locale.languageCode == 'ar',
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            systemNavigationBarColor: backdropColor,
+            systemNavigationBarIconBrightness: onDarkBackdrop
+                ? Brightness.light
+                : Brightness.dark,
+          ),
+        );
+
+        return Container(
+          height: double.infinity,
+          width: double.infinity,
+          color: backdropColor,
+          child: SafeArea(
+            bottom: Platform.isAndroid ? true : false,
+            top: false,
+            child: MaterialApp(
+              title: 'Rahiq Driver',
+              navigatorKey: navigatorKey,
+              builder: (context, child) {
+                final mediaQueryData = MediaQuery.of(context);
+                return MediaQuery(
+                  data: mediaQueryData.copyWith(
+                    textScaler: _ArabicTextScaler(
+                      mediaQueryData.textScaler,
+                      locale.languageCode == 'ar',
+                    ),
+                    boldText: true,
                   ),
-                  boldText: true,
-                ),
-                child: child!,
-              );
-            },
-            locale: locale,
-            debugShowCheckedModeBanner: false,
-            scrollBehavior: const MyScrollBehavior(),
-            theme: () {
-              var theme = ThemeData(
+                  child: child!,
+                );
+              },
+              locale: locale,
+              debugShowCheckedModeBanner: false,
+              scrollBehavior: const MyScrollBehavior(),
+              theme: ThemeData(
                 fontFamily: _latinFontFamily,
                 // Arabic goes last so the riyal glyph and the existing Latin
                 // fallback keep resolving exactly as they did before; Arabic
@@ -174,17 +226,16 @@ class MyApp extends StatelessWidget {
                     alpha: 0.3,
                   ),
                 ),
-              );
-              return theme;
-            }(),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('en'), Locale('ar')],
-            home: const SplashPage(),
+              ),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [Locale('en'), Locale('ar')],
+              home: const SplashPage(),
+            ),
           ),
         );
       },

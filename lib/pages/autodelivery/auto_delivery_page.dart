@@ -95,7 +95,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backdrop,
       body: RefreshIndicator(
         onRefresh: _fetchItems,
         color: AppColors.buttonBlueDark,
@@ -169,7 +169,7 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
                     Container(
                       width: double.infinity,
                       decoration: const BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.backdrop,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),

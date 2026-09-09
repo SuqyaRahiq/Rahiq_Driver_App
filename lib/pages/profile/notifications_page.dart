@@ -124,7 +124,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backdrop,
       body: RefreshIndicator(
         onRefresh: _fetchNotifications,
         color: AppColors.buttonBlueDark,
@@ -240,7 +240,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 color: AppColors.buttonBlueDark,
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

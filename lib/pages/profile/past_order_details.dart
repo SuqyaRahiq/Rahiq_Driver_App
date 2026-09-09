@@ -46,7 +46,7 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
     ].where((e) => e != null && e.isNotEmpty).join(' ').trim();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backdrop,
       body: Column(
         children: [
           // ── Header ──────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ class _PastOrderDetailsPageState extends State<PastOrderDetailsPage> {
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF9FAFB),
+                    color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

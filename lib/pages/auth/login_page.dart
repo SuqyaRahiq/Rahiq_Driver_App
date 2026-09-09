@@ -14,6 +14,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/digits.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 
@@ -153,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildTermsNotice(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
@@ -180,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFB),
+      backgroundColor: AppColors.backdrop,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.buttonBlueDark,
@@ -338,6 +339,9 @@ class _LoginPageState extends State<LoginPage> {
                                                         _usernameController,
                                                     keyboardType:
                                                         TextInputType.text,
+                                                    inputFormatters: const [
+                                                      LatinDigitsInputFormatter(),
+                                                    ],
                                                     decoration: InputDecoration(
                                                       hintText:
                                                           AppLocalizations.of(

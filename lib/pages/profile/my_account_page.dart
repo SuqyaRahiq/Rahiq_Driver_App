@@ -10,6 +10,7 @@ import 'package:rahiq_driver/data/api/driver/driver_auth_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/utils/colors.dart';
+import 'package:rahiq_driver/utils/digits.dart';
 import 'package:rahiq_driver/utils/water_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:rahiq_driver/utils/formatters.dart';
@@ -1207,6 +1208,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
       enabled: enabled,
       cursorColor: AppColors.buttonBlueDark,
       textDirection: isLtr ? TextDirection.ltr : null,
+      // Bank account and IBAN fields in particular: an Arabic keyboard's
+      // number row emits ٠-٩, which the bank would reject.
+      inputFormatters: const [LatinDigitsInputFormatter()],
       decoration: InputDecoration(
         labelText: label,
 

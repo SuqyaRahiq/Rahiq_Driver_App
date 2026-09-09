@@ -9,12 +9,14 @@ import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rahiq_driver/data/models/driver/product.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
+import 'package:rahiq_driver/main.dart' show localeNotifier;
 import 'package:rahiq_driver/pages/home/home_page.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_provider.dart';
 import 'package:rahiq_driver/pages/shared/order_delivered_page.dart';
 import 'package:rahiq_driver/pages/shared/image_preview_page.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
+import 'package:rahiq_driver/utils/digits.dart';
 import 'package:rahiq_driver/utils/rtl_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
@@ -103,6 +105,15 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
       final placemarks = await geocoding.Geocoding().placemarkFromCoordinates(
         latitude,
         longitude,
+        // The app's language, not the handset's. Left unset, the OS geocoder
+        // follows the device locale, so a driver reading the app in English
+        // on an Arabic phone got the delivery address in Arabic.
+        //
+        // [localeNotifier] rather than `Localizations.localeOf`: this runs
+        // from initState, where an inherited-widget lookup is not allowed.
+        // It is the same source of truth the API client reads for
+        // `Accept-Language`.
+        locale: localeNotifier.value,
       );
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
@@ -114,7 +125,11 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
           place.country,
         ].where((value) => value != null && value.isNotEmpty).join(', ');
         if (resolvedAddress.isNotEmpty) {
-          address = resolvedAddress;
+          // Now that the app picks the locale, it owns the consequences of
+          // that choice: asked for `ar`, the OS numbers streets in Arabic-
+          // Indic digits (`شارع ١٢`). The words are what should follow the
+          // language — the digits stay Western, as everywhere else.
+          address = Digits.toLatin(resolvedAddress);
         }
       }
     } catch (_) {
@@ -295,7 +310,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                         minHeight: MediaQuery.of(context).size.height - 160,
                       ),
                       decoration: const BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.backdrop,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
@@ -344,29 +359,43 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                   child: ElevatedButton(
                                     onPressed: provider.canSubmit
                                         ? () async {
+                                            // Both captured before the awaits.
+                                            // `context` here belongs to the
+                                            // Consumer inside this page, and
+                                            // the delivered screen sits on top
+                                            // of it for two seconds — anything
+                                            // that tears this route down in
+                                            // that window leaves
+                                            // `context.mounted` false, and the
+                                            // early return that used to follow
+                                            // then stranded the driver on the
+                                            // proof form with no way home and
+                                            // no error. A NavigatorState
+                                            // belongs to the MaterialApp and
+                                            // outlives any one page.
+                                            final navigator = Navigator.of(
+                                              context,
+                                            );
+                                            final goesHome =
+                                                widget.isAutoDelivery;
                                             try {
                                               await provider.submitProofs();
-                                              if (context.mounted) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        OrderDeliveredPage(
-                                                          returnsHome: widget
-                                                              .isAutoDelivery,
-                                                        ),
-                                                    fullscreenDialog: true,
-                                                  ),
-                                                );
-                                              }
-                                              if (!context.mounted) return;
-                                              if (widget.isAutoDelivery) {
+                                              await navigator.push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      OrderDeliveredPage(
+                                                        returnsHome: goesHome,
+                                                      ),
+                                                  fullscreenDialog: true,
+                                                ),
+                                              );
+                                              if (!navigator.mounted) return;
+                                              if (goesHome) {
                                                 // Auto delivery has no order
                                                 // listing to fall back to —
                                                 // land on the home page's
                                                 // auto delivery tab.
-                                                Navigator.pushAndRemoveUntil(
-                                                  context,
+                                                navigator.pushAndRemoveUntil(
                                                   MaterialPageRoute(
                                                     builder: (_) =>
                                                         const HomePage(
@@ -379,7 +408,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                                               } else {
                                                 // Back to the order listing,
                                                 // which refreshes on `true`.
-                                                Navigator.pop(context, true);
+                                                navigator.pop(true);
                                               }
                                             } catch (e) {
                                               if (context.mounted) {
@@ -1458,7 +1487,7 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                 ),
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

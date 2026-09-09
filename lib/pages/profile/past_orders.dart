@@ -211,7 +211,11 @@ class _PastOrdersPageState extends State<PastOrdersPage> {
         limit: _limit,
         search: _searchQuery,
         date: _selectedDate != null
-            ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+            // Pinned to en_US rather than left to the ambient locale: this is
+            // a wire value the server parses, and an `ar_EG`-shaped default
+            // would send it as `٢٠٢٦-٠٦-٢٠`.
+            ? DateFormat('yyyy-MM-dd', Formatters.englishLocale)
+                  .format(_selectedDate!)
             : null,
       );
 
@@ -315,7 +319,7 @@ class _PastOrdersPageState extends State<PastOrdersPage> {
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                      color: AppColors.backdrop,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),

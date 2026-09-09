@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
+import 'package:rahiq_driver/main.dart' show isOrderDeliveredVisible;
 import 'package:rahiq_driver/utils/colors.dart';
 
 /// Full-screen success moment shown right after a delivery is confirmed.
@@ -48,10 +49,23 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
     );
 
     _autoCloseTimer = Timer(const Duration(seconds: 2), _leave);
+
+    // Take the app backdrop in main.dart to this screen's own background for
+    // as long as it's up, so the system navigation bar doesn't sit as a white
+    // band under it. Deferred to after this frame because notifying the
+    // listener from initState would mark MyApp dirty mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isOrderDeliveredVisible.value = true;
+    });
   }
 
   @override
   void dispose() {
+    // Hand the backdrop back to white, deferred for the same reason as above:
+    // dispose runs with the element tree locked.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isOrderDeliveredVisible.value = false;
+    });
     _autoCloseTimer?.cancel();
     _controller.dispose();
     super.dispose();
@@ -70,7 +84,14 @@ class _OrderDeliveredPageState extends State<OrderDeliveredPage>
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      // `canPop: false` keeps the OS back gesture from popping this route
+      // behind the caller's back — the caller decides where the driver lands,
+      // so every exit has to go through [_leave]. Without the handler below,
+      // back did nothing at all, which reads as a frozen screen.
       canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leave();
+      },
       child: Scaffold(
         backgroundColor: AppColors.buttonBlueDark,
         body: GestureDetector(

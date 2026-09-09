@@ -23,6 +23,27 @@ import 'package:rahiq_driver/utils/colors.dart';
 late ValueNotifier<Locale> localeNotifier;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+// True while [SplashPage] is on screen. The app backdrop below - the strip the
+// bottom [SafeArea] leaves on Android, and the system navigation bar painted
+// over it - follows the splash's own background rather than sitting as a white
+// band under the splash art. Every screen after the splash is white, bar the
+// camera below.
+// [SplashPage] clears this from its dispose, so the backdrop stays with the
+// splash for the whole replace transition instead of turning white under it.
+final ValueNotifier<bool> isSplashVisible = ValueNotifier<bool>(true);
+
+// True while [CustomCameraScreen] is on screen, in photo mode and video mode
+// alike. That screen is full-bleed black, so the backdrop above goes black
+// with it rather than leaving a white band under the viewfinder.
+// [CustomCameraScreen] clears this from its dispose.
+final ValueNotifier<bool> isCameraVisible = ValueNotifier<bool>(false);
+
+// True while [OrderDeliveredPage] is on screen. It fills the screen with
+// AppColors.buttonBlueDark, the same colour the splash uses, so the backdrop
+// follows it for the same reason. [OrderDeliveredPage] clears this from its
+// dispose.
+final ValueNotifier<bool> isOrderDeliveredVisible = ValueNotifier<bool>(false);
+
 // The whole app renders at w700. Two things are needed and both are load-
 // bearing:
 //
@@ -117,9 +138,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: localeNotifier,
-      builder: (context, locale, child) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        localeNotifier,
+        isSplashVisible,
+        isCameraVisible,
+        isOrderDeliveredVisible,
+      ]),
+      builder: (context, child) {
+        final Locale locale = localeNotifier.value;
+      
+       
+
         final double bottomPadding = MediaQueryData.fromView(
           View.of(context),
         ).padding.bottom;
@@ -127,9 +157,10 @@ class MyApp extends StatelessWidget {
         log('isThickNavBar: $isThickNavBar');
         log('bottomPadding: $bottomPadding');
 
+       
+
         return SafeArea(
-          minimum: EdgeInsets.zero,
-          bottom: Platform.isAndroid ? isThickNavBar : false,
+          bottom: Platform.isAndroid ? true : false,
           top: false,
           child: MaterialApp(
             title: 'Rahiq Driver',
@@ -150,33 +181,28 @@ class MyApp extends StatelessWidget {
             locale: locale,
             debugShowCheckedModeBanner: false,
             scrollBehavior: const MyScrollBehavior(),
-            theme: () {
-              var theme = ThemeData(
-                fontFamily: _latinFontFamily,
-                // Arabic goes last so the riyal glyph and the existing Latin
-                // fallback keep resolving exactly as they did before; Arabic
-                // letters appear in none of those, so they fall through.
-                fontFamilyFallback: const [
-                  'SaudiRiyal',
-                  'SF Pro',
-                  _arabicFontFamily,
-                ],
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                ),
-                useMaterial3: true,
-                textSelectionTheme: TextSelectionThemeData(
-                  cursorColor: AppColors.buttonBlueDark,
-                  selectionHandleColor: AppColors.buttonBlueDark,
-                  selectionColor: AppColors.buttonBlueDark.withValues(
-                    alpha: 0.3,
-                  ),
-                ),
-              );
-              return theme;
-            }(),
+            theme: ThemeData(
+              fontFamily: _latinFontFamily,
+              // Arabic goes last so the riyal glyph and the existing Latin
+              // fallback keep resolving exactly as they did before; Arabic
+              // letters appear in none of those, so they fall through.
+              fontFamilyFallback: const [
+                'SaudiRiyal',
+                'SF Pro',
+                _arabicFontFamily,
+              ],
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+              ),
+              useMaterial3: true,
+              textSelectionTheme: TextSelectionThemeData(
+                cursorColor: AppColors.buttonBlueDark,
+                selectionHandleColor: AppColors.buttonBlueDark,
+                selectionColor: AppColors.buttonBlueDark.withValues(alpha: 0.3),
+              ),
+            ),
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,

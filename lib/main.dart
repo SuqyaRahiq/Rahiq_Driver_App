@@ -188,7 +188,15 @@ class MyApp extends StatelessWidget {
               // letters appear in none of those, so they fall through.
               fontFamilyFallback: const [
                 'SaudiRiyal',
-                'SF Pro',
+                // 'SFProText' is the bundled SF-Pro-Text-*.otf, deliberately
+                // NOT named 'SF Pro': that name collides with the iOS system
+                // font, and the system copy carries Arabic glyphs plus the
+                // Arabic `locl` digit substitution. When it won a lookup the
+                // Arabic run — and the Western digits absorbed into it — came
+                // out as ٢٠ يونيو ٢٠٢٦ on iOS only. Under a unique name
+                // only the bundled file can match, and Arabic falls through to
+                // the bundled Arabic face as intended.
+                'SFProText',
                 _arabicFontFamily,
               ],
               appBarTheme: const AppBarTheme(

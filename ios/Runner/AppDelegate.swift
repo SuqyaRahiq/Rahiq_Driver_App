@@ -125,7 +125,7 @@ private func freshchatLog(_ message: String) {
     apnsDeviceToken = deviceToken
     freshchatLog("APNs token received (\(deviceToken.count) bytes), handing to SDK")
     FreshchatSdkPlugin().setPushRegistrationToken(deviceToken)
-    pushChannel?.invokeMethod("onApnsTokenReceived", nil)
+    pushChannel?.invokeMethod("onApnsTokenReceived", arguments: nil)
     super.application(
       application,
       didRegisterForRemoteNotificationsWithDeviceToken: deviceToken

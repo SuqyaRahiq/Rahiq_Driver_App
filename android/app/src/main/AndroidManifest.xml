@@ -52,7 +52,7 @@ android:value="AIzaSyB___mbW9IyVrmRpxFN1sYXwPjtZVhZ-x0"/>
             android:resource="@drawable/ic_notification" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="high_importance_channel" />
+            android:value="high_importance_channel_v2" />
 
         <!-- Freshchat hands the camera app a content:// URI to write the capture
              into, which needs a FileProvider the app declares — the SDK's own

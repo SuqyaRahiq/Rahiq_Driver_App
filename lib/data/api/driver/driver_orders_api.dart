@@ -251,11 +251,12 @@ class DriverOrdersApi {
             MapEntry('differentMosqueReason', differentMosqueReason),
           );
         }
+      
+      }
         if (deliveredLocationId != null && deliveredLocationId.isNotEmpty) {
           formData.fields.add(
             MapEntry('deliveredLocationId', deliveredLocationId),
-          );
-        }
+        );
       }
 
       final response = await _apiClient.dio.post(

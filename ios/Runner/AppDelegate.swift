@@ -55,7 +55,40 @@ private func freshchatLog(_ message: String) {
     // fell back on the SDK's own slow sync permanently.
     application.registerForRemoteNotifications()
 
+    // Clears whatever a push stamped on the icon while the app was not
+    // running. See `clearIconBadge`.
+    clearIconBadge()
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // MARK: - Icon badge
+
+  /// Takes the count off the launcher icon.
+  ///
+  /// `requestPermission(badge: false)` and `presentBadge: false` on the Dart
+  /// side only govern what this app *asks* iOS to draw for a notification it
+  /// posts itself. They have no bearing on a remote push: a `badge` value in
+  /// the `aps` payload -- which the backend's order notifications and
+  /// Freshchat's unread counts both carry -- is applied by iOS on delivery,
+  /// and the number then sits on the icon until something sets it back to
+  /// zero. Nothing did, so it only ever grew.
+  ///
+  /// Zeroing on launch and on every return to the foreground is the most the
+  /// app can do from here; a badge stamped while it is backgrounded stays up
+  /// until the user opens it. Dropping `badge` from the push payload
+  /// server-side is what would stop it being drawn in the first place.
+  private func clearIconBadge() {
+    if #available(iOS 16.0, *) {
+      UNUserNotificationCenter.current().setBadgeCount(0)
+    } else {
+      UIApplication.shared.applicationIconBadgeNumber = 0
+    }
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    clearIconBadge()
+    super.applicationDidBecomeActive(application)
   }
 
   /// The raw APNs token, kept because it almost always arrives before the SDK
@@ -200,9 +233,12 @@ private func freshchatLog(_ message: String) {
       // Hand it to the SDK and present nothing: the conversation the user is
       // looking at updates itself, and a banner over it would be noise.
       plugin.handlePushNotification(payload)
+      clearIconBadge()
       completionHandler([])
       return
     }
+
+    clearIconBadge()
 
     super.userNotificationCenter(
       center,
@@ -218,6 +254,8 @@ private func freshchatLog(_ message: String) {
   ) {
     let plugin = FreshchatSdkPlugin()
     let payload = response.notification.request.content.userInfo
+
+    clearIconBadge()
 
     if plugin.isFreshchatNotification(payload) {
       // Opens the conversation the notification came from.

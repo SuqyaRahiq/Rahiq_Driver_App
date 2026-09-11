@@ -35,16 +35,31 @@ class Formatters {
   static String localeOf(BuildContext context) =>
       isArabic(context) ? arabicLocale : englishLocale;
 
+  /// Every [DateFormat] the app builds, pinned to Western digits.
+  ///
+  /// intl takes its digits from the resolved locale's `ZERODIGIT`, and
+  /// `useNativeDigits` defaults to true. Plain `ar` carries no ZERODIGIT, but
+  /// `ar_EG` carries U+0660. Turning the substitution off means the wrong
+  /// digits are never produced in the first place, rather than produced and
+  /// folded back afterwards — which is what keeps the [Digits.toLatin] calls
+  /// below the no-op safety net they are documented to be.
+  static DateFormat _pinned(DateFormat format) =>
+      format..useNativeDigits = false;
+
   /// `20 June 2026` in English, `20 يونيو 2026` in Arabic.
   static String formatDate(BuildContext context, DateTime date) =>
       Digits.toLatin(
-        DateFormat(_datePattern, localeOf(context)).format(date.toLocal()),
+        _pinned(
+          DateFormat(_datePattern, localeOf(context)),
+        ).format(date.toLocal()),
       );
 
   /// `12:30 PM` in English, `12:30 م` in Arabic.
   static String formatTime(BuildContext context, DateTime date) =>
       Digits.toLatin(
-        DateFormat(_timePattern, localeOf(context)).format(date.toLocal()),
+        _pinned(
+          DateFormat(_timePattern, localeOf(context)),
+        ).format(date.toLocal()),
       );
 
   /// `20 June 2026, 12:30 PM` in English, `20 يونيو 2026، 12:30 م` in Arabic
@@ -57,10 +72,14 @@ class Formatters {
   /// `June 2026` in English, `يونيو 2026` in Arabic.
   static String formatMonthYear(BuildContext context, DateTime date) =>
       Digits.toLatin(
-        DateFormat(_monthYearPattern, localeOf(context)).format(date.toLocal()),
+        _pinned(
+          DateFormat(_monthYearPattern, localeOf(context)),
+        ).format(date.toLocal()),
       );
 
   /// The weekday on its own, e.g. `Mon` / `الاثنين`.
   static String formatWeekday(BuildContext context, DateTime date) =>
-      Digits.toLatin(DateFormat.E(localeOf(context)).format(date.toLocal()));
+      Digits.toLatin(
+        _pinned(DateFormat.E(localeOf(context))).format(date.toLocal()),
+      );
 }

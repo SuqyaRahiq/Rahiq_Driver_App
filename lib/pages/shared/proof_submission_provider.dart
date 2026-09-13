@@ -290,10 +290,12 @@ class ProofSubmissionProvider extends ChangeNotifier {
         final packages = p.packagesImage;
         final video = p.proofVideo;
 
-        if (mosqueFront == null)
+        if (mosqueFront == null) {
           return 'missing_mosque_front_for_${p.subOrderId}';
-        if (mosqueInside == null)
+        }
+        if (mosqueInside == null) {
           return 'missing_mosque_inside_for_${p.subOrderId}';
+        }
         if (packages == null) return 'missing_packages_for_${p.subOrderId}';
         if (video == null) return 'missing_video_for_${p.subOrderId}';
 
@@ -334,12 +336,14 @@ class ProofSubmissionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print("Checking Autodelivey or not");
+      debugPrint("Checking Autodelivey or not");
       if (isAutoDelivery) {
         if (!canSubmit) throw Exception(missingSubmitReason);
-        print('[ProofSubmission] Submitting auto-delivery: $orderId');
-        print('[ProofSubmission] Mosque front: $_globalMosqueFrontImage');
-        print('[ProofSubmission] Mosque inside: $_globalMosqueInsideImage');
+        debugPrint('[ProofSubmission] Submitting auto-delivery: $orderId');
+        debugPrint('[ProofSubmission] Mosque front: $_globalMosqueFrontImage');
+        debugPrint(
+          '[ProofSubmission] Mosque inside: $_globalMosqueInsideImage',
+        );
 
         // For auto-delivery, mosque front/inside may come from the shared
         // batch upload; packages/video are always picked per sub-order.
@@ -390,7 +394,7 @@ class ProofSubmissionProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      print('[ProofSubmission] Error submitting proofs: $e');
+      debugPrint('[ProofSubmission] Error submitting proofs: $e');
       _isSubmitting = false;
       notifyListeners();
       rethrow;

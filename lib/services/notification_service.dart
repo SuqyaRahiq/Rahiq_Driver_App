@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -144,6 +145,14 @@ class NotificationService {
 
   bool _isInitialized = false;
 
+  final StreamController<RemoteMessage> _appMessages =
+      StreamController<RemoteMessage>.broadcast();
+
+  /// Pushes from this app's own backend that reached a running app, whether
+  /// they arrived in the foreground or were tapped to bring the app back.
+  /// Freshchat pushes never come through here.
+  Stream<RemoteMessage> get appMessages => _appMessages.stream;
+
   Future<void> init() async {
     if (_isInitialized) return;
 
@@ -211,6 +220,8 @@ class NotificationService {
         return;
       }
 
+      _appMessages.add(message);
+
       if (message.notification != null) {
         debugPrint(
           'Message also contained a notification: ${message.notification}',
@@ -226,6 +237,7 @@ class NotificationService {
         Freshchat.handlePushNotification(message.data);
         return;
       }
+      _appMessages.add(message);
       _handleNotificationClick(message.toMap());
     });
 

@@ -9,6 +9,7 @@ import 'package:rahiq_driver/data/storage/auth_storage.dart';
 import 'package:rahiq_driver/common_widgets/custom_snackbar.dart';
 import 'package:rahiq_driver/utils/media_compressor.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
+import 'package:rahiq_driver/services/push_refresh.dart';
 import 'package:rahiq_driver/common_widgets/chiller_refill_badge.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
@@ -48,7 +49,8 @@ class OrderDetailsPage extends StatefulWidget {
   State<OrderDetailsPage> createState() => _OrderDetailsPageState();
 }
 
-class _OrderDetailsPageState extends State<OrderDetailsPage> {
+class _OrderDetailsPageState extends State<OrderDetailsPage>
+    with PushRefreshMixin {
   late DriverOrdersApi _api;
   bool _isLoading = true;
   String? _error;
@@ -158,6 +160,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         (s) => s['status'] == 'DELIVERED' || s['status'] == 'COMPLETED',
       );
 
+  /// One page of sub-orders under the sort, filter and search the driver has
+  /// picked.
+  Future<List<Map<String, dynamic>>> _loadSubOrdersPage(int page) async {
+    String? sortBy;
+    String? sortOrder;
+
+    if (_dateSortDirection != null) {
+      sortBy = 'assignedAt';
+      sortOrder = _dateSortDirection;
+    } else if (_quantitySortDirection != null) {
+      sortBy = 'quantity';
+      sortOrder = _quantitySortDirection;
+    }
+
+    final details = widget.isAutoOrder
+        ? await _api.getAutoOrderDetails(
+            widget.orderId,
+            widget.orderType ?? '',
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+            hasNote: _showOnlyWithNotes,
+            search: _searchQuery,
+            page: page,
+            limit: 30,
+          )
+        : await _api.getNormalOrderSubOrders(
+            widget.orderId,
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+            hasNote: _showOnlyWithNotes,
+            search: _searchQuery,
+            page: page,
+            limit: 30,
+          );
+    return details.map((s) => s.toJson()).toList();
+  }
+
   Future<void> _fetchDetails() async {
     try {
       setState(() {
@@ -167,41 +206,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         _hasMore = true;
         _isFetchingMore = false;
       });
-      String? sortBy;
-      String? sortOrder;
 
-      if (_dateSortDirection != null) {
-        sortBy = 'assignedAt';
-        sortOrder = _dateSortDirection;
-      } else if (_quantitySortDirection != null) {
-        sortBy = 'quantity';
-        sortOrder = _quantitySortDirection;
-      }
-
-      final details = widget.isAutoOrder
-          ? await _api.getAutoOrderDetails(
-              widget.orderId,
-              widget.orderType ?? '',
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              hasNote: _showOnlyWithNotes,
-              search: _searchQuery,
-              page: 1,
-              limit: 30,
-            )
-          : await _api.getNormalOrderSubOrders(
-              widget.orderId,
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              hasNote: _showOnlyWithNotes,
-              search: _searchQuery,
-              page: 1,
-              limit: 30,
-            );
+      final details = await _loadSubOrdersPage(1);
 
       if (mounted) {
         setState(() {
-          _subOrders = details.map((s) => s.toJson()).toList();
+          _subOrders = details;
           _hasMore = details.length == 30;
           _isLoading = false;
           _allOrdersCompleted = _nothingLeftToDeliver;
@@ -226,42 +236,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
     try {
       final nextPage = _currentPage + 1;
-      String? sortBy;
-      String? sortOrder;
-
-      if (_dateSortDirection != null) {
-        sortBy = 'assignedAt';
-        sortOrder = _dateSortDirection;
-      } else if (_quantitySortDirection != null) {
-        sortBy = 'quantity';
-        sortOrder = _quantitySortDirection;
-      }
-
-      final newDetails = widget.isAutoOrder
-          ? await _api.getAutoOrderDetails(
-              widget.orderId,
-              widget.orderType ?? '',
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              hasNote: _showOnlyWithNotes,
-              search: _searchQuery,
-              page: nextPage,
-              limit: 30,
-            )
-          : await _api.getNormalOrderSubOrders(
-              widget.orderId,
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              hasNote: _showOnlyWithNotes,
-              search: _searchQuery,
-              page: nextPage,
-              limit: 30,
-            );
+      final newDetails = await _loadSubOrdersPage(nextPage);
 
       if (mounted) {
         setState(() {
           _currentPage = nextPage;
-          _subOrders.addAll(newDetails.map((s) => s.toJson()).toList());
+          _subOrders.addAll(newDetails);
           if (newDetails.isEmpty || newDetails.length < 30) {
             _hasMore = false;
           }
@@ -275,6 +255,45 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           _isFetchingMore = false;
         });
       }
+    }
+  }
+
+  bool get _isBusy =>
+      _isLoading || _isFetchingMore || _isBatchUploading || _error != null;
+
+  @override
+  Future<void> refreshListOnPush() async {
+    if (_isBusy) return;
+
+    // Re-fetch every page already loaded, so the driver keeps their place in
+    // a list they have scrolled down.
+    final pagesLoaded = _currentPage;
+    try {
+      final List<Map<String, dynamic>> subOrders = [];
+      var hasMore = true;
+      for (var page = 1; page <= pagesLoaded && hasMore; page++) {
+        final pageItems = await _loadSubOrdersPage(page);
+        subOrders.addAll(pageItems);
+        hasMore = pageItems.length == 30;
+      }
+
+      // A reload, a filter change or an upload that started meanwhile owns
+      // the list now.
+      if (!mounted || _isBusy) return;
+      if (sameJson(subOrders, _subOrders)) return;
+
+      setState(() {
+        _subOrders = subOrders;
+        _currentPage = pagesLoaded;
+        _hasMore = hasMore;
+        _allOrdersCompleted = _nothingLeftToDeliver;
+        // A selected sub-order that is gone from the list can't be acted on.
+        final ids = subOrders.map((s) => s['id']?.toString()).toSet();
+        _selectedSubOrders.removeWhere((id) => !ids.contains(id));
+        if (_selectedSubOrders.isEmpty) _isMultiSelectMode = false;
+      });
+    } catch (e) {
+      debugPrint('Order details refresh on push failed: $e');
     }
   }
 
@@ -475,11 +494,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            (Localizations.localeOf(context).languageCode ==
-                                        'ar' &&
-                                    widget.nameAr.isNotEmpty)
-                                ? widget.nameAr
-                                : widget.name,
+                            AppLocalizations.of(context)!.orders,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 20,
@@ -504,7 +519,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 28, 0, 100),
+                        padding: const EdgeInsets.fromLTRB(0, 16, 0, 100),
                         child: Column(
                           children: [
                             if (_error != null)
@@ -567,62 +582,62 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
           child: Text(
-            AppLocalizations.of(context)!.orders,
+            "${AppLocalizations.of(context)!.orders}(${(Localizations.localeOf(context).languageCode == 'ar' && widget.nameAr.isNotEmpty) ? widget.nameAr : widget.name})",
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-          child: Material(
-            color: Colors.white,
-            elevation: 1,
-            borderRadius: BorderRadius.circular(12),
-            child: TextField(
-              cursorColor: AppColors.buttonBlueDark,
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.searchByOrderNumber,
-                prefixIcon: Icon(Icons.search, color: AppColors.buttonBlueDark),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
-                ),
+        // Padding(
+        //   padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+        //   child: Material(
+        //     color: Colors.white,
+        //     elevation: 1,
+        //     borderRadius: BorderRadius.circular(12),
+        //     child: TextField(
+        //       cursorColor: AppColors.buttonBlueDark,
+        //       controller: _searchController,
+        //       decoration: InputDecoration(
+        //         hintText: AppLocalizations.of(context)!.searchByOrderNumber,
+        //         prefixIcon: Icon(Icons.search, color: AppColors.buttonBlueDark),
+        //         border: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12),
+        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
+        //         ),
+        //         focusedBorder: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12),
+        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
+        //         ),
 
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              onChanged: (value) {
-                if (_debounce?.isActive ?? false) _debounce!.cancel();
-                _debounce = Timer(const Duration(milliseconds: 500), () {
-                  setState(() {
-                    _searchQuery = value.trim();
-                  });
-                  _fetchDetails();
-                });
-              },
-            ),
-          ),
-        ),
+        //         disabledBorder: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12),
+        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
+        //         ),
+        //         filled: true,
+        //         fillColor: Colors.white,
+        //         enabledBorder: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12),
+        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
+        //         ),
+        //         contentPadding: const EdgeInsets.symmetric(
+        //           horizontal: 16,
+        //           vertical: 12,
+        //         ),
+        //       ),
+        //       onChanged: (value) {
+        //         if (_debounce?.isActive ?? false) _debounce!.cancel();
+        //         _debounce = Timer(const Duration(milliseconds: 500), () {
+        //           setState(() {
+        //             _searchQuery = value.trim();
+        //           });
+        //           _fetchDetails();
+        //         });
+        //       },
+        //     ),
+        //   ),
+        // ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -636,7 +651,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   side: BorderSide(
                     color: isAllSelected
                         ? AppColors.buttonBlueDark.withValues(alpha: 0.7)
-                        : Colors.grey.shade300,
+                        : Colors.grey.shade400,
                     width: 1,
                   ),
                   padding: const EdgeInsets.symmetric(
@@ -816,6 +831,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     selected: _dateSortDirection != null || _isDateMenuOpen,
                     onSelected: (_) {}, // Handled by PopupMenuButton
                     selectedColor: AppColors.buttonBlueDark,
+                    
                     labelPadding: EdgeInsets.symmetric(horizontal: 2),
                     showCheckmark: false,
                     backgroundColor: Colors.white,
@@ -1067,7 +1083,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               children:
                   sortedList
                       .map((subOrder) {
-                        final product = subOrder['product'] ?? {};
+                        // final product = subOrder['product'] ?? {};
                         final subId = subOrder['id']?.toString() ?? '';
                         final isSelected = _selectedSubOrders.contains(subId);
                         final isCompleted =
@@ -1234,113 +1250,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       const Divider(),
 
                                       Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                          if (product['image'] != null &&
-                                              product['image']
-                                                  .toString()
-                                                  .isNotEmpty)
-                                            Container(
-                                              width: 40,
-                                              height: 40,
-                                              margin:
-                                                  EdgeInsetsDirectional.only(
-                                                    end: 12,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: Colors.grey.withValues(
-                                                  alpha: 0.1,
-                                                ),
-                                              ),
-                                              clipBehavior: Clip.antiAlias,
-                                              child: CachedNetworkImage(
-                                                imageUrl: product['image'],
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) =>
-                                                    Shimmer.fromColors(
-                                                      baseColor:
-                                                          Colors.grey[300]!,
-                                                      highlightColor:
-                                                          Colors.grey[100]!,
-                                                      child: Container(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                errorWidget:
-                                                    (
-                                                      context,
-                                                      url,
-                                                      error,
-                                                    ) => const Icon(
-                                                      Icons
-                                                          .inventory_2_outlined,
-                                                      color: Colors.grey,
-                                                    ),
-                                              ),
-                                            )
-                                          else
-                                            Container(
-                                              width: 40,
-                                              height: 40,
-                                              margin: const EdgeInsets.only(
-                                                right: 12,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: Colors.grey.withValues(
-                                                  alpha: 0.1,
-                                                ),
-                                              ),
-                                              child: const Icon(
-                                                Icons.inventory_2_outlined,
-                                                color: Colors.grey,
-                                              ),
+                                          Text(
+                                            AppLocalizations.of(context)!.qty(
+                                              subOrder['quantity']
+                                                      ?.toString() ??
+                                                  '1',
                                             ),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  (Localizations.localeOf(
-                                                                context,
-                                                              ).languageCode ==
-                                                              'ar' &&
-                                                          product['nameAr'] !=
-                                                              null &&
-                                                          product['nameAr']
-                                                              .toString()
-                                                              .isNotEmpty)
-                                                      ? product['nameAr']
-                                                      : (product['name'] ??
-                                                            AppLocalizations.of(
-                                                              context,
-                                                            )!.product),
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.black87,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  AppLocalizations.of(
-                                                    context,
-                                                  )!.qty(
-                                                    subOrder['quantity']
-                                                            ?.toString() ??
-                                                        '1',
-                                                  ),
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors
-                                                        .buttonBlueDark,
-                                                  ),
-                                                ),
-                                              ],
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.buttonBlueDark,
                                             ),
                                           ),
                                           Row(
@@ -1480,28 +1404,33 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 as List)
                                                             .isNotEmpty))
                                                   const SizedBox(width: 6),
-                                                Container(
+                                                SizedBox(
                                                   width: 36,
                                                   height: 36,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                        color: Colors.white,
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                  child: Icon(
-                                                    Symbols
-                                                        .featured_seasonal_and_gifts,
+                                                  child: Material(
+                                                    color: Colors.white,
+                                                    shape: CircleBorder(),
+
+                                                    elevation: 1,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8.0,
+                                                          ),
+                                                      child: Icon(
+                                                        Symbols
+                                                            .featured_seasonal_and_gifts,
                                                         size: 20,
-                                                    color: const Color.fromARGB(
-                                                      255,
-                                                      162,
-                                                      38,
-                                                      29,
+                                                        color:
+                                                            const Color.fromARGB(
+                                                              255,
+                                                              162,
+                                                              38,
+                                                              29,
+                                                            ),
+                                                      ),
                                                     ),
                                                   ),
-                                                    
-                                                  
-                                                
                                                 ),
                                               ],
                                             ],
@@ -1518,8 +1447,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                               subOrder['mosqueInsideImage']
                                                   .toString()
                                                   .isNotEmpty)) ...[
-                                        const SizedBox(height: 8),
-                                        const Divider(),
                                         const SizedBox(height: 8),
 
                                         Row(
@@ -1545,7 +1472,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 .start,
                                                         children: [
                                                           AspectRatio(
-                                                            aspectRatio: 0.8,
+                                                            aspectRatio: 0.9,
                                                             child: ClipRRect(
                                                               borderRadius:
                                                                   BorderRadius.circular(
@@ -1557,7 +1484,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 width: double
                                                                     .infinity,
                                                                 fit: BoxFit
-                                                                    .cover,
+                                                                    .contain,
                                                                 placeholder: (context, url) => Shimmer.fromColors(
                                                                   baseColor: Colors
                                                                       .grey[300]!,
@@ -1616,7 +1543,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                   )!.mosqueFront,
                                                             style:
                                                                 const TextStyle(
-                                                                  fontSize: 12,
+                                                                  fontSize: 11,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w500,
@@ -1653,7 +1580,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 .start,
                                                         children: [
                                                           AspectRatio(
-                                                            aspectRatio: 0.8,
+                                                            aspectRatio: 0.9,
                                                             child: ClipRRect(
                                                               borderRadius:
                                                                   BorderRadius.circular(
@@ -1665,7 +1592,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                 width: double
                                                                     .infinity,
                                                                 fit: BoxFit
-                                                                    .cover,
+                                                                    .contain,
                                                                 placeholder: (context, url) => Shimmer.fromColors(
                                                                   baseColor: Colors
                                                                       .grey[300]!,
@@ -1724,7 +1651,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                                                   )!.mosqueInsideImage,
                                                             style:
                                                                 const TextStyle(
-                                                                  fontSize: 12,
+                                                                  fontSize: 11,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w500,

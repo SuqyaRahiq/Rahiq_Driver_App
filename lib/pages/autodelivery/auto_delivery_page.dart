@@ -4,6 +4,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
+import 'package:rahiq_driver/services/push_refresh.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
@@ -15,7 +16,8 @@ class AutoDeliveryPage extends StatefulWidget {
   State<AutoDeliveryPage> createState() => _AutoDeliveryPageState();
 }
 
-class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
+class _AutoDeliveryPageState extends State<AutoDeliveryPage>
+    with PushRefreshMixin {
   late DriverAutoDeliveriesApi _deliveriesApi;
 
   List<DriverAutoDelivery> _allItems = [];
@@ -56,6 +58,45 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  @override
+  Future<void> refreshListOnPush() async {
+    if (_isLoading || _isFetchingMore || _error != null) return;
+
+    // Re-fetch every page already loaded, so the driver keeps their place in
+    // a list they have scrolled down.
+    final pagesLoaded = _currentPage;
+    try {
+      final List<DriverAutoDelivery> items = [];
+      var hasMore = true;
+      for (var page = 1; page <= pagesLoaded && hasMore; page++) {
+        final pageItems = await _deliveriesApi.getAutoDeliveries(
+          page: page,
+          limit: 30,
+        );
+        items.addAll(pageItems);
+        hasMore = pageItems.length == 30;
+      }
+
+      // A pull to refresh or a next page load that started meanwhile has
+      // fresher state than this.
+      if (!mounted || _isLoading || _isFetchingMore) return;
+      if (sameJson(
+        items.map((i) => i.toJson()).toList(),
+        _allItems.map((i) => i.toJson()).toList(),
+      )) {
+        return;
+      }
+
+      setState(() {
+        _allItems = items;
+        _currentPage = pagesLoaded;
+        _hasMore = hasMore;
+      });
+    } catch (e) {
+      debugPrint('Auto delivery refresh on push failed: $e');
     }
   }
 

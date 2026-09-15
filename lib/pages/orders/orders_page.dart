@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -17,6 +16,9 @@ import 'package:rahiq_driver/l10n/app_localizations.dart';
 import 'package:rahiq_driver/utils/shimmer_loading.dart';
 import 'package:rahiq_driver/utils/location_permission_utils.dart';
 import 'package:rahiq_driver/data/models/driver/driver_dashboard_stats.dart';
+import 'package:rahiq_driver/data/models/driver/driver_order.dart';
+import 'package:rahiq_driver/data/models/driver/auto_order_item.dart';
+import 'package:rahiq_driver/services/push_refresh.dart';
 
 class OrderListItem {
   final String id;
@@ -56,7 +58,7 @@ class OrdersPage extends StatefulWidget {
 }
 
 class _OrdersPageState extends State<OrdersPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, PushRefreshMixin {
   late DriverOrdersApi _ordersApi;
   late TabController _tabController;
 
@@ -69,8 +71,6 @@ class _OrdersPageState extends State<OrdersPage>
   String? _dashboardETag;
   bool _isLoading = true;
   String? _error;
-  StreamSubscription<RemoteMessage>? _fcmSubscription;
-  Timer? _refreshDebounceTimer;
   late List<_TabDef> _tabs;
 
   bool _isInit = true;
@@ -275,141 +275,135 @@ class _OrdersPageState extends State<OrdersPage>
     _ordersApi = DriverOrdersApi(ApiClient());
     _getPhoneNumber();
     _loadMapPinIcon();
+  }
 
-    _fcmSubscription = FirebaseMessaging.onMessage.listen((
-      RemoteMessage message,
-    ) {
-      if (!mounted || message.data['type'] != 'order_assigned') return;
+  OrderListItem _normalOrderItem(DriverOrder order) {
+    final title =
+        (Directionality.of(context) == TextDirection.rtl
+            ? (order.nameAr ?? order.name)
+            : order.name) ??
+        order.customerName ??
+        AppLocalizations.of(context)!.unknownCustomer;
 
-      _refreshDebounceTimer?.cancel();
-      _refreshDebounceTimer = Timer(const Duration(seconds: 3), () {
-        if (mounted) {
-          _fetchOrdersSilently();
-        }
-      });
+    return OrderListItem(
+      id: order.id,
+      title: title,
+      category: order.type,
+      packages: order.totalQuantity ?? 0,
+      orders: order.totalSubOrders ?? 0,
+      createdAt: order.createdAt,
+      isAuto: false,
+      originalModel: order,
+      imageUrl: order.image,
+      latitude: order.latitude,
+      longitude: order.longitude,
+    );
+  }
+
+  OrderListItem _autoOrderItem(AutoOrderItem auto) {
+    final autoTitle =
+        (Directionality.of(context) == TextDirection.rtl &&
+            auto.nameAr.isNotEmpty)
+        ? auto.nameAr
+        : auto.name;
+    return OrderListItem(
+      id: auto.id,
+      title: autoTitle,
+      category: auto.type,
+      orders: auto.totalSubOrders,
+      packages: auto.totalQuantity,
+      createdAt: null,
+      isAuto: true,
+      originalModel: auto,
+      imageUrl: auto.image,
+    );
+  }
+
+  void _sortNewestFirst(List<OrderListItem> items) {
+    items.sort((a, b) {
+      if (a.createdAt == null && b.createdAt == null) return 0;
+      if (a.createdAt == null) return 1;
+      if (b.createdAt == null) return -1;
+      return b.createdAt!.compareTo(a.createdAt!);
     });
   }
 
-  Future<void> _fetchOrdersSilently() async {
+  bool get _isBusy =>
+      _isLoading ||
+      _isFetchingMoreNormalOrders ||
+      _isFetchingMoreAutoOrders ||
+      _error != null;
+
+  /// Refreshes only the list on the selected tab, keeping every page already
+  /// loaded so the driver keeps their place, and leaves the dashboard stats
+  /// and the rest of the page alone.
+  @override
+  Future<void> refreshListOnPush() async {
+    if (_isBusy) return;
+
+    final isNormalTab = _tabController.index == 0;
+    final pagesLoaded = isNormalTab ? _normalOrdersPage : _autoOrdersPage;
     try {
-      final newDashboardStats = await _ordersApi.getDashboardStats(
-        eTag: _dashboardETag,
-      );
-
-      if (_tabController.index == 0) {
-        final normalOrdersResponse = await _ordersApi.getNormalOrders(
-          page: 1,
-          limit: 30,
-        );
-        final normalOrders = normalOrdersResponse.items;
-        final List<OrderListItem> combined = [];
-
-        for (var order in normalOrders) {
-          final title =
-              (Directionality.of(context) == TextDirection.rtl
-                  ? (order.nameAr ?? order.name)
-                  : order.name) ??
-              order.customerName ??
-              AppLocalizations.of(context)!.unknownCustomer;
-
-          combined.add(
-            OrderListItem(
-              id: order.id,
-              title: title,
-              category: order.type,
-              packages: order.totalQuantity ?? 0,
-              orders: order.totalSubOrders ?? 0,
-              createdAt: order.createdAt,
-              isAuto: false,
-              originalModel: order,
-              imageUrl: order.image,
-              latitude: order.latitude,
-              longitude: order.longitude,
-            ),
+      final List<OrderListItem> items = [];
+      var hasMore = true;
+      for (var page = 1; page <= pagesLoaded && hasMore; page++) {
+        if (isNormalTab) {
+          final response = await _ordersApi.getNormalOrders(
+            page: page,
+            limit: 30,
           );
-        }
-
-        combined.sort((a, b) {
-          if (a.createdAt == null && b.createdAt == null) return 0;
-          if (a.createdAt == null) return 1;
-          if (b.createdAt == null) return -1;
-          return b.createdAt!.compareTo(a.createdAt!);
-        });
-
-        if (mounted) {
-          setState(() {
-            if (newDashboardStats != null) {
-              _dashboardStats = newDashboardStats;
-              _dashboardETag = newDashboardStats.eTag;
-            }
-            _normalOrders = combined;
-            _normalOrdersPage = 1;
-            _hasMoreNormalOrders = normalOrdersResponse.items.length == 30;
-            _error = null;
-          });
-        }
-      } else {
-        final autoOrdersResponse = await _ordersApi.getAutoOrders(page: 1, limit: 30);
-        final autoOrders = autoOrdersResponse.items;
-
-        bool hasMore;
-        if (autoOrdersResponse.meta != null) {
-          hasMore =
-              autoOrdersResponse.meta!.page <
-              autoOrdersResponse.meta!.totalPages;
+          if (!mounted) return;
+          final pageItems = response.items.map(_normalOrderItem).toList();
+          // Only the first page is sorted, as when it was loaded.
+          if (page == 1) _sortNewestFirst(pageItems);
+          items.addAll(pageItems);
+          hasMore = response.items.length == 30;
         } else {
-          hasMore = false;
-        }
-
-        final List<OrderListItem> combined = [];
-
-        for (var auto in autoOrders) {
-          final autoTitle =
-              (Directionality.of(context) == TextDirection.rtl &&
-                  auto.nameAr.isNotEmpty)
-              ? auto.nameAr
-              : auto.name;
-          combined.add(
-            OrderListItem(
-              id: auto.id,
-              title: autoTitle,
-              category: auto.type,
-              orders: auto.totalSubOrders,
-              packages: auto.totalQuantity,
-              createdAt: null,
-              isAuto: true,
-              originalModel: auto,
-              imageUrl: auto.image,
-            ),
+          final response = await _ordersApi.getAutoOrders(
+            page: page,
+            limit: 30,
           );
-        }
-
-        if (mounted) {
-          setState(() {
-            if (newDashboardStats != null) {
-              _dashboardStats = newDashboardStats;
-              _dashboardETag = newDashboardStats.eTag;
-            }
-            _autoOrders = combined;
-            _autoOrdersPage = 1;
-            _hasMoreAutoOrders = hasMore;
-            _error = null;
-          });
+          if (!mounted) return;
+          items.addAll(response.items.map(_autoOrderItem));
+          hasMore = response.meta != null
+              ? response.meta!.page < response.meta!.totalPages
+              : false;
         }
       }
+
+      // A reload, a tab switch or a next page load that started meanwhile
+      // owns the list now.
+      if (!mounted || _isBusy || (_tabController.index == 0) != isNormalTab) {
+        return;
+      }
+      final current = isNormalTab ? _normalOrders : _autoOrders;
+      if (sameJson(
+        items.map((i) => i.originalModel.toJson()).toList(),
+        current.map((i) => i.originalModel.toJson()).toList(),
+      )) {
+        return;
+      }
+
+      setState(() {
+        if (isNormalTab) {
+          _normalOrders = items;
+          _normalOrdersPage = pagesLoaded;
+          _hasMoreNormalOrders = hasMore;
+        } else {
+          _autoOrders = items;
+          _autoOrdersPage = pagesLoaded;
+          _hasMoreAutoOrders = hasMore;
+        }
+      });
     } catch (e) {
-      // Swallow errors silently — this is a background refresh triggered by a
-      // push notification, so we don't want to surface an error banner or
-      // disrupt whatever the user is currently looking at.
-      debugPrint('Silent order refresh failed: $e');
+      // Nobody asked for this refresh, so a failure stays out of the way.
+      debugPrint('Orders refresh on push failed: $e');
     }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _fcmSubscription?.cancel();
-    _refreshDebounceTimer?.cancel();
     _mapController = null;
     super.dispose();
   }
@@ -455,40 +449,10 @@ class _OrdersPageState extends State<OrdersPage>
           page: 1,
           limit: 30,
         );
-        final normalOrders = normalOrdersResponse.items;
-        final List<OrderListItem> combined = [];
-
-        for (var order in normalOrders) {
-          final title =
-              (Directionality.of(context) == TextDirection.rtl
-                  ? (order.nameAr ?? order.name)
-                  : order.name) ??
-              order.customerName ??
-              AppLocalizations.of(context)!.unknownCustomer;
-
-          combined.add(
-            OrderListItem(
-              id: order.id,
-              title: title,
-              category: order.type,
-              packages: order.totalQuantity ?? 0,
-              orders: order.totalSubOrders ?? 0,
-              createdAt: order.createdAt,
-              isAuto: false,
-              originalModel: order,
-              imageUrl: order.image,
-              latitude: order.latitude,
-              longitude: order.longitude,
-            ),
-          );
-        }
-
-        combined.sort((a, b) {
-          if (a.createdAt == null && b.createdAt == null) return 0;
-          if (a.createdAt == null) return 1;
-          if (b.createdAt == null) return -1;
-          return b.createdAt!.compareTo(a.createdAt!);
-        });
+        final combined = normalOrdersResponse.items
+            .map(_normalOrderItem)
+            .toList();
+        _sortNewestFirst(combined);
 
         if (mounted) {
           setState(() {
@@ -506,8 +470,6 @@ class _OrdersPageState extends State<OrdersPage>
           page: _autoOrdersPage,
           limit: 30,
         );
-        final autoOrders = autoOrdersResponse.items;
-
         if (autoOrdersResponse.meta != null) {
           _hasMoreAutoOrders =
               autoOrdersResponse.meta!.page <
@@ -516,28 +478,9 @@ class _OrdersPageState extends State<OrdersPage>
           _hasMoreAutoOrders = false;
         }
 
-        final List<OrderListItem> combined = [];
-
-        for (var auto in autoOrders) {
-          final autoTitle =
-              (Directionality.of(context) == TextDirection.rtl &&
-                  auto.nameAr.isNotEmpty)
-              ? auto.nameAr
-              : auto.name;
-          combined.add(
-            OrderListItem(
-              id: auto.id,
-              title: autoTitle,
-              category: auto.type,
-              orders: auto.totalSubOrders,
-              packages: auto.totalQuantity,
-              createdAt: null,
-              isAuto: true,
-              originalModel: auto,
-              imageUrl: auto.image,
-            ),
-          );
-        }
+        final combined = autoOrdersResponse.items
+            .map(_autoOrderItem)
+            .toList();
 
         if (mounted) {
           setState(() {

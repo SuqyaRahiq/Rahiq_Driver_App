@@ -5,6 +5,7 @@ import 'package:rahiq_driver/data/api/api_client.dart';
 import 'package:rahiq_driver/data/api/driver/driver_auto_deliveries_api.dart';
 import 'package:rahiq_driver/data/models/driver/driver_auto_delivery.dart';
 import 'package:rahiq_driver/pages/shared/proof_submission_page.dart';
+import 'package:rahiq_driver/services/push_refresh.dart';
 import 'package:rahiq_driver/utils/colors.dart';
 import 'package:rahiq_driver/utils/cs_notes.dart';
 import 'dart:io';
@@ -29,7 +30,8 @@ class AutoDeliveryDetailsPage extends StatefulWidget {
       _AutoDeliveryDetailsPageState();
 }
 
-class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
+class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
+    with PushRefreshMixin {
   late DriverAutoDeliveriesApi _api;
   bool _isLoading = true;
   String? _error;
@@ -160,16 +162,20 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
     _fetchDetails();
   }
 
+  /// Adapts the single DriverAutoDelivery into the list the UI renders.
+  List<dynamic> _asSubOrders(DriverAutoDelivery details) {
+    final json = details.toJson();
+    // Map fields that the UI expects
+    json['assignedDate'] = json['assignedAt'];
+    json['subOrderNumber'] = json['batchNumber'];
+    return [json];
+  }
+
   Future<void> _fetchDetails() async {
     try {
       final details = await _api.getAutoDeliveryDetails(widget.item.id);
       setState(() {
-        // Adapt the single DriverAutoDelivery into a list for the UI
-        final json = details.toJson();
-        // Map fields that the UI expects
-        json['assignedDate'] = json['assignedAt'];
-        json['subOrderNumber'] = json['batchNumber'];
-        _subOrders = [json];
+        _subOrders = _asSubOrders(details);
         _isLoading = false;
       });
     } catch (e) {
@@ -177,6 +183,20 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage> {
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  @override
+  Future<void> refreshListOnPush() async {
+    if (_isLoading || _isBatchUploading || _error != null) return;
+    try {
+      final details = await _api.getAutoDeliveryDetails(widget.item.id);
+      final subOrders = _asSubOrders(details);
+      if (!mounted || _isLoading || _isBatchUploading) return;
+      if (sameJson(subOrders, _subOrders)) return;
+      setState(() => _subOrders = subOrders);
+    } catch (e) {
+      debugPrint('Auto delivery details refresh on push failed: $e');
     }
   }
 

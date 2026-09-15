@@ -590,54 +590,54 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
             ),
           ),
         ),
-        // Padding(
-        //   padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-        //   child: Material(
-        //     color: Colors.white,
-        //     elevation: 1,
-        //     borderRadius: BorderRadius.circular(12),
-        //     child: TextField(
-        //       cursorColor: AppColors.buttonBlueDark,
-        //       controller: _searchController,
-        //       decoration: InputDecoration(
-        //         hintText: AppLocalizations.of(context)!.searchByOrderNumber,
-        //         prefixIcon: Icon(Icons.search, color: AppColors.buttonBlueDark),
-        //         border: OutlineInputBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
-        //         ),
-        //         focusedBorder: OutlineInputBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
-        //         ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
+          child: Material(
+            color: Colors.white,
+            elevation: 1,
+            borderRadius: BorderRadius.circular(12),
+            child: TextField(
+              cursorColor: AppColors.buttonBlueDark,
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchByOrderNumber,
+                prefixIcon: Icon(Icons.search, color: AppColors.buttonBlueDark),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
 
-        //         disabledBorder: OutlineInputBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
-        //         ),
-        //         filled: true,
-        //         fillColor: Colors.white,
-        //         enabledBorder: OutlineInputBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //           borderSide: BorderSide(color: AppColors.buttonBlueDark),
-        //         ),
-        //         contentPadding: const EdgeInsets.symmetric(
-        //           horizontal: 16,
-        //           vertical: 12,
-        //         ),
-        //       ),
-        //       onChanged: (value) {
-        //         if (_debounce?.isActive ?? false) _debounce!.cancel();
-        //         _debounce = Timer(const Duration(milliseconds: 500), () {
-        //           setState(() {
-        //             _searchQuery = value.trim();
-        //           });
-        //           _fetchDetails();
-        //         });
-        //       },
-        //     ),
-        //   ),
-        // ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.buttonBlueDark),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  setState(() {
+                    _searchQuery = value.trim();
+                  });
+                  _fetchDetails();
+                });
+              },
+            ),
+          ),
+        ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -1119,11 +1119,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                           },
                           child: Container(
                             margin: const EdgeInsets.only(
-                              bottom: 12,
+                              bottom: 8,
                               left: 16,
                               right: 16,
                             ),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
@@ -1472,7 +1472,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                                                 .start,
                                                         children: [
                                                           AspectRatio(
-                                                            aspectRatio: 0.9,
+                                                            aspectRatio: 1.3,
                                                             child: ClipRRect(
                                                               borderRadius:
                                                                   BorderRadius.circular(
@@ -1580,7 +1580,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                                                 .start,
                                                         children: [
                                                           AspectRatio(
-                                                            aspectRatio: 0.9,
+                                                            aspectRatio: 1.3,
                                                             child: ClipRRect(
                                                               borderRadius:
                                                                   BorderRadius.circular(

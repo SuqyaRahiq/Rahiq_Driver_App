@@ -1429,7 +1429,11 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
-        height: MediaQuery.of(parentContext).size.height * 0.4,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(parentContext).size.height * 0.7,
+          minHeight: MediaQuery.of(parentContext).size.height * 0.5,
+        ),
+       
         color: Colors.transparent,
         child: Column(
           children: [

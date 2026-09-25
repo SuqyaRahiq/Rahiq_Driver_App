@@ -9,7 +9,7 @@ import 'api_exception.dart';
 
 class ApiClient {
   static const String baseUrl =
-      'https://api-staging.suqyarahiq.com/api/v1'; // Adjust to real base URL
+      'https://api.suqyarahiq.com/api/v1'; // Adjust to real base URL
 
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;

@@ -594,7 +594,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرجى اختيار الموقع الذي تم التوصيل إليه.';
 
   @override
-  String get senderName => 'هدية من';
+  String get senderName => 'اهداء';
 
   @override
   String get recipientName => 'إلى';

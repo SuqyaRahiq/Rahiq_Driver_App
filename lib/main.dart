@@ -183,20 +183,17 @@ class MyApp extends StatelessWidget {
             scrollBehavior: const MyScrollBehavior(),
             theme: ThemeData(
               fontFamily: _latinFontFamily,
-              // Arabic goes last so the riyal glyph and the existing Latin
-              // fallback keep resolving exactly as they did before; Arabic
-              // letters appear in none of those, so they fall through.
+              // Arabic goes last so the riyal glyph keeps resolving as before;
+              // Arabic letters are in neither font, so they fall through.
+              // Anything none of these cover falls back to the OS font.
+              //
+              // Don't add SF Pro back. Bundling Apple's font files gets the
+              // iOS build rejected (ITMS-91182). Naming the iOS system 'SF Pro'
+              // here is no better: that copy carries Arabic glyphs plus the
+              // Arabic `locl` digit substitution, and when it won a lookup,
+              // dates came out as ٢٠ يونيو ٢٠٢٦ on iOS only.
               fontFamilyFallback: const [
                 'SaudiRiyal',
-                // 'SFProText' is the bundled SF-Pro-Text-*.otf, deliberately
-                // NOT named 'SF Pro': that name collides with the iOS system
-                // font, and the system copy carries Arabic glyphs plus the
-                // Arabic `locl` digit substitution. When it won a lookup the
-                // Arabic run — and the Western digits absorbed into it — came
-                // out as ٢٠ يونيو ٢٠٢٦ on iOS only. Under a unique name
-                // only the bundled file can match, and Arabic falls through to
-                // the bundled Arabic face as intended.
-                'SFProText',
                 _arabicFontFamily,
               ],
               appBarTheme: const AppBarTheme(

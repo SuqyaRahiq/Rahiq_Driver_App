@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:rahiq_driver/data/storage/auth_storage.dart';
@@ -69,18 +68,6 @@ class ApiClient {
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
-      ),
-    );
-
-    dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
-        logPrint: (obj) => log(obj.toString()),
       ),
     );
 
@@ -234,17 +221,6 @@ class ApiClient {
         BaseOptions(
           baseUrl: baseUrl,
           headers: {'Accept-Language': appLanguageCode},
-        ),
-      );
-      dioRefresh.interceptors.add(
-        LogInterceptor(
-          request: true,
-          requestHeader: true,
-          requestBody: true,
-          responseHeader: true,
-          responseBody: true,
-          error: true,
-          logPrint: (obj) => log(obj.toString()),
         ),
       );
       final response = await dioRefresh.post(

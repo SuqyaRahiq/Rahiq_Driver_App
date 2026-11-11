@@ -62,8 +62,8 @@ class _LoginPageState extends State<LoginPage> {
         fcmToken = await NotificationService().getToken().timeout(
           const Duration(seconds: 10),
         );
-      } catch (e) {
-        debugPrint('Failed to get FCM token: $e');
+      } catch (_) {
+        // Login goes ahead with the placeholder token below.
       }
 
       String? deviceId;
@@ -76,8 +76,8 @@ class _LoginPageState extends State<LoginPage> {
           final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
           deviceId = androidInfo.id;
         }
-      } catch (e) {
-        debugPrint('Failed to get device info: $e');
+      } catch (_) {
+        // Login goes ahead with the placeholder device id below.
       }
 
       final localeCode = mounted

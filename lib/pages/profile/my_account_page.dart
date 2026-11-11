@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
@@ -1238,7 +1237,6 @@ class _MyAccountPageState extends State<MyAccountPage> {
   }
 
   Widget _buildFullPageError() {
-    log(_error.toString());
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(

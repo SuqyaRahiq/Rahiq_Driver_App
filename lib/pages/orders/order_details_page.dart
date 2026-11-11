@@ -125,8 +125,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
           }
           return null;
         }
-      } catch (e) {
-        debugPrint('Error checking file size: $e');
+      } catch (_) {
+        // Size unreadable: keep the file and let the upload decide.
       }
     }
     return filePath;
@@ -292,8 +292,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
         _selectedSubOrders.removeWhere((id) => !ids.contains(id));
         if (_selectedSubOrders.isEmpty) _isMultiSelectMode = false;
       });
-    } catch (e) {
-      debugPrint('Order details refresh on push failed: $e');
+    } catch (_) {
+      // Nobody asked for this refresh, so a failure stays out of the way.
     }
   }
 
@@ -1868,7 +1868,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
   }
 
   void _showBatchImagesBottomSheet(BuildContext context) {
-    debugPrint('Bulk Image Upload: Bottom sheet opened');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1978,9 +1977,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                     : AppLocalizations.of(context)!.mosqueFront,
                                 path: _batchMosqueFrontImage,
                                 onPick: (source) async {
-                                  debugPrint(
-                                    'Bulk Image Upload: Mosque front image picking started from source: $source',
-                                  );
                                   setSheetState(
                                     () => _isCompressingBatchFrontImage = true,
                                   );
@@ -1992,15 +1988,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                     () => _isCompressingBatchFrontImage = false,
                                   );
                                   if (file != null) {
-                                    debugPrint(
-                                      'Bulk Image Upload: Mosque front image picked successfully: $file',
-                                    );
                                     setSheetState(
                                       () => _batchMosqueFrontImage = file,
-                                    );
-                                  } else {
-                                    debugPrint(
-                                      'Bulk Image Upload: Mosque front image picking cancelled',
                                     );
                                   }
                                 },
@@ -2029,9 +2018,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                       )!.mosqueInsideImage,
                                 path: _batchMosqueInsideImage,
                                 onPick: (source) async {
-                                  debugPrint(
-                                    'Bulk Image Upload: Mosque inside image picking started from source: $source',
-                                  );
                                   setSheetState(
                                     () => _isCompressingBatchInsideImage = true,
                                   );
@@ -2044,15 +2030,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                         _isCompressingBatchInsideImage = false,
                                   );
                                   if (file != null) {
-                                    debugPrint(
-                                      'Bulk Image Upload: Mosque inside image picked successfully: $file',
-                                    );
                                     setSheetState(
                                       () => _batchMosqueInsideImage = file,
-                                    );
-                                  } else {
-                                    debugPrint(
-                                      'Bulk Image Upload: Mosque inside image picking cancelled',
                                     );
                                   }
                                 },
@@ -2068,26 +2047,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                             child: ElevatedButton(
                               onPressed: canSave && !_isBatchUploading
                                   ? () async {
-                                      debugPrint(
-                                        'Bulk Image Upload: Upload button pressed',
-                                      );
                                       setSheetState(
                                         () => _isBatchUploading = true,
                                       );
                                       setState(() => _isBatchUploading = true);
                                       try {
-                                        debugPrint(
-                                          'Bulk Image Upload: Request started for Order ID: ${widget.orderId}',
-                                        );
-                                        debugPrint(
-                                          'Bulk Image Upload: Request SubOrder IDs: ${_selectedSubOrders.toList()}',
-                                        );
-                                        debugPrint(
-                                          'Bulk Image Upload: Request Mosque Front Image Path: $_batchMosqueFrontImage',
-                                        );
-                                        debugPrint(
-                                          'Bulk Image Upload: Request Mosque Inside Image Path: $_batchMosqueInsideImage',
-                                        );
 
                                         await _api.bulkUploadMosqueImages(
                                           orderId: widget.orderId,
@@ -2097,9 +2061,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                               _batchMosqueFrontImage!,
                                           mosqueInsideImagePath:
                                               _batchMosqueInsideImage!,
-                                        );
-                                        debugPrint(
-                                          'Bulk Image Upload: Response successful',
                                         );
                                         if (context.mounted) {
                                           CustomSnackbar.show(
@@ -2118,9 +2079,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                         });
                                         _fetchDetails();
                                       } catch (e) {
-                                        debugPrint(
-                                          'Bulk Image Upload: Error occurred: $e',
-                                        );
                                         if (context.mounted) {
                                           String errorMessage =
                                               AppLocalizations.of(
@@ -2132,9 +2090,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage>
                                                   null) {
                                             errorMessage =
                                                 e.response!.data['message'];
-                                            debugPrint(
-                                              'Bulk Image Upload: API Error Response Message: $errorMessage',
-                                            );
                                           }
                                           CustomSnackbar.show(
                                             context: context,

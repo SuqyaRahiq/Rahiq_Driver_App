@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/services.dart';
 import 'dart:io';
 
@@ -84,8 +83,8 @@ void main() async {
     );
     await Permission.notification.request();
     await NotificationService().init();
-  } catch (e) {
-    debugPrint('Firebase initialization error: $e');
+  } catch (_) {
+    // The app still runs without push; nothing here is worth stopping for.
   }
 
   final freshchatAppId = dotenv.env['FRESHCHAT_APP_ID'];
@@ -110,15 +109,11 @@ void main() async {
     // push notifications for chat messages.
     await FreshchatService.registerPushToken();
 
-    // Set user info if session exists. Not awaited: the first frame must not
-    // wait on the chat SDK answering, and identifyUser logs its own failures.
-    try {
-      final driver = AuthStorage.getUserData();
-      if (driver != null) {
-        unawaited(FreshchatService.identifyUser(driver));
-      }
-    } catch (e) {
-      debugPrint('Failed to set Freshchat user: $e');
+    // Sign the saved driver in to Freshchat. Not awaited: the first frame must
+    // not wait on the chat SDK answering, and authenticateUser swallows its own
+    // failures.
+    if (AuthStorage.isLoggedIn) {
+      unawaited(FreshchatService.authenticateUser());
     }
   }
 
@@ -147,17 +142,6 @@ class MyApp extends StatelessWidget {
       ]),
       builder: (context, child) {
         final Locale locale = localeNotifier.value;
-      
-       
-
-        final double bottomPadding = MediaQueryData.fromView(
-          View.of(context),
-        ).padding.bottom;
-        final bool isThickNavBar = bottomPadding >= 24.0;
-        log('isThickNavBar: $isThickNavBar');
-        log('bottomPadding: $bottomPadding');
-
-       
 
         return SafeArea(
           bottom: Platform.isAndroid ? true : false,

@@ -115,8 +115,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
           });
         }
       }
-    } catch (e) {
-      debugPrint('Error initializing camera: $e');
+    } catch (_) {
+      // The camera stays uninitialised and the screen keeps its loading state.
     }
   }
 
@@ -187,8 +187,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
       await _controller!.setExposurePoint(normalized);
       await _controller!.setFocusMode(FocusMode.auto);
       await _controller!.setExposureMode(ExposureMode.auto);
-    } catch (e) {
-      debugPrint('Error setting focus point: $e');
+    } catch (_) {
+      // Tap-to-focus is best effort; not every camera supports it.
     }
   }
 
@@ -227,8 +227,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
           await _stopRecording();
         }
       });
-    } catch (e) {
-      debugPrint('Error starting video recording: $e');
+    } catch (_) {
+      // Recording did not start; the driver can tap record again.
     }
   }
 
@@ -238,26 +238,11 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     try {
       final XFile imageFile = await _controller!.takePicture();
 
-      try {
-        final size = await imageFile.length();
-        final resolution = _controller!.value.previewSize;
-        debugPrint('📸 Image captured:');
-        debugPrint(' - Path: ${imageFile.path}');
-        debugPrint(' - Size: ${(size / 1024).toStringAsFixed(2)} KB');
-        if (resolution != null) {
-          debugPrint(
-            ' - Resolution: ${resolution.width} x ${resolution.height}',
-          );
-        }
-      } catch (logError) {
-        debugPrint('Error logging image details: $logError');
-      }
-
       if (mounted) {
         Navigator.pop(context, imageFile.path);
       }
-    } catch (e) {
-      debugPrint('Error taking picture: $e');
+    } catch (_) {
+      // No photo taken; the driver can tap the shutter again.
     }
   }
 
@@ -269,21 +254,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
     try {
       final XFile videoFile = await _controller!.stopVideoRecording();
 
-      try {
-        final size = await videoFile.length();
-        final resolution = _controller!.value.previewSize;
-        debugPrint('🎥 Video recorded:');
-        debugPrint(' - Path: ${videoFile.path}');
-        debugPrint(' - Size: ${(size / (1024 * 1024)).toStringAsFixed(2)} MB');
-        if (resolution != null) {
-          debugPrint(
-            ' - Resolution: ${resolution.width} x ${resolution.height}',
-          );
-        }
-      } catch (logError) {
-        debugPrint('Error logging video details: $logError');
-      }
-
       setState(() {
         _isRecording = false;
       });
@@ -292,7 +262,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
         Navigator.pop(context, videoFile.path);
       }
     } catch (e) {
-      debugPrint('Error stopping video recording: $e');
       setState(() {
         _isRecording = false;
       });

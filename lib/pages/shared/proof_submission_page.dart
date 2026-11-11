@@ -747,7 +747,6 @@ class _ProofSubmissionPageState extends State<ProofSubmissionPage> {
                 );
                 provider.setLoadingLocations(proof.subOrderId, false);
               } catch (e) {
-                debugPrint('[LocationsContext] Error: $e');
                 provider.setLoadingLocations(proof.subOrderId, false);
                 if (context.mounted) {
                   CustomSnackbar.show(
@@ -2172,7 +2171,6 @@ class _LocationsBottomSheetContentState
         _isLoadingMore = false;
       });
     } catch (e) {
-      debugPrint('Error loading next page: $e');
       setState(() {
         _isLoadingMore = false;
       });

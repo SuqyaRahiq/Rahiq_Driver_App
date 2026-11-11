@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,16 +27,11 @@ class MediaCompressor {
   ];
 
   /// Compresses an image, trying progressively lower quality/resolution
-  /// steps until the result fits under 1MB, and logs its size before/after.
+  /// steps until the result fits under 1MB.
   static Future<String?> compressImage(String path) async {
     try {
       final originalFile = File(path);
       if (!originalFile.existsSync()) return path;
-
-      final originalSize = await originalFile.length();
-      debugPrint(
-        '📸 [MediaCompressor] Original Image Size: ${(originalSize / (1024 * 1024)).toStringAsFixed(2)} MB',
-      );
 
       final tempDir = await getTemporaryDirectory();
 
@@ -59,9 +53,6 @@ class MediaCompressor {
         if (result == null) continue;
 
         final size = await result.length();
-        debugPrint(
-          '📸 [MediaCompressor] Attempt quality=$quality dimension=$dimension -> ${(size / (1024 * 1024)).toStringAsFixed(2)} MB',
-        );
 
         if (size <= _targetImageBytes) {
           if (smallestResult != null) unawaited(_deleteQuietly(smallestResult));
@@ -78,18 +69,15 @@ class MediaCompressor {
       }
 
       if (smallestResult != null) {
-        debugPrint(
-          '📸 [MediaCompressor] Could not reach 1MB target; using smallest achieved: ${(smallestSize! / (1024 * 1024)).toStringAsFixed(2)} MB',
-        );
         return smallestResult.path;
       }
-    } catch (e) {
-      debugPrint('📸 [MediaCompressor] Image compression error: $e');
+    } catch (_) {
+      // Compression is optional: fall back to the original file.
     }
     return path;
   }
 
-  /// Compresses a video and logs its size before and after. Always returns
+  /// Compresses a video. Always returns
   /// a path ending in `.mp4` — the video/audio content is untouched, only
   /// the container is normalized, since some sources (e.g. iOS camera
   /// recordings) hand back a `.mov` file.
@@ -97,11 +85,6 @@ class MediaCompressor {
     try {
       final originalFile = File(path);
       if (!originalFile.existsSync()) return path;
-
-      final originalSize = await originalFile.length();
-      debugPrint(
-        '🎥 [MediaCompressor] Original Video Size: ${(originalSize / (1024 * 1024)).toStringAsFixed(2)} MB',
-      );
 
       final info = await VideoCompress.compressVideo(
         path,
@@ -111,14 +94,10 @@ class MediaCompressor {
       );
 
       if (info != null && info.file != null) {
-        final newSize = await info.file!.length();
-        debugPrint(
-          '🎥 [MediaCompressor] Compressed Video Size: ${(newSize / (1024 * 1024)).toStringAsFixed(2)} MB',
-        );
         return _ensureMp4Extension(info.file!.path);
       }
-    } catch (e) {
-      debugPrint('🎥 [MediaCompressor] Video compression error: $e');
+    } catch (_) {
+      // Compression is optional: fall back to the original file.
     }
     return _ensureMp4Extension(path);
   }
@@ -135,10 +114,8 @@ class MediaCompressor {
       final newPath =
           '${tempDir.path}/video_${DateTime.now().microsecondsSinceEpoch}.mp4';
       await File(path).copy(newPath);
-      debugPrint('🎥 [MediaCompressor] Normalized video container to .mp4');
       return newPath;
     } catch (e) {
-      debugPrint('🎥 [MediaCompressor] Failed to normalize video extension: $e');
       return path;
     }
   }

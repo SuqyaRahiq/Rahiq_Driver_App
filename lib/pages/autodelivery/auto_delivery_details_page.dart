@@ -146,8 +146,8 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
           }
           return null;
         }
-      } catch (e) {
-        debugPrint('Error checking file size: $e');
+      } catch (_) {
+        // Size unreadable: keep the file and let the upload decide.
       }
     }
     return filePath;
@@ -195,8 +195,8 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
       if (!mounted || _isLoading || _isBatchUploading) return;
       if (sameJson(subOrders, _subOrders)) return;
       setState(() => _subOrders = subOrders);
-    } catch (e) {
-      debugPrint('Auto delivery details refresh on push failed: $e');
+    } catch (_) {
+      // Nobody asked for this refresh, so a failure stays out of the way.
     }
   }
 
@@ -1142,7 +1142,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
   }
 
   void _showBatchImagesBottomSheet(BuildContext context) {
-    debugPrint('Bulk Image Upload: Bottom sheet opened');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1185,9 +1184,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                           label: AppLocalizations.of(context)!.mosqueFront,
                           path: _batchMosqueFrontImage,
                           onPick: (source) async {
-                            debugPrint(
-                              'Bulk Image Upload: Mosque front image picking started from source: $source',
-                            );
                             setSheetState(
                               () => _isCompressingBatchFrontImage = true,
                             );
@@ -1196,15 +1192,8 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                               () => _isCompressingBatchFrontImage = false,
                             );
                             if (file != null) {
-                              debugPrint(
-                                'Bulk Image Upload: Mosque front image picked successfully: $file',
-                              );
                               setSheetState(
                                 () => _batchMosqueFrontImage = file,
-                              );
-                            } else {
-                              debugPrint(
-                                'Bulk Image Upload: Mosque front image picking cancelled',
                               );
                             }
                           },
@@ -1218,9 +1207,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                           )!.mosqueInsideImage,
                           path: _batchMosqueInsideImage,
                           onPick: (source) async {
-                            debugPrint(
-                              'Bulk Image Upload: Mosque inside image picking started from source: $source',
-                            );
                             setSheetState(
                               () => _isCompressingBatchInsideImage = true,
                             );
@@ -1229,15 +1215,8 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                               () => _isCompressingBatchInsideImage = false,
                             );
                             if (file != null) {
-                              debugPrint(
-                                'Bulk Image Upload: Mosque inside image picked successfully: $file',
-                              );
                               setSheetState(
                                 () => _batchMosqueInsideImage = file,
-                              );
-                            } else {
-                              debugPrint(
-                                'Bulk Image Upload: Mosque inside image picking cancelled',
                               );
                             }
                           },
@@ -1253,24 +1232,9 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                       child: ElevatedButton(
                         onPressed: canSave && !_isBatchUploading
                             ? () async {
-                                debugPrint(
-                                  'Bulk Image Upload: Upload button pressed',
-                                );
                                 setSheetState(() => _isBatchUploading = true);
                                 setState(() => _isBatchUploading = true);
                                 try {
-                                  debugPrint(
-                                    'Bulk Image Upload: Request started for Order ID: ${widget.item.id}',
-                                  );
-                                  debugPrint(
-                                    'Bulk Image Upload: Request SubOrder IDs: ${_selectedSubOrders.toList()}',
-                                  );
-                                  debugPrint(
-                                    'Bulk Image Upload: Request Mosque Front Image Path: $_batchMosqueFrontImage',
-                                  );
-                                  debugPrint(
-                                    'Bulk Image Upload: Request Mosque Inside Image Path: $_batchMosqueInsideImage',
-                                  );
                                   // Not used for Auto Delivery, handled by ProofSubmissionPage
                                   // await _api.bulkUploadMosqueImages(
                                   //   orderId: widget.item.id,
@@ -1304,9 +1268,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                                     });
                                     _fetchDetails();
                                   });
-                                  debugPrint(
-                                    'Bulk Image Upload: Response successful',
-                                  );
                                   if (context.mounted) {
                                     CustomSnackbar.show(
                                       context: context,
@@ -1323,9 +1284,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                                   });
                                   _fetchDetails();
                                 } catch (e) {
-                                  debugPrint(
-                                    'Bulk Image Upload: Error occurred: $e',
-                                  );
                                   if (context.mounted) {
                                     String errorMessage = AppLocalizations.of(
                                       context,
@@ -1335,9 +1293,6 @@ class _AutoDeliveryDetailsPageState extends State<AutoDeliveryDetailsPage>
                                         e.response?.data['message'] != null) {
                                       errorMessage =
                                           e.response!.data['message'];
-                                      debugPrint(
-                                        'Bulk Image Upload: API Error Response Message: $errorMessage',
-                                      );
                                     }
                                     CustomSnackbar.show(
                                       context: context,

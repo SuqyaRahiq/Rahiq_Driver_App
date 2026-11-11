@@ -397,7 +397,6 @@ class _OrdersPageState extends State<OrdersPage>
       });
     } catch (e) {
       // Nobody asked for this refresh, so a failure stays out of the way.
-      debugPrint('Orders refresh on push failed: $e');
     }
   }
 

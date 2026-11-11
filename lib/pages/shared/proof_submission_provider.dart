@@ -336,14 +336,8 @@ class ProofSubmissionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint("Checking Autodelivey or not");
       if (isAutoDelivery) {
         if (!canSubmit) throw Exception(missingSubmitReason);
-        debugPrint('[ProofSubmission] Submitting auto-delivery: $orderId');
-        debugPrint('[ProofSubmission] Mosque front: $_globalMosqueFrontImage');
-        debugPrint(
-          '[ProofSubmission] Mosque inside: $_globalMosqueInsideImage',
-        );
 
         // For auto-delivery, mosque front/inside may come from the shared
         // batch upload; packages/video are always picked per sub-order.
@@ -394,7 +388,6 @@ class ProofSubmissionProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('[ProofSubmission] Error submitting proofs: $e');
       _isSubmitting = false;
       notifyListeners();
       rethrow;

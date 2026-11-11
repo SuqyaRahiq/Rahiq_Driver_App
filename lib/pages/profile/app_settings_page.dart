@@ -316,14 +316,15 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
             String? fcmToken;
             try {
               fcmToken = await NotificationService().getToken();
-            } catch (e) {
-              debugPrint('Failed to get FCM token for locale update: $e');
+            } catch (_) {
+              // The locale is sent without an FCM token.
             }
             final api = DriverAuthApi(ApiClient());
             await api.updateLocale(localeCode, fcmToken: fcmToken);
           }
-        } catch (e) {
-          debugPrint('Failed to sync locale to backend: $e');
+        } catch (_) {
+          // The language is already saved on the phone; only the server's
+          // copy misses this change.
         }
 
         if (context.mounted) Navigator.pop(context);

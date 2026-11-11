@@ -19,7 +19,10 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.rahiq.driver"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_local_notifications 23 and permission_handler 13 compile against
+    // SDK 37, and plugins need the app to compile at or above their level.
+    // targetSdk is unaffected.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

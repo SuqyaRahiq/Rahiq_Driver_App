@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:freshchat_sdk/freshchat_sdk.dart';
 
@@ -391,10 +390,6 @@ class _ProfileTabState extends State<ProfileTab> with WidgetsBindingObserver {
                                     iconBadgeCount: unreadChats,
                                     onTap: () {
                                       _handleTap(context, () {
-                                        log(
-                                          "Attempting to open Freshchat conversations with tags: ${FreshchatService.supportTags} and title: 'Talk with Managers'",
-                                          name: "FreshchatService",
-                                        );
                                         FreshchatService.showConversations(
                                           context,
                                           tags: FreshchatService.supportTags,

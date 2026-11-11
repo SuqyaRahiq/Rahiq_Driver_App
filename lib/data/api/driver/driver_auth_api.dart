@@ -149,20 +149,4 @@ class DriverAuthApi {
       );
     }
   }
-
-  /// Save Freshchat Restore ID
-  Future<Response> saveFreshchatRestoreId(String restoreId) async {
-    try {
-      final response = await _apiClient.dio.post(
-        '/driver/auth/freshchat-restore-id',
-        data: {'restoreId': restoreId},
-      );
-      return response;
-    } on DioException catch (e) {
-      ApiClient.handleDioError(
-        e,
-        fallbackError: 'Failed to save freshchat restore ID',
-      );
-    }
-  }
 }

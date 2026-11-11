@@ -106,14 +106,13 @@ Future<void> _createBadgeFreeChannels() async {
     for (final String legacyId in _legacyChannelIds) {
       await android.deleteNotificationChannel(channelId: legacyId);
     }
-  } catch (e) {
-    debugPrint('Failed to reconcile notification channels: $e');
+  } catch (_) {
+    // Only the badge settings depend on these; push handling goes on.
   }
 }
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('Handling a background message: ${message.messageId}');
 
   // Freshchat pushes are data-only (no `notification` block), so they'd
   // otherwise be silently dropped by this app's own handler. Without this,
@@ -157,7 +156,7 @@ class NotificationService {
     if (_isInitialized) return;
 
     // Request permissions for iOS and Android 13+
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
+    await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
       badge: false,
@@ -166,7 +165,6 @@ class NotificationService {
       provisional: false,
       sound: true,
     );
-    debugPrint('User granted permission: ${settings.authorizationStatus}');
 
     // Register background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -205,8 +203,6 @@ class NotificationService {
 
     // Listen to foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      debugPrint('Got a message whilst in the foreground!');
-      debugPrint('Message data: ${message.data}');
 
       // Freshchat pushes are data-only (no `notification` block), so they'd
       // otherwise fall through untouched below. Forwarding them lets the SDK
@@ -223,16 +219,12 @@ class NotificationService {
       _appMessages.add(message);
 
       if (message.notification != null) {
-        debugPrint(
-          'Message also contained a notification: ${message.notification}',
-        );
         _showLocalNotification(message);
       }
     });
 
     // Handle messages when app is opened from background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      debugPrint('A new onMessageOpenedApp event was published!');
       if (await Freshchat.isFreshchatNotification(message.data)) {
         Freshchat.handlePushNotification(message.data);
         return;
@@ -273,8 +265,9 @@ class NotificationService {
             deviceId ?? "dummy_device_id",
             locale: localeCode,
           );
-        } catch (e) {
-          debugPrint('Failed to sync refreshed FCM token: $e');
+        } catch (_) {
+          // Best effort: the server keeps the previous token until a later
+          // sync succeeds.
         }
       }
     });
@@ -320,17 +313,16 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse response) {
     if (response.payload != null) {
-      debugPrint('Notification payload: ${response.payload}');
       try {
         final Map<String, dynamic> data = jsonDecode(response.payload!);
         _handleNotificationClick(data);
-      } catch (e) {
-        debugPrint('Error decoding notification payload: $e');
+      } catch (_) {
+        // A payload this app did not write is ignored.
       }
     }
   }
 
   void _handleNotificationClick(Map<String, dynamic> data) {
-    debugPrint('Handling notification click with data: $data');
+    // Tapping a notification only brings the app forward for now.
   }
 }

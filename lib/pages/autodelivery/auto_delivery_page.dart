@@ -95,8 +95,8 @@ class _AutoDeliveryPageState extends State<AutoDeliveryPage>
         _currentPage = pagesLoaded;
         _hasMore = hasMore;
       });
-    } catch (e) {
-      debugPrint('Auto delivery refresh on push failed: $e');
+    } catch (_) {
+      // Nobody asked for this refresh, so a failure stays out of the way.
     }
   }
 

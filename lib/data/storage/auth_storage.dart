@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:freshchat_sdk/freshchat_sdk.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rahiq_driver/data/models/driver/driver_profile.dart';
+import 'package:rahiq_driver/data/storage/hive_location.dart';
 import 'package:rahiq_driver/services/freshchat_service.dart';
 
 class AuthStorage {
@@ -18,7 +18,9 @@ class AuthStorage {
   static const String _chatNeedsWelcomeKey = 'chatNeedsWelcome';
 
   static Future<void> init() async {
-    await Hive.initFlutter();
+    // Out of Documents, which iOS can show in the Files app. See
+    // prepareHivePath.
+    Hive.init(await prepareHivePath([_boxName]));
     await Hive.openBox(_boxName);
   }
 
@@ -44,11 +46,14 @@ class AuthStorage {
     await _box.delete(_accessTokenKey);
     await _box.delete(_refreshTokenKey);
     await _box.delete(_userDataKey);
+    // The Freshchat token names this driver; left behind, the next driver to
+    // sign in on this phone would be restored into this driver's chat.
+    await _box.delete(_freshchatTokenKey);
 
     try {
       Freshchat.resetUser();
-    } catch (e) {
-      debugPrint('Failed to reset Freshchat user: $e');
+    } catch (_) {
+      // Nothing left to reset is not a failure.
     }
   }
 
@@ -82,11 +87,11 @@ class AuthStorage {
     await _box.put(_userDataKey, userData.toJson());
 
     // Deliberately not awaited. Callers await this method to know the profile
-    // is *persisted*; handing it to Freshchat is a side errand that must never
+    // is *persisted*; signing in to Freshchat is a side errand that must never
     // hold up what comes next — login used to sit on a spinner here, waiting
-    // on a chat SDK that had no answer to give. identifyUser swallows and
-    // logs its own failures.
-    unawaited(FreshchatService.identifyUser(userData));
+    // on a chat SDK that had no answer to give. authenticateUser swallows its
+    // own failures.
+    unawaited(FreshchatService.authenticateUser());
   }
 
   static DriverProfile? getUserData() {

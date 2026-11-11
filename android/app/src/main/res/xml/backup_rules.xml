@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and earlier. Same rule as data_extraction_rules.xml: the
+     session stays out of backups. -->
+<full-backup-content>
+    <exclude domain="file" path="authbox.hive" />
+    <exclude domain="file" path="authbox.lock" />
+</full-backup-content>

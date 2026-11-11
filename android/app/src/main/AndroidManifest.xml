@@ -10,7 +10,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules">
         <!-- taskAffinity must match the applicationId, not be empty. Freshchat's
              chat screens are native Activities declared in its own library
              manifest with no affinity of their own, so they inherit the default
